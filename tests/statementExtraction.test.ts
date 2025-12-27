@@ -9,11 +9,16 @@ describe("StatementExtractionService", () => {
         service = new StatementExtractionService();
     });
 
-    describe("ShouldExtractCorrectDataFromCsv", () => {
+    describe("CanExtractDataFromCSV", () => {
         it("should extract correct data from CSV file", async () => {
-            const result = await service.getInformationFromStatement(filePath);
+            const result = await service.getStatementData(filePath);
             expect(result).toBeDefined();
             expect(result.length).toBe(44);
+
+            //compile a list of transactions
+            const transactions = await service.compileTransactionList(result);
+            expect(transactions).toBeDefined();
+            expect(transactions.length).toBe(43); //Minus header row
         });
     });
 });

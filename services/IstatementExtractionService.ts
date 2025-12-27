@@ -1,6 +1,9 @@
+import { ITransaction } from "../models/ITransaction";
+
 export interface IStatementExtractionService {
-  getInformationFromStatement(): Promise<string[][]>;
+  getStatementData(): Promise<string[][]>;
   getCsvFile(): Promise<string>;
   extractCsvContents(filePath: string): Promise<string[][]>;
-  getInformationFromStatement(filePath?: string): Promise<string[][]>;
+  getStatementData(filePath?: string): Promise<string[][]>;
+  compileTransactionList(data: string[][]): Promise<ITransaction[]>
 }

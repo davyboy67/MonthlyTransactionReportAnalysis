@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import { utils } from "../utils/utils";
 import { IStatementExtractionService } from "./IstatementExtractionService";
+import { ITransaction } from "../models/ITransaction";
 
 export class StatementExtractionService implements IStatementExtractionService {
   StatementExtractionService() {
@@ -30,7 +31,7 @@ export class StatementExtractionService implements IStatementExtractionService {
     return data;
   }
 
-  async getInformationFromStatement(filePath?: string): Promise<string[][]> {
+  async getStatementData(filePath?: string): Promise<string[][]> {
     let csvPath: string;
     if (filePath) {
       csvPath = filePath;
@@ -41,5 +42,31 @@ export class StatementExtractionService implements IStatementExtractionService {
     const filteredData = utils.filterCsvData(csvData, 6);
 
     return filteredData;
+  }
+
+  async compileTransactionList(data: string[][]): Promise<ITransaction[]> {
+    if (data?.length < 1) {
+      return [];
+    }
+
+    let transactions: ITransaction[] = [];
+
+    data.slice(1).forEach(row => {
+      const date = new Date(row[0]);
+      date.setHours(0, 0, 0, 0);
+      
+      let transaction: ITransaction = {
+        month: date.toLocaleString('en-US', { month: 'short' }),
+        date: date,
+        description: row[3],
+        amount: parseFloat(row[1]),
+        //we'll derive category and merchant later
+        category: "",
+        merchant: "",
+      }
+      transactions.push(transaction);
+    })
+
+    return transactions;
   }
 }
