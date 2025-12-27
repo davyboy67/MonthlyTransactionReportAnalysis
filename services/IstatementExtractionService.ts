@@ -1,6 +1,6 @@
 export interface IStatementExtractionService {
-  getInformationFromStatement(): string[][];
-  getCsvFile(): string;
-  extractCsvContents(filePath: string): string[][];
-  getInformationFromStatement(): string[][];
+  getInformationFromStatement(): Promise<string[][]>;
+  getCsvFile(): Promise<string>;
+  extractCsvContents(filePath: string): Promise<string[][]>;
+  getInformationFromStatement(filePath?: string): Promise<string[][]>;
 }

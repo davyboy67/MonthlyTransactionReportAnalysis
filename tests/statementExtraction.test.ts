@@ -3,13 +3,17 @@ import { StatementExtractionService } from "../services/statementExtractionServi
 
 describe("StatementExtractionService", () => {
     let service: IStatementExtractionService;
+    let filePath = ".\\inputs\\DummyTestStatement.csv";
 
     beforeEach(() => {
         service = new StatementExtractionService();
     });
 
-    describe("ShouldExtractCsvContents", () => {
-        
+    describe("ShouldExtractCorrectDataFromCsv", () => {
+        it("should extract correct data from CSV file", async () => {
+            const result = await service.getInformationFromStatement(filePath);
+            expect(result).toBeDefined();
+            expect(result.length).toBe(44);
+        });
     });
-
 });
