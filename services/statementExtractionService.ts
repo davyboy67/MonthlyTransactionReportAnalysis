@@ -5,9 +5,6 @@ import { IStatementExtractionService } from "./IstatementExtractionService";
 import { ITransaction } from "../models/ITransaction";
 
 export class StatementExtractionService implements IStatementExtractionService {
-  StatementExtractionService() {
-
-  }
 
   async getCsvFile(): Promise<string> {
     const inputsDir =  path.join(__dirname, "../inputs");
