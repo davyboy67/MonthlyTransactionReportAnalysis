@@ -1,14 +1,17 @@
 import { IReportAnalysis, ITransactionSummaryItem } from "../models/IReportAnalysis";
 import { ITransaction } from "../models/ITransaction";
+import { IReportAnalysisRepo } from "../repository/IReportAnalysisRepo";
 import { ITransactionInfoHandler } from "../utils/ITransactionInfoHandler";
 import { TransactionInfoHandler } from "../utils/TransactionInfoHandler";
 import { IDataAnalysisService } from "./IDataAnalysisService";
 
 export class DataAnalysisService implements IDataAnalysisService {
   private readonly _transactionInfoHandler: ITransactionInfoHandler;
+  private readonly _reportAnalysisRepo: IReportAnalysisRepo;
 
-  constructor(transactionInfoHandler: ITransactionInfoHandler) {
+  constructor(transactionInfoHandler: ITransactionInfoHandler, reportAnalysisRepo: IReportAnalysisRepo) {
     this._transactionInfoHandler = transactionInfoHandler;
+    this._reportAnalysisRepo = reportAnalysisRepo;
   }
 
   private enhanceTransactionInfo(transactions: ITransaction[]): ITransaction[] {
@@ -61,16 +64,14 @@ export class DataAnalysisService implements IDataAnalysisService {
 
     return reportAnalysis;
   }
- 
-  analyseTransactions(transactions: ITransaction[]): IReportAnalysis {
+
+  async analyseTransactions(transactions: ITransaction[]): Promise<IReportAnalysis> {
     //first enhance each transaction with merchant and category info
     let enhancedTransactions = this.enhanceTransactionInfo(transactions);
 
-    //then analyse and derive insights
+    let reportAnalysis =this.createReportAnalysis(enhancedTransactions);
+    await this._reportAnalysisRepo.saveReportAnalysis(reportAnalysis);
 
-    //save transactions to db
-
-    //compile a report object
-    return this.createReportAnalysis(enhancedTransactions);
+    return reportAnalysis;
   }
 }

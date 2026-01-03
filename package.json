@@ -6,6 +6,11 @@
     "ts-jest": "^29.4.6"
   },
   "scripts": {
-  "test": "jest"
-}
+    "test": "jest"
+  },
+  "dependencies": {
+    "@types/dotenv": "^8.2.3",
+    "@types/pg": "^8.16.0",
+    "pg": "^8.16.3"
+  }
 }

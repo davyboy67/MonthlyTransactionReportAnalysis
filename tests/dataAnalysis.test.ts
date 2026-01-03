@@ -3,14 +3,19 @@ import { IDataAnalysisService } from "../services/IDataAnalysisService";
 import { ITransaction } from "../models/ITransaction";
 import { ITransactionInfoHandler } from "../utils/ITransactionInfoHandler";
 import { TransactionInfoHandler } from "../utils/TransactionInfoHandler";
+import { IReportAnalysis } from "../models/IReportAnalysis";
+import { IReportAnalysisRepo } from "../repository/IReportAnalysisRepo";
+import { ReportAnalysisRepo } from "../repository/reportAnalysisRepo";
 
 describe("CanCreateAnalysisFromData", () => {
 let dataAnalysisService: IDataAnalysisService;
 let transactionInfoHandler: ITransactionInfoHandler;
+let reportAnalysisRepo: IReportAnalysisRepo;
 
     beforeEach(() => {
         transactionInfoHandler = new TransactionInfoHandler();
-        dataAnalysisService = new DataAnalysisService(transactionInfoHandler);
+        reportAnalysisRepo = new ReportAnalysisRepo();
+        dataAnalysisService = new DataAnalysisService(transactionInfoHandler, reportAnalysisRepo);
     });
 
 
@@ -18,7 +23,7 @@ let transactionInfoHandler: ITransactionInfoHandler;
         
     });
 
-    it("should create a report analysis with 5 transactions", () => {
+    it("should create a report analysis with 5 transactions", async () => {
         // Sample transactions from TestStatement.csv
         const transactions: ITransaction[] = [
             {
@@ -79,7 +84,7 @@ let transactionInfoHandler: ITransactionInfoHandler;
             }
         ];
 
-        const report = dataAnalysisService.analyseTransactions(transactions);
+        const report = await dataAnalysisService.analyseTransactions(transactions);
 
         expect(report).toBeDefined();
         expect(report.date).toBeDefined();
