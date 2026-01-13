@@ -1,5 +1,13 @@
+# Node.js
 node_modules/
 dist/
 *.log
 .env
 .vscode/settings.json
+
+# .NET
+bin/
+obj/
+.vs/
+*.user
+*.suo
