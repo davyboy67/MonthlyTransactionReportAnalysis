@@ -3,19 +3,21 @@ import { IDataAnalysisService } from "../services/IDataAnalysisService";
 import { ITransaction } from "../models/ITransaction";
 import { ITransactionInfoHandler } from "../utils/ITransactionInfoHandler";
 import { TransactionInfoHandler } from "../utils/TransactionInfoHandler";
-import { IReportAnalysis } from "../models/IReportAnalysis";
-import { IReportAnalysisRepo } from "../repository/IReportAnalysisRepo";
-import { ReportAnalysisRepo } from "../repository/reportAnalysisRepo";
+import { apiClient } from "../services/apiClient";
+
+jest.mock("../services/apiClient", () => ({
+    apiClient: {
+      saveReportAnalysis: jest.fn(),
+    },
+  }));
 
 describe("CanCreateAnalysisFromData", () => {
 let dataAnalysisService: IDataAnalysisService;
 let transactionInfoHandler: ITransactionInfoHandler;
-let reportAnalysisRepo: IReportAnalysisRepo;
 
     beforeEach(() => {
         transactionInfoHandler = new TransactionInfoHandler();
-        reportAnalysisRepo = new ReportAnalysisRepo();
-        dataAnalysisService = new DataAnalysisService(transactionInfoHandler, reportAnalysisRepo);
+        dataAnalysisService = new DataAnalysisService(transactionInfoHandler);
     });
 
 
@@ -27,7 +29,7 @@ let reportAnalysisRepo: IReportAnalysisRepo;
         // Sample transactions from TestStatement.csv
         const transactions: ITransaction[] = [
             {
-                month: "Dec",
+                month: "1",
                 date: new Date("2025/12/24"),
                 description: "CAPITEC   K CAMANE",
                 amount: 740.00,
@@ -35,7 +37,7 @@ let reportAnalysisRepo: IReportAnalysisRepo;
                 merchant: ""
             },
             {
-                month: "Dec",
+                month: "2",
                 date: new Date("2025/12/23"),
                 description: "PURCH CheckersHyper Sandt 400738******0878",
                 amount: -491.53,
@@ -43,15 +45,15 @@ let reportAnalysisRepo: IReportAnalysisRepo;
                 merchant: ""
             },
             {
-                month: "Dec",
+                month: "3",
                 date: new Date("2025/12/23"),
-                description: "New Uber Eats       412752*0365  19 DEC",
+                description: "New Uber Eats 412752*0365  19 DEC",
                 amount: -279.00,
                 category: "",
                 merchant: ""
             },
             {
-                month: "Dec",
+                month: "4",
                 date: new Date("2025/12/22"),
                 description: "PURCH Takealot 400738******0878",
                 amount: -582.00,
@@ -59,7 +61,7 @@ let reportAnalysisRepo: IReportAnalysisRepo;
                 merchant: ""
             },
             {
-                month: "Dec",
+                month: "5",
                 date: new Date("2025/12/22"),
                 description: "PURCH CLICKS SANDTON CITY 400738******0878",
                 amount: -296.15,
@@ -67,7 +69,7 @@ let reportAnalysisRepo: IReportAnalysisRepo;
                 merchant: ""
             },
             {
-                month: "Dec",
+                month: "6",
                 date: new Date("2025/12/22"),
                 description: "PURCH Electricity 400738******0878",
                 amount: -300.00,
@@ -75,7 +77,7 @@ let reportAnalysisRepo: IReportAnalysisRepo;
                 merchant: ""
             },
             {
-                month: "Dec",
+                month: "7",
                 date: new Date("2025/12/20"),
                 description: "Unkown vendor 400738******0878",
                 amount: -100.00,
@@ -90,6 +92,7 @@ let reportAnalysisRepo: IReportAnalysisRepo;
         expect(report.date).toBeDefined();
         expect(report.totalIncome).toBe(740.00);
         expect(report.totalExpenses).toBe(-2048.68);
+        expect(apiClient.saveReportAnalysis).toHaveBeenCalledWith(report);
     });
 
 });

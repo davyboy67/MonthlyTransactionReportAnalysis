@@ -1,6 +1,7 @@
 ﻿using DashboardAPI.Controllers.TransportModels;
 using Npgsql;
 using System.Data.SqlClient;
+using System.Diagnostics;
 
 namespace DashboardAPI.Repositories
 {
@@ -104,9 +105,49 @@ namespace DashboardAPI.Repositories
             return categorySummary;
         }
 
-        public Task SaveDashboardDetails(ReportAnalysis reportAnalysis)
+        public async Task SaveDashboardDetails(ReportAnalysis reportAnalysis)
         {
-            throw new NotImplementedException();
+            try
+            {
+                await using var conn = _connectionFactory;
+                
+                var sw = Stopwatch.StartNew();
+                await conn.OpenAsync();
+
+                var sql = """INSERT INTO reportanalysis (report_date, total_income, total_expenses) VALUES (@date, @totalIncome, @totalExpenses) RETURNING id""";
+
+                await using var cmd = new NpgsqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("date", reportAnalysis.Date);
+                cmd.Parameters.AddWithValue("totalIncome", reportAnalysis.TotalIncome);
+                cmd.Parameters.AddWithValue("totalExpenses", reportAnalysis.TotalExpenses);
+
+                var reportId = (int)await cmd.ExecuteScalarAsync();
+                Console.WriteLine("Report saved to db");
+
+                var transactions = reportAnalysis.CategorySummaries.SelectMany(cs => cs.Transactions).ToList();
+
+                foreach (var transaction in transactions)
+                {
+                    //change to parameterized sql command
+                    var transactionSql = """INSERT INTO transaction (report_analysis_id, date, description, amount, category, merchant) VALUES (@reportId, @transactionDate, @transactionDescription, @transactionAmount, @transactionCategory, @transactionMerchant)""";
+                    await using var tranCmd = new NpgsqlCommand(transactionSql, conn);
+                    tranCmd.Parameters.AddWithValue("reportId", reportId);
+                    tranCmd.Parameters.AddWithValue("transactionDate", transaction.Date);
+                    tranCmd.Parameters.AddWithValue("transactionDescription", transaction.Description ?? "");
+                    tranCmd.Parameters.AddWithValue("transactionAmount", transaction.Amount);
+                    tranCmd.Parameters.AddWithValue("transactionCategory", transaction.Category ?? "");
+                    tranCmd.Parameters.AddWithValue("transactionMerchant", transaction.Merchant ?? "");
+                    await tranCmd.ExecuteNonQueryAsync();
+                }
+                sw.Stop();
+                Console.WriteLine($"Transactions saved to db in {sw.Elapsed}");
+
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                throw;
+            }
         }
     }
 }

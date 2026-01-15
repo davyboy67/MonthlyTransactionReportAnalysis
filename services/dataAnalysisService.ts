@@ -1,17 +1,14 @@
 import { IReportAnalysis, ITransactionSummaryItem } from "../models/IReportAnalysis";
 import { ITransaction } from "../models/ITransaction";
-import { IReportAnalysisRepo } from "../repository/IReportAnalysisRepo";
 import { ITransactionInfoHandler } from "../utils/ITransactionInfoHandler";
-import { TransactionInfoHandler } from "../utils/TransactionInfoHandler";
 import { IDataAnalysisService } from "./IDataAnalysisService";
+import { apiClient } from "./apiClient";
 
 export class DataAnalysisService implements IDataAnalysisService {
   private readonly _transactionInfoHandler: ITransactionInfoHandler;
-  private readonly _reportAnalysisRepo: IReportAnalysisRepo;
 
-  constructor(transactionInfoHandler: ITransactionInfoHandler, reportAnalysisRepo: IReportAnalysisRepo) {
+  constructor(transactionInfoHandler: ITransactionInfoHandler) {
     this._transactionInfoHandler = transactionInfoHandler;
-    this._reportAnalysisRepo = reportAnalysisRepo;
   }
 
   private enhanceTransactionInfo(transactions: ITransaction[]): ITransaction[] {
@@ -35,7 +32,7 @@ export class DataAnalysisService implements IDataAnalysisService {
 
   private createReportAnalysis(transactions: ITransaction[]): IReportAnalysis {
     let reportAnalysis = {} as IReportAnalysis;
-    reportAnalysis.categorySummary = [] as ITransactionSummaryItem[];
+    reportAnalysis.categorySummaries = [] as ITransactionSummaryItem[];
 
     reportAnalysis.date = new Date();
 
@@ -53,13 +50,13 @@ export class DataAnalysisService implements IDataAnalysisService {
       const categoryMerchants = categoryTransactions.map(t => t.merchant).filter(m => m !== undefined && m !== "") as string[];
       let summaryItem = {} as ITransactionSummaryItem;
 
-      summaryItem.category = category;
+      summaryItem.categoryName = category;
       if (categoryMerchants.length > 0) {
         summaryItem.merchants = categoryMerchants;
       }
       summaryItem.totalAmount = Math.round(categoryTransactions.reduce((sum, t) => sum + t.amount, 0) * 100) / 100;
       summaryItem.transactions = categoryTransactions;
-      reportAnalysis.categorySummary.push(summaryItem);
+      reportAnalysis.categorySummaries.push(summaryItem);
     }
 
     return reportAnalysis;
@@ -69,8 +66,8 @@ export class DataAnalysisService implements IDataAnalysisService {
     //first enhance each transaction with merchant and category info
     let enhancedTransactions = this.enhanceTransactionInfo(transactions);
 
-    let reportAnalysis =this.createReportAnalysis(enhancedTransactions);
-    await this._reportAnalysisRepo.saveReportAnalysis(reportAnalysis);
+    let reportAnalysis = this.createReportAnalysis(enhancedTransactions);
+    await apiClient.saveReportAnalysis(reportAnalysis);
 
     return reportAnalysis;
   }

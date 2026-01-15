@@ -27,19 +27,12 @@ namespace DashboardAPI.Controllers.v1
             return response;
         }
 
-        //[Route("api/v1/SaveReportInformation")]
-        //[HttpPost]
-        //public async Task SaveReportInformation(DashboardSaveInfoRequest request)
-        //{
-        //    var response = await _transactionService.RetrieveDashboardDetails(request.ReportAnalysis);
-
-        //}
-
-        //[Route("api/v1/trend")]
-        //public ActionResult PreviousMonthTrendetails(DateTime date, int? id)
-        //{
-        //    return View();
-        //}
+        [Route("api/v1/SaveReportInformation")]
+        [HttpPost]
+        public async Task SaveReportInformation([FromBody]  DashboardSaveInfoRequest request)
+        {
+            await _transactionService.SaveDashboardDetails(request.ReportAnalysis);
+        }
 
     }
 }

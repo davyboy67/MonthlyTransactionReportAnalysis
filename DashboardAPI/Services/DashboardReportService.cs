@@ -22,9 +22,9 @@ namespace DashboardAPI.Services
         }
 
 
-        public Task SaveDashboardDetails(DashboardDetailsResponse reportAnalysis)
+        public async Task SaveDashboardDetails(ReportAnalysis reportAnalysis)
         {
-            throw new NotImplementedException();
+            await _dashboardRepository.SaveDashboardDetails(reportAnalysis);
         }
     }
 }
