@@ -28,8 +28,8 @@ namespace DashboardAPI.Repositories
                 }
                 else
                 {
-                    var today = DateTime.Today;
-                    sql = $"SELECT * FROM reportanalysis WHERE reportdate = '{today}'";
+                    DateTime queryDate = date;
+                    sql = $"SELECT * FROM reportanalysis WHERE reportdate = '{queryDate}'";
                 }
 
                 using var cmd = new NpgsqlCommand(sql, conn);

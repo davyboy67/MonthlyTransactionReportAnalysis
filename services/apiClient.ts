@@ -1,12 +1,5 @@
 import axios from 'axios';
 import { IReportAnalysis, SaveReportAnalysisRequest } from '../models/IReportAnalysis';
-import https from 'https';
-import { report } from 'process';
-
-//TODO - NB! REMOVE CERTS
-const httpsAgent = new https.Agent({
-  rejectUnauthorized: false
-});
 
 const API_URL = 'https://localhost:7152/api/v1';
 
@@ -20,7 +13,7 @@ export const apiClient = {
       reportAnalysisReq.totalIncome = reportAnalysis.totalIncome;
       reportAnalysisReq.categorySummaries = reportAnalysis.categorySummaries;
       requestBody.reportAnalysis = reportAnalysis;
-      await axios.post(`${API_URL}/SaveReportInformation`, requestBody, { httpsAgent });
+      await axios.post(`${API_URL}/SaveReportInformation`, requestBody);
     } catch (error) {
       console.error('Error saving report analysis:', error);
       throw error;
@@ -32,7 +25,8 @@ export const apiClient = {
         Date: date,
         ID: id ? id : null
       }
-      await axios.post(`${API_URL}/RetrieveDashboardDetails`, requestBody);
+      const response = await axios.post(`${API_URL}/RetrieveDashboardDetails`, requestBody);
+      return response.data;
     } catch (error) {
       console.error('Error retrieving report analysis:', error);
       throw error;
