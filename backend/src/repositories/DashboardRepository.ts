@@ -46,7 +46,7 @@ export class DashboardRepository implements IDashboardRepository {
         Amount: Number(t.amount),
         Category: t.category,
         Merchant: t.merchant,
-        Month: t.date.getMonth().toString()
+        Month: (t.date.getMonth() + 1).toString() // JavaScript getMonth() returns 0-11, but we need 1-12
       }));
 
       // Compile category summaries
