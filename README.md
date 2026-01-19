@@ -223,10 +223,3 @@ This is a personal project. All rights reserved.
 ## Contact
 
 For questions or support, please open an issue on GitHub.
-
-## Acknowledgments
-
-- Prisma for excellent ORM tooling
-- Express.js for web framework
-- React team for frontend framework
-- Neon for PostgreSQL hosting
