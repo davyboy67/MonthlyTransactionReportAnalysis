@@ -1,7 +1,8 @@
 import axios from 'axios';
 import { IReportAnalysis, SaveReportAnalysisRequest } from '../models/IReportAnalysis';
 
-const API_URL = 'https://localhost:7152/api/v1';
+// Updated to point to Node.js backend
+const API_URL = 'http://localhost:3001/api/v1';
 
 export const apiClient = {
   saveReportAnalysis: async (reportAnalysis: IReportAnalysis) => {
