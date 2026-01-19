@@ -1,31 +1,48 @@
-import { PrismaClient } from '@prisma/client';
+import { DataSource, Repository } from 'typeorm';
 import { DashboardRepository } from '../backend/src/repositories/DashboardRepository';
 import { ReportAnalysis, Transaction } from '../backend/src/models/types';
+import { ReportAnalysis as ReportAnalysisEntity } from '../backend/src/entities/ReportAnalysis';
+import { Transaction as TransactionEntity } from '../backend/src/entities/Transaction';
 
-// Mock PrismaClient
-jest.mock('@prisma/client', () => {
-  const mockPrismaClient = {
-    reportAnalysis: {
-      findUnique: jest.fn(),
-      findFirst: jest.fn(),
-      create: jest.fn()
-    },
-    transaction: {
-      create: jest.fn()
-    }
-  };
+// Mock TypeORM
+jest.mock('typeorm', () => {
+  const actualTypeORM = jest.requireActual('typeorm');
   return {
-    PrismaClient: jest.fn(() => mockPrismaClient)
+    ...actualTypeORM,
+    DataSource: jest.fn().mockImplementation(() => ({
+      getRepository: jest.fn()
+    }))
   };
 });
 
 describe('DashboardRepository', () => {
   let repository: DashboardRepository;
-  let mockPrisma: any;
+  let mockDataSource: any;
+  let mockReportAnalysisRepo: any;
+  let mockTransactionRepo: any;
 
   beforeEach(() => {
-    mockPrisma = new PrismaClient();
-    repository = new DashboardRepository(mockPrisma);
+    mockReportAnalysisRepo = {
+      findOne: jest.fn(),
+      save: jest.fn()
+    };
+
+    mockTransactionRepo = {
+      save: jest.fn()
+    };
+
+    mockDataSource = {
+      getRepository: jest.fn((entity) => {
+        if (entity === ReportAnalysisEntity) {
+          return mockReportAnalysisRepo;
+        }
+        if (entity === TransactionEntity) {
+          return mockTransactionRepo;
+        }
+      })
+    };
+
+    repository = new DashboardRepository(mockDataSource);
     jest.clearAllMocks();
   });
 
@@ -49,7 +66,7 @@ describe('DashboardRepository', () => {
         ]
       };
 
-      mockPrisma.reportAnalysis.findUnique.mockResolvedValue(mockReport);
+      mockReportAnalysisRepo.findOne.mockResolvedValue(mockReport);
 
       const result = await repository.getDashboardDetails(new Date('2024-01-01'), 1);
 
@@ -57,9 +74,9 @@ describe('DashboardRepository', () => {
       expect(result?.TotalIncome).toBe(5000);
       expect(result?.TotalExpenses).toBe(3000);
       expect(result?.CategorySummaries).toHaveLength(1);
-      expect(mockPrisma.reportAnalysis.findUnique).toHaveBeenCalledWith({
+      expect(mockReportAnalysisRepo.findOne).toHaveBeenCalledWith({
         where: { id: 1 },
-        include: { transactions: true }
+        relations: ['transactions']
       });
     });
 
@@ -72,16 +89,16 @@ describe('DashboardRepository', () => {
         transactions: []
       };
 
-      mockPrisma.reportAnalysis.findFirst.mockResolvedValue(mockReport);
+      mockReportAnalysisRepo.findOne.mockResolvedValue(mockReport);
 
       const result = await repository.getDashboardDetails(new Date('2024-01-01'));
 
       expect(result).not.toBeNull();
-      expect(mockPrisma.reportAnalysis.findFirst).toHaveBeenCalled();
+      expect(mockReportAnalysisRepo.findOne).toHaveBeenCalled();
     });
 
     it('should return null when no report is found', async () => {
-      mockPrisma.reportAnalysis.findUnique.mockResolvedValue(null);
+      mockReportAnalysisRepo.findOne.mockResolvedValue(null);
 
       const result = await repository.getDashboardDetails(new Date('2024-01-01'), 1);
 
@@ -120,13 +137,13 @@ describe('DashboardRepository', () => {
         total_expenses: 3000
       };
 
-      mockPrisma.reportAnalysis.create.mockResolvedValue(mockCreatedReport);
-      mockPrisma.transaction.create.mockResolvedValue({});
+      mockReportAnalysisRepo.save.mockResolvedValue(mockCreatedReport);
+      mockTransactionRepo.save.mockResolvedValue({});
 
       await repository.saveDashboardDetails(reportAnalysis);
 
-      expect(mockPrisma.reportAnalysis.create).toHaveBeenCalledTimes(1);
-      expect(mockPrisma.transaction.create).toHaveBeenCalledTimes(1);
+      expect(mockReportAnalysisRepo.save).toHaveBeenCalledTimes(1);
+      expect(mockTransactionRepo.save).toHaveBeenCalledTimes(1);
     });
   });
 });
