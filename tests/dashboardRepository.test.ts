@@ -4,7 +4,6 @@ import { ReportAnalysis, Transaction } from '../backend/src/models/types';
 import { ReportAnalysis as ReportAnalysisEntity } from '../backend/src/entities/ReportAnalysis';
 import { Transaction as TransactionEntity } from '../backend/src/entities/Transaction';
 
-// Mock TypeORM
 jest.mock('typeorm', () => {
   const actualTypeORM = jest.requireActual('typeorm');
   return {

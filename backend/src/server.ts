@@ -48,7 +48,6 @@ AppDataSource.initialize()
       console.log(`Health check available at http://localhost:${port}/health`);
     });
 
-    // Graceful shutdown
     const shutdown = async () => {
       console.log('Shutting down gracefully...');
       await AppDataSource.destroy();
