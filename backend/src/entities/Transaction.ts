@@ -1,5 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { ReportAnalysis } from './ReportAnalysis';
+import { User } from './User';
 
 @Entity('transaction')
 export class Transaction {
@@ -8,6 +9,9 @@ export class Transaction {
 
   @Column()
   report_analysis_id!: number;
+
+  @Column()
+  user_id!: number;
 
   @Column({ type: 'date' })
   date!: Date;
@@ -27,4 +31,8 @@ export class Transaction {
   @ManyToOne(() => ReportAnalysis, reportAnalysis => reportAnalysis.transactions)
   @JoinColumn({ name: 'report_analysis_id' })
   reportAnalysis!: ReportAnalysis;
+
+  @ManyToOne(() => User, user => user.transactions)
+  @JoinColumn({ name: 'user_id' })
+  user!: User;
 }
