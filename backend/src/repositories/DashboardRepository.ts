@@ -107,7 +107,6 @@ export class DashboardRepository implements IDashboardRepository {
       const reportDate = new Date(reportAnalysis.Date);
       reportDate.setHours(0, 0, 0, 0); // Normalize to start of day
 
-      // Insert the report analysis with user_id = 1
       const report = await this.reportAnalysisRepository.save({
         user_id: 1, // Always use user_id = 1 as there is only one user
         report_date: reportDate,
