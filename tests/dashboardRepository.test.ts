@@ -24,6 +24,7 @@ describe('DashboardRepository', () => {
   beforeEach(() => {
     mockReportAnalysisRepo = {
       findOne: jest.fn(),
+      find: jest.fn(),
       save: jest.fn()
     };
 
@@ -89,12 +90,12 @@ describe('DashboardRepository', () => {
         transactions: []
       };
 
-      mockReportAnalysisRepo.findOne.mockResolvedValue(mockReport);
+      mockReportAnalysisRepo.find.mockResolvedValue([mockReport]);
 
       const result = await repository.getDashboardDetails(new Date('2024-01-01'));
 
       expect(result).not.toBeNull();
-      expect(mockReportAnalysisRepo.findOne).toHaveBeenCalled();
+      expect(mockReportAnalysisRepo.find).toHaveBeenCalled();
     });
 
     it('should return null when no report is found', async () => {

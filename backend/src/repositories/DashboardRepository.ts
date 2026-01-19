@@ -31,12 +31,18 @@ export class DashboardRepository implements IDashboardRepository {
         const queryDate = new Date(date);
         queryDate.setHours(0, 0, 0, 0); // Normalize to start of day
         
-        report = await this.reportAnalysisRepository.findOne({
+        const reports = await this.reportAnalysisRepository.find({
           where: { 
             report_date: queryDate
           },
-          relations: ['transactions']
+          relations: ['transactions'],
+          order: {
+            id: 'ASC'
+          },
+          take: 1
         });
+        
+        report = reports.length > 0 ? reports[0] : null;
       }
 
       if (!report) {
