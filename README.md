@@ -16,7 +16,7 @@ This application provides:
 ### Backend
 - **Node.js** with **TypeScript**
 - **Express.js** - REST API framework
-- **Prisma ORM** - Database toolkit for PostgreSQL
+- **TypeORM** - TypeScript ORM for PostgreSQL
 - **PostgreSQL** (Neon) - Database
 
 ### Frontend
@@ -49,7 +49,6 @@ This application provides:
 ├── models/               # TypeScript interfaces
 ├── utils/                # Utility functions
 ├── tests/                # Test suites
-├── prisma/               # Database schema and migrations
 └── inputs/               # CSV input files
 ```
 
@@ -78,11 +77,6 @@ This application provides:
    ```bash
    cp .env.example .env
    # Edit .env and add your database connection string
-   ```
-
-4. **Generate Prisma Client**
-   ```bash
-   npm run prisma:generate
    ```
 
 ### Running the Application
@@ -167,8 +161,8 @@ See [backend/README.md](backend/README.md) for detailed API documentation.
 ## Configuration Files
 
 - `.env` - Environment variables (DATABASE_URL, PORT)
-- `prisma/schema.prisma` - Database schema definition
-- `prisma.config.ts` - Prisma configuration
+- `backend/src/entities/` - TypeORM entity definitions
+- `backend/src/database/dataSource.ts` - TypeORM configuration
 - `tsconfig.json` - TypeScript configuration
 - `jest.config.js` - Test configuration
 
@@ -198,10 +192,10 @@ This project was recently migrated from a dual-backend architecture (.NET + Node
 - Ensure database is accessible from your network
 - Check that required tables exist
 
-### Prisma Issues
-- Regenerate client: `npm run prisma:generate`
-- Check schema: `npx prisma validate`
-- View database: `npx prisma studio`
+### TypeORM Issues
+- Check entities: Verify entity decorators in `backend/src/entities/`
+- Run migrations: `npx typeorm migration:run`
+- Check connection: Verify `DATABASE_URL` in `.env`
 
 ### Port Conflicts
 - Change `PORT` in `.env` file

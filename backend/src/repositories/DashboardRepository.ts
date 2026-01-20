@@ -56,7 +56,7 @@ export class DashboardRepository implements IDashboardRepository {
         Amount: Number(t.amount),
         Category: t.category,
         Merchant: t.merchant,
-        Month: (t.date.getMonth() + 1).toString() // JavaScript getMonth() returns 0-11, but we need 1-12
+        Month: (new Date(t.date).getMonth() + 1).toString() // Convert to Date first
       }));
 
       // Compile category summaries
@@ -103,12 +103,11 @@ export class DashboardRepository implements IDashboardRepository {
     try {
       const startTime = Date.now();
 
-      // Parse the date to ensure it's a Date object
       const reportDate = new Date(reportAnalysis.Date);
-      reportDate.setHours(0, 0, 0, 0); // Normalize to start of day
+      reportDate.setHours(0, 0, 0, 0);
 
       const report = await this.reportAnalysisRepository.save({
-        user_id: 1, // Always use user_id = 1 as there is only one user
+        user_id: 1, // Only 1 user for now
         report_date: reportDate,
         total_income: reportAnalysis.TotalIncome,
         total_expenses: reportAnalysis.TotalExpenses
@@ -116,7 +115,6 @@ export class DashboardRepository implements IDashboardRepository {
 
       console.log('Report saved to db');
 
-      // Get all transactions from category summaries
       const transactions = reportAnalysis.CategorySummaries.flatMap(cs => cs.Transactions);
 
       // Insert all transactions
@@ -126,7 +124,7 @@ export class DashboardRepository implements IDashboardRepository {
 
         await this.transactionRepository.save({
           report_analysis_id: report.id,
-          user_id: 1, // Always use user_id = 1 as there is only one user
+          user_id: 1, // Only 1 user for now
           date: transactionDate,
           description: transaction.Description || '',
           amount: transaction.Amount,

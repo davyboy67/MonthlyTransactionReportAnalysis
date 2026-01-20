@@ -6,7 +6,7 @@ This is the Node.js/TypeScript backend API for the Monthly Transaction Report An
 
 - **Node.js** with **TypeScript**
 - **Express.js** - Web framework
-- **Prisma ORM** - Database toolkit for PostgreSQL
+- **TypeORM** - TypeScript ORM for PostgreSQL
 - **PostgreSQL** - Database (hosted on Neon)
 - **Jest** - Testing framework
 
@@ -30,18 +30,13 @@ This is the Node.js/TypeScript backend API for the Monthly Transaction Report An
      DATABASE_URL="postgresql://user:password@host/database?sslmode=require"
      ```
 
-3. **Generate Prisma Client**:
-   ```bash
-   npm run prisma:generate
-   ```
-
-4. **Database Schema**:
+3. **Database Schema**:
    The application expects the following tables in your PostgreSQL database:
    
    - `reportanalysis` - Stores report summaries
    - `transaction` - Stores individual transactions
    
-   See `prisma/schema.prisma` for the complete schema definition.
+   See entity definitions in `backend/src/entities/` for the complete schema.
 
 ## Running the Backend
 
@@ -137,9 +132,9 @@ The backend is configured to allow all origins for development. Update the CORS 
 
 ## Database Connection
 
-The application uses Prisma ORM to interact with PostgreSQL. Connection configuration is managed through:
-- `prisma/schema.prisma` - Database schema definition
-- `prisma.config.ts` - Prisma configuration
+The application uses TypeORM to interact with PostgreSQL. Connection configuration is managed through:
+- `backend/src/entities/` - Entity definitions
+- `backend/src/database/dataSource.ts` - TypeORM DataSource configuration
 - `.env` - Database connection string
 
 ## Migration from .NET API
@@ -167,14 +162,15 @@ PORT=3001
 
 ## Troubleshooting
 
-### "PrismaClient is unable to run in this browser environment"
-- Make sure you're running the backend with Node.js, not in a browser
-- Regenerate Prisma client: `npm run prisma:generate`
-
-### Connection errors
-- Verify your `DATABASE_URL` is correct
+### TypeORM connection errors
+- Verify your `DATABASE_URL` is correct in `.env`
 - Ensure your database is accessible from your network
 - Check that the database tables exist
+- Verify entity decorators are properly configured in `backend/src/entities/`
+
+### Entity synchronization issues
+- Check `synchronize` setting in `backend/src/database/dataSource.ts`
+- Run migrations if needed: `npx typeorm migration:run`
 
 ### TypeScript compilation errors
 - Run `npm run backend:build` to see detailed errors
