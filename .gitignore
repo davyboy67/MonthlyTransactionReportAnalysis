@@ -9,9 +9,6 @@ dist/
 # Backend build artifacts
 backend/dist/
 
-# Prisma
-/generated/prisma
-
 # .NET
 bin/
 obj/

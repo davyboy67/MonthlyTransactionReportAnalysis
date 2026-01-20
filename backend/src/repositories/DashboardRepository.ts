@@ -1,4 +1,6 @@
-import { PrismaClient } from '@prisma/client';
+import { Repository, DataSource } from 'typeorm';
+import { ReportAnalysis as ReportAnalysisEntity } from '../entities/ReportAnalysis';
+import { Transaction as TransactionEntity } from '../entities/Transaction';
 import { ReportAnalysis, CategorySummary, Transaction } from '../models/types';
 
 export interface IDashboardRepository {
@@ -7,10 +9,12 @@ export interface IDashboardRepository {
 }
 
 export class DashboardRepository implements IDashboardRepository {
-  private prisma: PrismaClient;
+  private reportAnalysisRepository: Repository<ReportAnalysisEntity>;
+  private transactionRepository: Repository<TransactionEntity>;
 
-  constructor(prisma: PrismaClient) {
-    this.prisma = prisma;
+  constructor(dataSource: DataSource) {
+    this.reportAnalysisRepository = dataSource.getRepository(ReportAnalysisEntity);
+    this.transactionRepository = dataSource.getRepository(TransactionEntity);
   }
 
   async getDashboardDetails(date: Date, id?: number | null): Promise<ReportAnalysis | null> {
@@ -18,21 +22,27 @@ export class DashboardRepository implements IDashboardRepository {
       let report;
 
       if (id != null) {
-        report = await this.prisma.reportAnalysis.findUnique({
+        report = await this.reportAnalysisRepository.findOne({
           where: { id },
-          include: { transactions: true }
+          relations: ['transactions']
         });
       } else {
         // Query by date
         const queryDate = new Date(date);
         queryDate.setHours(0, 0, 0, 0); // Normalize to start of day
         
-        report = await this.prisma.reportAnalysis.findFirst({
+        const reports = await this.reportAnalysisRepository.find({
           where: { 
             report_date: queryDate
           },
-          include: { transactions: true }
+          relations: ['transactions'],
+          order: {
+            id: 'ASC'
+          },
+          take: 1
         });
+        
+        report = reports.length > 0 ? reports[0] : null;
       }
 
       if (!report) {
@@ -97,13 +107,11 @@ export class DashboardRepository implements IDashboardRepository {
       const reportDate = new Date(reportAnalysis.Date);
       reportDate.setHours(0, 0, 0, 0); // Normalize to start of day
 
-      // Insert the report analysis
-      const report = await this.prisma.reportAnalysis.create({
-        data: {
-          report_date: reportDate,
-          total_income: reportAnalysis.TotalIncome,
-          total_expenses: reportAnalysis.TotalExpenses
-        }
+      const report = await this.reportAnalysisRepository.save({
+        user_id: 1, // Always use user_id = 1 as there is only one user
+        report_date: reportDate,
+        total_income: reportAnalysis.TotalIncome,
+        total_expenses: reportAnalysis.TotalExpenses
       });
 
       console.log('Report saved to db');
@@ -116,15 +124,14 @@ export class DashboardRepository implements IDashboardRepository {
         const transactionDate = new Date(transaction.Date);
         transactionDate.setHours(0, 0, 0, 0);
 
-        await this.prisma.transaction.create({
-          data: {
-            report_analysis_id: report.id,
-            date: transactionDate,
-            description: transaction.Description || '',
-            amount: transaction.Amount,
-            category: transaction.Category || '',
-            merchant: transaction.Merchant || ''
-          }
+        await this.transactionRepository.save({
+          report_analysis_id: report.id,
+          user_id: 1, // Always use user_id = 1 as there is only one user
+          date: transactionDate,
+          description: transaction.Description || '',
+          amount: transaction.Amount,
+          category: transaction.Category || '',
+          merchant: transaction.Merchant || ''
         });
       }
 
