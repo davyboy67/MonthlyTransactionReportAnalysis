@@ -24,7 +24,10 @@ AppDataSource.initialize()
 
     // Initialize dependencies
     const dashboardRepository = new DashboardRepository(AppDataSource);
-    const dashboardService = new DashboardService(dashboardRepository);
+    const statementExtractionService = new (require('../../../services/statementExtractionService').StatementExtractionService)();
+    const transactionInfoHandler = new (require('../../../utils/TransactionInfoHandler').TransactionInfoHandler)();
+    const dataAnalysisService = new (require('../../../services/dataAnalysisService').DataAnalysisService)(transactionInfoHandler);
+    const dashboardService = new DashboardService(dashboardRepository, statementExtractionService, dataAnalysisService);
     const dashboardRouter = createDashboardRouter(dashboardService);
 
     app.use('/api/v1', dashboardRouter);

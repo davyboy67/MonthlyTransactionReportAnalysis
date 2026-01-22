@@ -6,15 +6,15 @@ export interface SaveReportAnalysisRequest {
 }
 
 export interface IReportAnalysis {
-  date: Date;
-  totalIncome: number;
-  totalExpenses: number;
-  categorySummaries: ITransactionSummaryItem[];
+  Date: Date;
+  TotalIncome: number;
+  TotalExpenses: number;
+  CategorySummaries: ITransactionSummaryItem[];
 }
 
 export interface ITransactionSummaryItem {
-    categoryName: string;
-    merchants?: string[];
-    totalAmount: number;
-    transactions: ITransaction[];
+    CategoryName: string;
+    Merchants?: string[];
+    TotalAmount: number;
+    Transactions: ITransaction[];
 }

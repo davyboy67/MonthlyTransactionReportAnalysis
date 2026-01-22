@@ -32,15 +32,15 @@ export class DataAnalysisService implements IDataAnalysisService {
 
   private createReportAnalysis(transactions: ITransaction[]): IReportAnalysis {
     let reportAnalysis = {} as IReportAnalysis;
-    reportAnalysis.categorySummaries = [] as ITransactionSummaryItem[];
+    reportAnalysis.CategorySummaries = [] as ITransactionSummaryItem[];
 
-    reportAnalysis.date = new Date();
+    reportAnalysis.Date = new Date();
 
     const totalIncome = transactions.filter(t => t.amount > 0).reduce((sum, t) => sum + t.amount, 0)
     const totalExpenses = transactions.filter(t => t.amount < 0).reduce((sum, t) => sum + t.amount, 0)
 
-    reportAnalysis.totalExpenses = Math.round(totalExpenses * 100) / 100;
-    reportAnalysis.totalIncome = Math.round(totalIncome * 100) / 100;
+    reportAnalysis.TotalExpenses = Math.round(totalExpenses * 100) / 100;
+    reportAnalysis.TotalIncome = Math.round(totalIncome * 100) / 100;
 
     let ReportCategoryList = [...new Set(transactions.map(t => t.category))];
 
@@ -50,13 +50,13 @@ export class DataAnalysisService implements IDataAnalysisService {
       const categoryMerchants = categoryTransactions.map(t => t.merchant).filter(m => m !== undefined && m !== "") as string[];
       let summaryItem = {} as ITransactionSummaryItem;
 
-      summaryItem.categoryName = category;
+      summaryItem.CategoryName = category;
       if (categoryMerchants.length > 0) {
-        summaryItem.merchants = categoryMerchants;
+        summaryItem.Merchants = categoryMerchants;
       }
-      summaryItem.totalAmount = Math.round(categoryTransactions.reduce((sum, t) => sum + t.amount, 0) * 100) / 100;
-      summaryItem.transactions = categoryTransactions;
-      reportAnalysis.categorySummaries.push(summaryItem);
+      summaryItem.TotalAmount = Math.round(categoryTransactions.reduce((sum, t) => sum + t.amount, 0) * 100) / 100;
+      summaryItem.Transactions = categoryTransactions;
+      reportAnalysis.CategorySummaries.push(summaryItem);
     }
 
     return reportAnalysis;

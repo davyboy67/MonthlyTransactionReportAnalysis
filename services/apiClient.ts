@@ -9,11 +9,11 @@ export const apiClient = {
     try {
       let requestBody = {} as SaveReportAnalysisRequest;
       let reportAnalysisReq = {} as IReportAnalysis;
-      reportAnalysisReq.date = reportAnalysis.date;
-      reportAnalysisReq.totalExpenses = reportAnalysis.totalExpenses;
-      reportAnalysisReq.totalIncome = reportAnalysis.totalIncome;
-      reportAnalysisReq.categorySummaries = reportAnalysis.categorySummaries;
-      requestBody.reportAnalysis = reportAnalysis;
+      reportAnalysisReq.Date = reportAnalysis.Date;
+      reportAnalysisReq.TotalExpenses = reportAnalysis.TotalExpenses;
+      reportAnalysisReq.TotalIncome = reportAnalysis.TotalIncome;
+      reportAnalysisReq.CategorySummaries = reportAnalysis.CategorySummaries;
+      requestBody.reportAnalysis = reportAnalysisReq;
       await axios.post(`${API_URL}/SaveReportInformation`, requestBody);
     } catch (error) {
       console.error('Error saving report analysis:', error);
@@ -30,6 +30,22 @@ export const apiClient = {
       return response.data;
     } catch (error) {
       console.error('Error retrieving report analysis:', error);
+      throw error;
+    }
+  },
+  processStatementFile: async (file: File) => {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const response = await axios.post(`${API_URL}/ProcessStatementFile`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error processing statement file:', error);
       throw error;
     }
   }

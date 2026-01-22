@@ -89,9 +89,9 @@ let transactionInfoHandler: ITransactionInfoHandler;
         const report = await dataAnalysisService.analyseTransactions(transactions);
 
         expect(report).toBeDefined();
-        expect(report.date).toBeDefined();
-        expect(report.totalIncome).toBe(740.00);
-        expect(report.totalExpenses).toBe(-2048.68);
+        expect(report.Date).toBeDefined();
+        expect(report.TotalIncome).toBe(740.00);
+        expect(report.TotalExpenses).toBe(-2048.68);
         expect(apiClient.saveReportAnalysis).toHaveBeenCalledWith(report);
     });
 

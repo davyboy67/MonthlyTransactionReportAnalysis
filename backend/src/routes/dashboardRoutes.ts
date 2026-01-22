@@ -1,6 +1,9 @@
 import { Router, Request, Response } from 'express';
+import multer from 'multer';
 import { IDashboardService } from '../services/DashboardService';
 import { DashboardDetailsRequest, DashboardSaveInfoRequest } from '../models/types';
+
+const upload = multer({ storage: multer.memoryStorage() });
 
 export function createDashboardRouter(dashboardService: IDashboardService): Router {
   const router = Router();
@@ -31,6 +34,22 @@ export function createDashboardRouter(dashboardService: IDashboardService): Rout
       res.status(200).send();
     } catch (error) {
       console.error('Error saving report information:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
+  // POST /api/v1/ProcessStatementFile
+  router.post('/ProcessStatementFile', upload.single('file'), async (req: Request, res: Response) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'No file uploaded' });
+      }
+
+      const reportAnalysis = await dashboardService.processStatementFile(req.file.buffer);
+      
+      res.json({ ReportAnalysis: reportAnalysis });
+    } catch (error) {
+      console.error('Error processing statement file:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
   });

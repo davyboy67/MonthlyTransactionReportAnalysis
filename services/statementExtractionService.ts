@@ -4,9 +4,16 @@ import { utils } from "../utils/utils";
 import { IStatementExtractionService } from "./IstatementExtractionService";
 import { ITransaction } from "../models/ITransaction";
 
+
+export type StatementDataObject = {
+  filePath: string;
+  fileBuffer: Buffer;
+};
 export class StatementExtractionService implements IStatementExtractionService {
 
-  async getCsvFile(): Promise<string> {
+  statementObject?: StatementDataObject;
+
+  private async getCsvFile(): Promise<string> {
     const inputsDir =  path.join(__dirname, "../inputs");
     const files = await fs.readdirSync(inputsDir);
     const csvFile = files.find((file) => file.endsWith(".csv"));
@@ -18,8 +25,16 @@ export class StatementExtractionService implements IStatementExtractionService {
     return path.join(inputsDir, csvFile);
   }
 
-  async extractCsvContents(filePath: string): Promise<string[][]> {
-    const fileContent = await fs.readFileSync(filePath, "utf-8");
+  async extractCsvContents(filePath: string, fileBuffer?: Buffer): Promise<string[][]> {
+    let fileContent = "";
+
+    if (fileBuffer) {
+      fileContent = fileBuffer.toString("utf-8");
+    }
+    else {
+        fileContent = await fs.readFileSync(filePath, "utf-8");
+    }
+    
     const lines = fileContent.trim().split("\n");
     const data = lines.map((line) =>
       line.split(",").map((cell) => cell.trim())
@@ -28,14 +43,13 @@ export class StatementExtractionService implements IStatementExtractionService {
     return data;
   }
 
-  async getStatementData(filePath?: string): Promise<string[][]> {
-    let csvPath: string;
-    if (filePath) {
-      csvPath = filePath;
-    } else {
-      csvPath = await this.getCsvFile();
+  async getStatementData(object: StatementDataObject): Promise<string[][]> {
+    let csvData: string[][] = [];
+    if (object?.filePath) {
+      csvData = await this.extractCsvContents(object.filePath);
+    } else if (object?.fileBuffer) {
+      csvData = await this.extractCsvContents("", object.fileBuffer);
     }
-    const csvData = await this.extractCsvContents(csvPath);
     const filteredData = utils.filterCsvData(csvData, 6);
 
     return filteredData;

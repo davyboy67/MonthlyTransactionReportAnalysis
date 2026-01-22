@@ -114,12 +114,14 @@ namespace DashboardAPI.Repositories
                 var sw = Stopwatch.StartNew();
                 await conn.OpenAsync();
 
-                var sql = """INSERT INTO reportanalysis (report_date, total_income, total_expenses) VALUES (@date, @totalIncome, @totalExpenses) RETURNING id""";
+                var sql = """INSERT INTO reportanalysis (report_date, total_income, total_expenses, user_id) VALUES (@date, @totalIncome, @totalExpenses, @userID) RETURNING id""";
 
                 await using var cmd = new NpgsqlCommand(sql, conn);
                 cmd.Parameters.AddWithValue("date", reportAnalysis.Date);
                 cmd.Parameters.AddWithValue("totalIncome", reportAnalysis.TotalIncome);
                 cmd.Parameters.AddWithValue("totalExpenses", reportAnalysis.TotalExpenses);
+                //an enhancement will need to be made once there is more than one user
+                cmd.Parameters.AddWithValue("userID", 1);
 
                 var reportId = (int)await cmd.ExecuteScalarAsync();
                 Console.WriteLine("Report saved to db");
@@ -129,7 +131,7 @@ namespace DashboardAPI.Repositories
                 foreach (var transaction in transactions)
                 {
                     //change to parameterized sql command
-                    var transactionSql = """INSERT INTO transaction (report_analysis_id, date, description, amount, category, merchant) VALUES (@reportId, @transactionDate, @transactionDescription, @transactionAmount, @transactionCategory, @transactionMerchant)""";
+                    var transactionSql = """INSERT INTO transaction (report_analysis_id, date, description, amount, category, merchant, user_id) VALUES (@reportId, @transactionDate, @transactionDescription, @transactionAmount, @transactionCategory, @transactionMerchant, @userID)""";
                     await using var tranCmd = new NpgsqlCommand(transactionSql, conn);
                     tranCmd.Parameters.AddWithValue("reportId", reportId);
                     tranCmd.Parameters.AddWithValue("transactionDate", transaction.Date);
@@ -137,6 +139,8 @@ namespace DashboardAPI.Repositories
                     tranCmd.Parameters.AddWithValue("transactionAmount", transaction.Amount);
                     tranCmd.Parameters.AddWithValue("transactionCategory", transaction.Category ?? "");
                     tranCmd.Parameters.AddWithValue("transactionMerchant", transaction.Merchant ?? "");
+                    //an enhancement will need to be made once there is more than one user
+                    tranCmd.Parameters.AddWithValue("userID", 1);
                     await tranCmd.ExecuteNonQueryAsync();
                 }
                 sw.Stop();

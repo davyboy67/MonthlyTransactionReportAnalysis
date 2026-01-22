@@ -1,17 +1,32 @@
 import { DashboardService } from '../backend/src/services/DashboardService';
 import { IDashboardRepository } from '../backend/src/repositories/DashboardRepository';
 import { ReportAnalysis } from '../backend/src/models/types';
+import { StatementExtractionService } from '../services/statementExtractionService';
+import { IStatementExtractionService } from '../services/IstatementExtractionService';
+import { IDataAnalysisService } from '../services/IDataAnalysisService';
 
 describe('DashboardService', () => {
   let service: DashboardService;
   let mockRepository: jest.Mocked<IDashboardRepository>;
+  let mockstatementExtractionService: jest.Mocked<IStatementExtractionService>
+  let mockdataAnalysisService: jest.Mocked<IDataAnalysisService>;
 
   beforeEach(() => {
     mockRepository = {
       getDashboardDetails: jest.fn(),
       saveDashboardDetails: jest.fn()
     };
-    service = new DashboardService(mockRepository);
+
+    mockstatementExtractionService = {
+      compileTransactionList: jest.fn(),
+      getStatementData: jest.fn(),
+      extractCsvContents: jest.fn(),
+    };
+
+    mockdataAnalysisService = {
+      analyseTransactions: jest.fn(),
+    };
+    service = new DashboardService(mockRepository, mockstatementExtractionService, mockdataAnalysisService);
   });
 
   describe('retrieveDashboardDetails', () => {

@@ -11,7 +11,8 @@ describe('Dashboard API Routes', () => {
   beforeEach(() => {
     mockService = {
       retrieveDashboardDetails: jest.fn(),
-      saveDashboardDetails: jest.fn()
+      saveDashboardDetails: jest.fn(),
+      processStatementFile: jest.fn()
     };
 
     app = express();
