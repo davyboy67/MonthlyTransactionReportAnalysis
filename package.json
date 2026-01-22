@@ -1,4 +1,22 @@
 {
+  "name": "transaction-report-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "test": "jest",
+    "backend:dev": "npm run dev --workspace=@transaction-report/backend",
+    "backend:build": "npm run build --workspace=@transaction-report/backend",
+    "backend:start": "npm run start --workspace=@transaction-report/backend",
+    "frontend:dev": "npm run dev --workspace=@transaction-report/frontend",
+    "frontend:build": "npm run build --workspace=@transaction-report/frontend",
+    "frontend:preview": "npm run preview --workspace=@transaction-report/frontend",
+    "shared:build": "npm run build --workspace=@transaction-report/shared",
+    "build:all": "npm run shared:build && npm run backend:build && npm run frontend:build",
+    "dev": "npm run shared:build && npm run backend:dev & npm run frontend:dev"
+  },
   "devDependencies": {
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
@@ -10,12 +28,6 @@
     "ts-jest": "^29.4.6",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
-  },
-  "scripts": {
-    "test": "jest",
-    "backend:dev": "ts-node backend/src/server.ts",
-    "backend:build": "tsc -p backend/tsconfig.json",
-    "backend:start": "node backend/dist/server.js"
   },
   "dependencies": {
     "@types/axios": "^0.14.4",

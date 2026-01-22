@@ -1,0 +1,21 @@
+{
+  "name": "@transaction-report/shared",
+  "version": "1.0.0",
+  "description": "Shared models, services, and utilities for transaction report analysis",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist"
+  },
+  "keywords": ["transaction", "report", "shared"],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@types/node": "^25.0.9",
+    "axios": "^1.13.2"
+  }
+}

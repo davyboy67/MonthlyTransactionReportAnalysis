@@ -1,9 +1,6 @@
 import { IDashboardRepository } from '../repositories/DashboardRepository';
 import { ReportAnalysis, DashboardDetailsResponse, Transaction } from '../models/types';
-import { StatementDataObject } from '../../../services/statementExtractionService';
-import { IStatementExtractionService } from '../../../services/IstatementExtractionService';
-import { IDataAnalysisService } from '../../../services/IDataAnalysisService';
-import { ITransaction } from '../../../models/ITransaction';
+import { StatementDataObject, IStatementExtractionService, IDataAnalysisService, ITransaction } from '@transaction-report/shared';
 
 export interface IDashboardService {
   retrieveDashboardDetails(date: Date, id?: number | null): Promise<DashboardDetailsResponse>;

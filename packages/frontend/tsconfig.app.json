@@ -16,6 +16,13 @@
     "noEmit": true,
     "jsx": "react-jsx",
 
+    /* Path aliases */
+    "baseUrl": ".",
+    "paths": {
+      "@shared/*": ["../shared/src/*"],
+      "@transaction-report/shared": ["../shared/src"]
+    },
+
     /* Linting */
     "strict": true,
     "noUnusedLocals": true,

@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
-import { apiClient } from "../../../../../services/apiClient";
+import { apiClient, IReportAnalysis } from "@transaction-report/shared";
 import type { ICategorySummary, IMonthlySummary } from "../../types";
 import { CategorySummary } from "../organisms/categorySummary";
 import { MonthlyOverview } from "../organisms/monthlyOverview";
-import type { IReportAnalysis } from "../../../../../models/IReportAnalysis";
 import { FileUpload } from "../molecules/fileUpload";
 
 interface DashboardDetailsResponse {

@@ -6,6 +6,7 @@ import { AppDataSource } from './database/dataSource';
 import { DashboardRepository } from './repositories/DashboardRepository';
 import { DashboardService } from './services/DashboardService';
 import { createDashboardRouter } from './routes/dashboardRoutes';
+import { StatementExtractionService, TransactionInfoHandler, DataAnalysisService } from '@transaction-report/shared';
 
 const app: Application = express();
 const port = process.env.PORT || 3001;
@@ -24,9 +25,9 @@ AppDataSource.initialize()
 
     // Initialize dependencies
     const dashboardRepository = new DashboardRepository(AppDataSource);
-    const statementExtractionService = new (require('../../../services/statementExtractionService').StatementExtractionService)();
-    const transactionInfoHandler = new (require('../../../utils/TransactionInfoHandler').TransactionInfoHandler)();
-    const dataAnalysisService = new (require('../../../services/dataAnalysisService').DataAnalysisService)(transactionInfoHandler);
+    const statementExtractionService = new StatementExtractionService();
+    const transactionInfoHandler = new TransactionInfoHandler();
+    const dataAnalysisService = new DataAnalysisService(transactionInfoHandler);
     const dashboardService = new DashboardService(dashboardRepository, statementExtractionService, dataAnalysisService);
     const dashboardRouter = createDashboardRouter(dashboardService);
 
