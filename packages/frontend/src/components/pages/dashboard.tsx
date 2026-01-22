@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { apiClient, IReportAnalysis } from "@transaction-report/shared";
+import { apiClient } from "@transaction-report/shared";
+import type { IReportAnalysis } from "@transaction-report/shared";
 import type { ICategorySummary, IMonthlySummary } from "../../types";
 import { CategorySummary } from "../organisms/categorySummary";
 import { MonthlyOverview } from "../organisms/monthlyOverview";

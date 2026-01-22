@@ -13,7 +13,7 @@ describe("StatementExtractionService", () => {
     describe("CanExtractDataFromCSV", () => {
         it("should extract correct data from CSV file using file path", async () => {
             let statementDataObject = {} as StatementDataObject;
-            statementDataObject.filePath = ".\\inputs\\DummyTestStatement.csv";
+            statementDataObject.filePath = "./inputs/DummyTestStatement.csv";
             const result = await service.getStatementData(statementDataObject);
             expect(result).toBeDefined();
             expect(result.length).toBe(44);
@@ -25,7 +25,7 @@ describe("StatementExtractionService", () => {
         });
 
         it("should extract correct data from CSV file using file buffer", async () => {
-            const fileBuffer = fs.readFileSync(".\\inputs\\DummyTestStatement.csv");
+            const fileBuffer = fs.readFileSync("./inputs/DummyTestStatement.csv");
             let statementDataObject = {} as StatementDataObject;
             statementDataObject.fileBuffer = fileBuffer;
             

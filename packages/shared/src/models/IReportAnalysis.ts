@@ -1,5 +1,4 @@
-import { get } from "http";
-import { ITransaction } from "./ITransaction";
+import type { ITransaction } from "./ITransaction";
 
 export interface SaveReportAnalysisRequest {
   reportAnalysis: IReportAnalysis;

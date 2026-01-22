@@ -7,8 +7,7 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      '@shared': path.resolve(__dirname, '../shared/src'),
-      '@transaction-report/shared': path.resolve(__dirname, '../shared/src')
+      '@transaction-report/shared': path.resolve(__dirname, '../shared/dist/esm')
     }
   }
 })
