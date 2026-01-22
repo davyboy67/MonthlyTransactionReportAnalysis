@@ -16,3 +16,9 @@ obj/
 *.user
 *.suo
 
+
+# Build outputs
+packages/*/dist/
+packages/backend/dist/
+packages/frontend/dist/
+packages/shared/dist/

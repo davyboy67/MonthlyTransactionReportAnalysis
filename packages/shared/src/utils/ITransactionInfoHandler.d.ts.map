@@ -1,1 +1,0 @@
-{"version":3,"file":"ITransactionInfoHandler.d.ts","sourceRoot":"","sources":["ITransactionInfoHandler.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,YAAY,EAAE,MAAM,wBAAwB,CAAC;AAEtD,MAAM,WAAW,uBAAuB;IACpC,eAAe,CAAC,WAAW,EAAE,MAAM,GAAG,MAAM,GAAG,SAAS,CAAC;IACzD,eAAe,CAAC,WAAW,EAAE,YAAY,GAAG,MAAM,CAAA;CACrD"}
