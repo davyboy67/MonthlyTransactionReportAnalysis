@@ -22,7 +22,6 @@ export function Dashboard() {
         if (!response?.ReportAnalysis) {
           throw new Error("No report analysis data received");
         }
-        console.log("Fetched report analysis>>:", response);
         setReportAnalysis(response.ReportAnalysis);
       } catch (err) {
         setError("Failed to fetch report analysis");
@@ -39,14 +38,12 @@ export function Dashboard() {
       setLoading(true);
       setError(null);
       
-      // Process the uploaded file
       const response: DashboardDetailsResponse = await apiClient.processStatementFile(file);
       
       if (!response?.ReportAnalysis) {
         throw new Error('Failed to process file');
       }
       
-      // Update the state with the new report analysis
       setReportAnalysis(response.ReportAnalysis);
     } catch (error) {
       console.error('Error processing file:', error);
@@ -76,10 +73,6 @@ export function Dashboard() {
     totalIncome: reportAnalysis.TotalIncome,
     totalExpenses: reportAnalysis.TotalExpenses,
   };
-
-  console.log(">>Report Analysis Keys:", Object.keys(reportAnalysis));
-console.log(">>Report Analysis:", reportAnalysis);
-console.log(">>Monthly Summary:", monthlySummary);
 
   const categorySummaries: ICategorySummary[] = reportAnalysis.CategorySummaries?.map(summary => ({
     name: summary.CategoryName,
