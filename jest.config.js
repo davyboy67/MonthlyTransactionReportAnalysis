@@ -1,7 +1,7 @@
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
-  testMatch: ['**/*.test.ts', '**/*.spec.ts'],
+  testMatch: ['**/__tests__/**/*.test.ts', '**/*.spec.ts'],
   moduleFileExtensions: ['ts', 'js'],
   transform: {
     '^.+\\.ts$': ['ts-jest', {
@@ -10,5 +10,9 @@ module.exports = {
         emitDecoratorMetadata: true
       }
     }]
+  },
+  moduleNameMapper: {
+    '^@transaction-report/shared$': '<rootDir>/packages/shared/src/index.ts',
+    '^@shared/(.*)$': '<rootDir>/packages/shared/src/$1'
   }
 };
