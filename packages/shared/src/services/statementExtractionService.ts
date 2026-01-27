@@ -67,13 +67,13 @@ export class StatementExtractionService implements IStatementExtractionService {
       date.setHours(0, 0, 0, 0);
       
       let transaction: ITransaction = {
-        month: date.toLocaleString('en-US', { month: 'short' }),
-        date: date,
-        description: row[3],
-        amount: parseFloat(row[1]),
+        Month: date.toLocaleString('en-US', { month: 'short' }),
+        Date: date,
+        Description: row[3],
+        Amount: parseFloat(row[1]),
         //we'll derive category and merchant later
-        category: "",
-        merchant: "",
+        Category: "",
+        Merchant: "",
       }
       transactions.push(transaction);
     })
