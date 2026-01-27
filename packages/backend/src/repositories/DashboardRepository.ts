@@ -117,12 +117,11 @@ export class DashboardRepository implements IDashboardRepository {
 
       const transactions = reportAnalysis.CategorySummaries.flatMap(cs => cs.Transactions);
 
-      // Insert all transactions
-      for (const transaction of transactions) {
+      const transactionRecords = transactions.map(transaction => {
         const transactionDate = new Date(transaction.Date);
         transactionDate.setHours(0, 0, 0, 0);
 
-        await this.transactionRepository.save({
+        return {
           report_analysis_id: report.id,
           user_id: 1, // Only 1 user for now
           date: transactionDate,
@@ -130,7 +129,12 @@ export class DashboardRepository implements IDashboardRepository {
           amount: transaction.Amount,
           category: transaction.Category || '',
           merchant: transaction.Merchant || ''
-        });
+        };
+      });
+
+      if (transactionRecords.length > 0) {
+        await this.transactionRepository.save(transactionRecords);
+        console.log(`All ${transactions.length} transactions saved to db`);
       }
 
       const elapsed = Date.now() - startTime;

@@ -13,7 +13,7 @@ export const apiClient = {
       reportAnalysisReq.TotalExpenses = reportAnalysis.TotalExpenses;
       reportAnalysisReq.TotalIncome = reportAnalysis.TotalIncome;
       reportAnalysisReq.CategorySummaries = reportAnalysis.CategorySummaries;
-      requestBody.reportAnalysis = reportAnalysisReq;
+      requestBody.ReportAnalysis = reportAnalysisReq;
       await axios.post(`${API_URL}/SaveReportInformation`, requestBody);
     } catch (error) {
       console.error('Error saving report analysis:', error);

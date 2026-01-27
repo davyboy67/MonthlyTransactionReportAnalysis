@@ -1,7 +1,7 @@
 import type { ITransaction } from "./ITransaction";
 
 export interface SaveReportAnalysisRequest {
-  reportAnalysis: IReportAnalysis;
+  ReportAnalysis: IReportAnalysis;
 }
 
 export interface IReportAnalysis {

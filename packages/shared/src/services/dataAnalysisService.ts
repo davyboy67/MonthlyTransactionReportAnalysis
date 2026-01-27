@@ -13,18 +13,18 @@ export class DataAnalysisService implements IDataAnalysisService {
 
   private enhanceTransactionInfo(transactions: ITransaction[]): ITransaction[] {
     transactions.forEach((transaction) => {
-      const merchant = this._transactionInfoHandler.resolveMerchant(transaction.description);
+      const merchant = this._transactionInfoHandler.resolveMerchant(transaction.Description);
       //first populate with merchant info
       if (merchant) {
-        transaction.merchant = merchant;
+        transaction.Merchant = merchant;
       }
 
       //then enhance with category info
       const category = this._transactionInfoHandler.resolveCategory(transaction);
       if (!category) {
-        throw new Error(`Could not resolve category for transaction: ${transaction.description}`);
+        throw new Error(`Could not resolve category for transaction: ${transaction.Description}`);
       }
-      transaction.category = category;
+      transaction.Category = category;
     });
 
     return transactions;
@@ -36,25 +36,25 @@ export class DataAnalysisService implements IDataAnalysisService {
 
     reportAnalysis.Date = new Date();
 
-    const totalIncome = transactions.filter(t => t.amount > 0).reduce((sum, t) => sum + t.amount, 0)
-    const totalExpenses = transactions.filter(t => t.amount < 0).reduce((sum, t) => sum + t.amount, 0)
+    const totalIncome = transactions.filter(t => t.Amount > 0).reduce((sum, t) => sum + t.Amount, 0)
+    const totalExpenses = transactions.filter(t => t.Amount < 0).reduce((sum, t) => sum + t.Amount, 0)
 
     reportAnalysis.TotalExpenses = Math.round(totalExpenses * 100) / 100;
     reportAnalysis.TotalIncome = Math.round(totalIncome * 100) / 100;
 
-    let ReportCategoryList = [...new Set(transactions.map(t => t.category))];
+    let ReportCategoryList = [...new Set(transactions.map(t => t.Category))];
 
 
     for (const category of ReportCategoryList) {
-      const categoryTransactions = transactions.filter(t => t.category === category);
-      const categoryMerchants = categoryTransactions.map(t => t.merchant).filter(m => m !== undefined && m !== "") as string[];
+      const categoryTransactions = transactions.filter(t => t.Category === category);
+      const categoryMerchants = categoryTransactions.map(t => t.Merchant).filter(m => m !== undefined && m !== "") as string[];
       let summaryItem = {} as ITransactionSummaryItem;
 
       summaryItem.CategoryName = category;
       if (categoryMerchants.length > 0) {
         summaryItem.Merchants = categoryMerchants;
       }
-      summaryItem.TotalAmount = Math.round(categoryTransactions.reduce((sum, t) => sum + t.amount, 0) * 100) / 100;
+      summaryItem.TotalAmount = Math.round(categoryTransactions.reduce((sum, t) => sum + t.Amount, 0) * 100) / 100;
       summaryItem.Transactions = categoryTransactions;
       reportAnalysis.CategorySummaries.push(summaryItem);
     }

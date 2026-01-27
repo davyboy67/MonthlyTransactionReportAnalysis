@@ -59,12 +59,12 @@ export class DashboardService implements IDashboardService {
         Merchants: summary.Merchants,
         TotalAmount: summary.TotalAmount,
         Transactions: summary.Transactions.map(t => ({
-          Date: t.date,
-          Description: t.description,
-          Amount: t.amount,
-          Category: t.category,
-          Merchant: t.merchant || '',
-          Month: t.month
+          Date: t.Date,
+          Description: t.Description,
+          Amount: t.Amount,
+          Category: t.Category,
+          Merchant: t.Merchant || '',
+          Month: t.Month
         }))
       }))
     };
