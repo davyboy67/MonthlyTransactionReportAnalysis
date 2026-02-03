@@ -17,7 +17,7 @@ export class DashboardRepository implements IDashboardRepository {
     this.transactionRepository = dataSource.getRepository(TransactionEntity);
   }
 
-  async getDashboardDetails(date: Date, id?: number | null): Promise<ReportAnalysis | null> {
+  async getDashboardDetails(date?: Date, id?: number | null): Promise<ReportAnalysis | null> {
     try {
       let report;
 
@@ -26,7 +26,8 @@ export class DashboardRepository implements IDashboardRepository {
           where: { id },
           relations: ['transactions']
         });
-      } else {
+      } 
+      else if (date != null) {
         // Query by date
         const queryDate = new Date(date);
         queryDate.setHours(0, 0, 0, 0); // Normalize to start of day
@@ -38,6 +39,17 @@ export class DashboardRepository implements IDashboardRepository {
           relations: ['transactions'],
           order: {
             id: 'ASC'
+          },
+          take: 1
+        });
+        
+        report = reports.length > 0 ? reports[0] : null;
+      }
+      else {
+          const reports = await this.reportAnalysisRepository.find({
+          relations: ['transactions'],
+          order: {
+            report_date: 'DESC'
           },
           take: 1
         });

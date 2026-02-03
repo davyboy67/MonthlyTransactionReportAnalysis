@@ -63,7 +63,7 @@ describe('Dashboard API Routes', () => {
   describe('POST /api/v1/SaveReportInformation', () => {
     it('should save report information', async () => {
       const mockReport: ReportAnalysis = {
-        Date: '2024-01-01',
+        Date: new Date('2024-01-01'),
         TotalIncome: 5000,
         TotalExpenses: 3000,
         CategorySummaries: []

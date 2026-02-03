@@ -1,0 +1,30 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "type": "npm",
+            "script": "build:all",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [],
+            "label": "npm: build:all",
+            "detail": "npm run shared:build && npm run backend:build && npm run frontend:build"
+        },
+        {
+            "type": "npm",
+            "script": "dev",
+            "group": {
+                "kind": "build"
+            },
+            "problemMatcher": [],
+            "label": "npm: dev (watch)",
+            "detail": "Runs shared build once, then starts backend/frontend in watch mode",
+            "isBackground": true,
+            "runOptions": {
+                "runOn": "default"
+            }
+        }
+    ]
+}

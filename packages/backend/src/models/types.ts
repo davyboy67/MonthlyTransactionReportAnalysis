@@ -1,7 +1,7 @@
 // API Request/Response Types matching the C# TransportModels
 
 export interface DashboardDetailsRequest {
-  Date: Date | string;
+  Date: Date;
   id?: number | null;
 }
 
@@ -14,7 +14,7 @@ export interface DashboardDetailsResponse {
 }
 
 export interface ReportAnalysis {
-  Date: Date | string;
+  Date: Date;
   TotalIncome: number;
   TotalExpenses: number;
   CategorySummaries: CategorySummary[];
@@ -29,7 +29,7 @@ export interface CategorySummary {
 
 export interface Transaction {
   Month: string;
-  Date: Date | string;
+  Date: Date;
   Description?: string;
   Amount: number;
   Category?: string;

@@ -1,9 +1,9 @@
 import { IDashboardRepository } from '../repositories/DashboardRepository';
-import { ReportAnalysis, DashboardDetailsResponse, Transaction } from '../models/types';
+import { ReportAnalysis, DashboardDetailsResponse } from '../models/types';
 import { StatementDataObject, IStatementExtractionService, IDataAnalysisService, ITransaction } from '@transaction-report/shared';
 
 export interface IDashboardService {
-  retrieveDashboardDetails(date: Date, id?: number | null): Promise<DashboardDetailsResponse>;
+  retrieveDashboardDetails(date?: Date, id?: number | null): Promise<DashboardDetailsResponse>;
   saveDashboardDetails(reportAnalysis: ReportAnalysis): Promise<void>;
   processStatementFile(fileBuffer: Buffer): Promise<ReportAnalysis>;
 }
@@ -36,20 +36,16 @@ export class DashboardService implements IDashboardService {
   }
 
   async processStatementFile(fileBuffer: Buffer): Promise<ReportAnalysis> {
-    // Extract statement data from buffer
     const statementObject: StatementDataObject = {
       filePath: '',
       fileBuffer: fileBuffer
     };
     const csvData = await this.statementExtractionService.getStatementData(statementObject);
 
-    // Compile transactions list
     const transactions: ITransaction[] = await this.statementExtractionService.compileTransactionList(csvData);
 
-    // Analyze transactions (this also saves via apiClient)
     const reportAnalysisFromService = await this.dataAnalysisService.analyseTransactions(transactions);
 
-    // Convert to backend format
     const reportAnalysis: ReportAnalysis = {
       Date: reportAnalysisFromService.Date,
       TotalIncome: reportAnalysisFromService.TotalIncome,

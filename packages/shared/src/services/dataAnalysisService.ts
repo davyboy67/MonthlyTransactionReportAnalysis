@@ -63,10 +63,28 @@ export class DataAnalysisService implements IDataAnalysisService {
   }
 
   async analyseTransactions(transactions: ITransaction[]): Promise<IReportAnalysis> {
-    //first enhance each transaction with merchant and category info
-    let enhancedTransactions = this.enhanceTransactionInfo(transactions);
+    //filter relevant transactions then enhance each transaction with merchant and category info
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth();
+    
+    let startDate = new Date(currentYear, currentMonth -1, 26);
+    const endDate = new Date(currentYear, currentMonth, 25, 23, 59, 59);
+    
+    //people usually get paid early in December
+    if (startDate.getMonth() == 11) {
+      startDate = new Date(currentYear, currentMonth -1, 13);
+    }
 
+    //we only are interested in the transactions for the month of the report, prevents db duplicates as well
+    const transactionsInRange = transactions.filter(t => {
+      const transactionDate = new Date(t.Date);
+      return transactionDate >= startDate && transactionDate <= endDate;
+    });
+
+    let enhancedTransactions = this.enhanceTransactionInfo(transactionsInRange);
     let reportAnalysis = this.createReportAnalysis(enhancedTransactions);
+
     await apiClient.saveReportAnalysis(reportAnalysis);
 
     return reportAnalysis;

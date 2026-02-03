@@ -20,7 +20,7 @@ export const apiClient = {
       throw error;
     }
   },
-  RetrieveReportAnalysis: async (date: Date, id?: number) => {
+  RetrieveReportAnalysis: async (date?: Date, id?: number) => {
     try {
       const requestBody = {
         Date: date,

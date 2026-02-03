@@ -22,7 +22,10 @@ This application provides:
 ### Frontend
 - **React** with **TypeScript**
 - **Vite** - Build tool
-- Dashboard visualizations
+- **Recharts** - Dashboard visualizations
+
+### Shared
+- **TypeScript** - Shared interfaces and services
 
 ### Testing
 - **Jest** - Unit testing framework
@@ -32,24 +35,19 @@ This application provides:
 
 ```
 .
-├── backend/              # Node.js/Express API server
-│   ├── src/
-│   │   ├── controllers/
-│   │   ├── services/
-│   │   ├── repositories/
-│   │   ├── routes/
-│   │   ├── models/
-│   │   └── server.ts
-│   └── README.md
-├── dashboard/            # React frontend application
-├── services/             # Transaction processing services
-│   ├── statementExtractionService.ts
-│   ├── dataAnalysisService.ts
-│   └── apiClient.ts
-├── models/               # TypeScript interfaces
-├── utils/                # Utility functions
-├── tests/                # Test suites
-└── inputs/               # CSV input files
+├── packages/
+│   ├── backend/              # Node.js/Express API server
+│   │   ├── src/
+│   │   ├── __tests__/
+│   │   └── package.json
+│   ├── frontend/             # React frontend application
+│   │   ├── src/
+│   │   └── package.json
+│   └── shared/               # Shared code (interfaces, services)
+│       ├── src/
+│       └── __tests__/
+├── package.json
+└── README.md
 ```
 
 ## Getting Started
@@ -81,7 +79,17 @@ This application provides:
 
 ### Running the Application
 
-#### Backend API Server
+#### Development Mode (All packages)
+```bash
+# Run backend, frontend, and shared packages concurrently
+npm run dev
+```
+
+#### Individual Packages
+
+<details>
+<summary>Backend API Server</summary>
+
 ```bash
 # Development mode
 npm run backend:dev
@@ -90,28 +98,30 @@ npm run backend:dev
 npm run backend:build
 npm run backend:start
 ```
-
 The API server will start on `http://localhost:3001` (or the PORT specified in `.env`).
 
-#### Frontend Dashboard
+</details>
+
+<details>
+<summary>Frontend Dashboard</summary>
+
 ```bash
-cd dashboard/dashboard
-npm install
-npm run dev
+# Development mode
+npm run frontend:dev
 ```
+
+</details>
+
 
 ### Running Tests
 ```bash
 # Run all tests
 npm test
-
-# Run backend tests only
-npm test -- dashboardRepository.test.ts dashboardService.test.ts dashboardRoutes.test.ts
 ```
 
 ## API Documentation
 
-See [backend/README.md](backend/README.md) for detailed API documentation.
+See [packages/backend/README.md](packages/backend/README.md) for detailed API documentation.
 
 ### Available Endpoints
 
@@ -161,18 +171,18 @@ See [backend/README.md](backend/README.md) for detailed API documentation.
 ## Configuration Files
 
 - `.env` - Environment variables (DATABASE_URL, PORT)
-- `backend/src/entities/` - TypeORM entity definitions
-- `backend/src/database/dataSource.ts` - TypeORM configuration
+- `packages/backend/src/entities/` - TypeORM entity definitions
+- `packages/backend/src/database/dataSource.ts` - TypeORM configuration
 - `tsconfig.json` - TypeScript configuration
 - `jest.config.js` - Test configuration
 
 ## Development
 
 ### Adding New Categories
-Edit `categoryList.json` to add new transaction categories.
+Edit `packages/backend/categoryList.json` to add new transaction categories.
 
 ### Adding Merchant Mappings
-Edit `merchantCategoryMapping.json` to map merchants to categories.
+Edit `packages/backend/merchantCategoryMapping.json` to map merchants to categories.
 
 ### Running Linters
 Currently, no linter is configured. To add ESLint:
@@ -180,10 +190,6 @@ Currently, no linter is configured. To add ESLint:
 npm install -D eslint @typescript-eslint/parser @typescript-eslint/eslint-plugin
 npx eslint --init
 ```
-
-## Migration Notes
-
-This project was recently migrated from a dual-backend architecture (.NET + Node.js) to a unified Node.js backend. See [MIGRATION.md](MIGRATION.md) for details.
 
 ## Troubleshooting
 
@@ -193,7 +199,7 @@ This project was recently migrated from a dual-backend architecture (.NET + Node
 - Check that required tables exist
 
 ### TypeORM Issues
-- Check entities: Verify entity decorators in `backend/src/entities/`
+- Check entities: Verify entity decorators in `packages/backend/src/entities/`
 - Run migrations: `npx typeorm migration:run`
 - Check connection: Verify `DATABASE_URL` in `.env`
 
