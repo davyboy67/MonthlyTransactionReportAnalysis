@@ -25,6 +25,27 @@
             "runOptions": {
                 "runOn": "default"
             }
+        },
+        {
+            "label": "Attach to Backend",
+            "type": "process",
+            "command": "echo 'Attaching to backend...'",
+            "presentation": {
+                "echo": true,
+                "reveal": "silent",
+                "focus": false,
+                "panel": "shared"
+            },
+            "dependsOn": [
+                {
+                    "type": "npm",
+                    "script": "backend:dev",
+                    "problemMatcher": []
+                }
+            ],
+            "runOptions": {
+                "runOn": "folderOpen"
+            }
         }
     ]
 }

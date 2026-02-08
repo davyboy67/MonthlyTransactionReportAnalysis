@@ -1,5 +1,5 @@
-import { IReportAnalysis, ITransactionSummaryItem } from "../models/IReportAnalysis";
-import { ITransaction } from "../models/ITransaction";
+import { IReportAnalysis, ICategorySummary } from "../models/IReportAnalysis";
+import { ITransaction, TransactionType } from "../models/ITransaction";
 import { ITransactionInfoHandler } from "../utils/ITransactionInfoHandler";
 import { IDataAnalysisService } from "./IDataAnalysisService";
 import { apiClient } from "./apiClient";
@@ -25,6 +25,9 @@ export class DataAnalysisService implements IDataAnalysisService {
         throw new Error(`Could not resolve category for transaction: ${transaction.Description}`);
       }
       transaction.Category = category;
+
+      transaction.Type = transaction.Amount >= 0 ? TransactionType.Income : TransactionType.Expense;
+      transaction.Amount = Math.abs(transaction.Amount);
     });
 
     return transactions;
@@ -32,12 +35,12 @@ export class DataAnalysisService implements IDataAnalysisService {
 
   private createReportAnalysis(transactions: ITransaction[]): IReportAnalysis {
     let reportAnalysis = {} as IReportAnalysis;
-    reportAnalysis.CategorySummaries = [] as ITransactionSummaryItem[];
+    reportAnalysis.CategorySummaries = [] as ICategorySummary[];
 
     reportAnalysis.Date = new Date();
 
-    const totalIncome = transactions.filter(t => t.Amount > 0).reduce((sum, t) => sum + t.Amount, 0)
-    const totalExpenses = transactions.filter(t => t.Amount < 0).reduce((sum, t) => sum + t.Amount, 0)
+    const totalIncome = transactions.filter(t => t.Type === TransactionType.Income).reduce((sum, t) => sum + t.Amount, 0)
+    const totalExpenses = transactions.filter(t => t.Type === TransactionType.Expense).reduce((sum, t) => sum + t.Amount, 0)
 
     reportAnalysis.TotalExpenses = Math.round(totalExpenses * 100) / 100;
     reportAnalysis.TotalIncome = Math.round(totalIncome * 100) / 100;
@@ -48,7 +51,7 @@ export class DataAnalysisService implements IDataAnalysisService {
     for (const category of ReportCategoryList) {
       const categoryTransactions = transactions.filter(t => t.Category === category);
       const categoryMerchants = categoryTransactions.map(t => t.Merchant).filter(m => m !== undefined && m !== "") as string[];
-      let summaryItem = {} as ITransactionSummaryItem;
+      let summaryItem = {} as ICategorySummary;
 
       summaryItem.CategoryName = category;
       if (categoryMerchants.length > 0) {

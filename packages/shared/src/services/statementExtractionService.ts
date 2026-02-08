@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import { utils } from "../utils/utils";
 import { IStatementExtractionService } from "./IstatementExtractionService";
-import { ITransaction } from "../models/ITransaction";
+import { ITransaction, TransactionType } from "../models/ITransaction";
 
 
 export type StatementDataObject = {
@@ -74,6 +74,7 @@ export class StatementExtractionService implements IStatementExtractionService {
         //we'll derive category and merchant later
         Category: "",
         Merchant: "",
+        Type: TransactionType.Expense //default, will be updated later
       }
       transactions.push(transaction);
     })

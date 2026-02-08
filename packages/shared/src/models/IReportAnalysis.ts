@@ -8,10 +8,10 @@ export interface IReportAnalysis {
   Date: Date;
   TotalIncome: number;
   TotalExpenses: number;
-  CategorySummaries: ITransactionSummaryItem[];
+  CategorySummaries: ICategorySummary[];
 }
 
-export interface ITransactionSummaryItem {
+export interface ICategorySummary {
     CategoryName: string;
     Merchants?: string[];
     TotalAmount: number;

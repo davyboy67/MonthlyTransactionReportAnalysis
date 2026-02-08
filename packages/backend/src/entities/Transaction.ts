@@ -28,6 +28,9 @@ export class Transaction {
   @Column()
   merchant!: string;
 
+  @Column()
+  type!: string;
+
   @ManyToOne(() => ReportAnalysis, reportAnalysis => reportAnalysis.transactions)
   @JoinColumn({ name: 'report_analysis_id' })
   reportAnalysis!: ReportAnalysis;

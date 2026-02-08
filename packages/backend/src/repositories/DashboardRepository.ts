@@ -1,11 +1,11 @@
 import { Repository, DataSource } from 'typeorm';
 import { ReportAnalysis as ReportAnalysisEntity } from '../entities/ReportAnalysis';
 import { Transaction as TransactionEntity } from '../entities/Transaction';
-import { ReportAnalysis, CategorySummary, Transaction } from '../models/types';
+import { IReportAnalysis, ICategorySummary, ITransaction, TransactionType } from '@transaction-report/shared';
 
 export interface IDashboardRepository {
-  getDashboardDetails(date: Date, id?: number | null): Promise<ReportAnalysis | null>;
-  saveDashboardDetails(reportAnalysis: ReportAnalysis): Promise<void>;
+  getDashboardDetails(date: Date, id?: number | null): Promise<IReportAnalysis | null>;
+  saveDashboardDetails(reportAnalysis: IReportAnalysis): Promise<void>;
 }
 
 export class DashboardRepository implements IDashboardRepository {
@@ -17,7 +17,7 @@ export class DashboardRepository implements IDashboardRepository {
     this.transactionRepository = dataSource.getRepository(TransactionEntity);
   }
 
-  async getDashboardDetails(date?: Date, id?: number | null): Promise<ReportAnalysis | null> {
+  async getDashboardDetails(date?: Date, id?: number | null): Promise<IReportAnalysis | null> {
     try {
       let report;
 
@@ -62,19 +62,20 @@ export class DashboardRepository implements IDashboardRepository {
       }
 
       // Convert transactions to the expected format
-      const transactionList: Transaction[] = report.transactions.map(t => ({
+      const transactionList: ITransaction[] = report.transactions.map(t => ({
         Date: t.date,
         Description: t.description,
         Amount: Number(t.amount),
         Category: t.category,
         Merchant: t.merchant,
-        Month: (new Date(t.date).getMonth() + 1).toString() // Convert to Date first
+        Month: (new Date(t.date).getMonth() + 1).toString(), // Convert to Date first
+        Type: TransactionType[t.type as keyof typeof TransactionType]
       }));
 
       // Compile category summaries
       const categorySummaries = this.compileCategorySummary(transactionList);
 
-      const reportAnalysis: ReportAnalysis = {
+      const reportAnalysis: IReportAnalysis = {
         Date: report.report_date,
         TotalIncome: Number(report.total_income),
         TotalExpenses: Number(report.total_expenses),
@@ -88,8 +89,8 @@ export class DashboardRepository implements IDashboardRepository {
     }
   }
 
-  private compileCategorySummary(transactionList: Transaction[]): CategorySummary[] {
-    const categorySummaries: CategorySummary[] = [];
+  private compileCategorySummary(transactionList: ITransaction[]): ICategorySummary[] {
+    const categorySummaries: ICategorySummary[] = [];
     const uniqueCategories = [...new Set(transactionList.map(t => t.Category).filter(c => c))];
 
     for (const category of uniqueCategories) {
@@ -98,7 +99,7 @@ export class DashboardRepository implements IDashboardRepository {
       const merchants = [...new Set(categoryTransactions.map(t => t.Merchant).filter(m => m))];
       const totalAmount = categoryTransactions.reduce((sum, t) => sum + t.Amount, 0);
 
-      const summary: CategorySummary = {
+      const summary: ICategorySummary = {
         CategoryName: category || '',
         Merchants: merchants as string[],
         TotalAmount: totalAmount,
@@ -111,7 +112,7 @@ export class DashboardRepository implements IDashboardRepository {
     return categorySummaries;
   }
 
-  async saveDashboardDetails(reportAnalysis: ReportAnalysis): Promise<void> {
+  async saveDashboardDetails(reportAnalysis: IReportAnalysis): Promise<void> {
     try {
       const startTime = Date.now();
 
@@ -140,7 +141,8 @@ export class DashboardRepository implements IDashboardRepository {
           description: transaction.Description || '',
           amount: transaction.Amount,
           category: transaction.Category || '',
-          merchant: transaction.Merchant || ''
+          merchant: transaction.Merchant || '',
+          type: transaction.Type || ''
         };
       });
 
