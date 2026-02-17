@@ -7,7 +7,7 @@ export class ReportAnalysis {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @Column()
+  @Column({ type: 'integer' })
   user_id!: number;
 
   @Column({ type: 'date' })

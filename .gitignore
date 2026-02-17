@@ -22,3 +22,11 @@ packages/*/dist/
 packages/backend/dist/
 packages/frontend/dist/
 packages/shared/dist/
+packages/**/*.js
+packages/**/*.js.map
+!packages/**/dist/**
+!packages/**/node_modules/**
+lambdas/*/node_modules/
+lambdas/*/dist/
+lambdas/*/function.zip
+lambdas/*/temp_*/
