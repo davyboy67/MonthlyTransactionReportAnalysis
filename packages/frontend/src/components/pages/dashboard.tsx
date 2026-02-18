@@ -18,13 +18,13 @@ export function Dashboard() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response: DashboardDetailsResponse = await apiClient.RetrieveReportAnalysis(new Date("2026-01-14"));
+        const response: DashboardDetailsResponse = await apiClient.RetrieveReportAnalysis();
         if (!response?.ReportAnalysis) {
           throw new Error("No report analysis data received");
         }
         setReportAnalysis(response.ReportAnalysis);
       } catch (err) {
-        setError("Failed to fetch report analysis");
+        setError(`Failed to fetch report analysis: ${err}`);
       } finally {
         setLoading(false);
       }

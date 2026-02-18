@@ -1,9 +1,10 @@
 import { IMerchant } from "../models/IMerchant";
-import fs from "fs";
 import { ITransactionInfoHandler } from "./ITransactionInfoHandler";
 import { ITransaction } from "../models/ITransaction";
 import { ICategory } from "../models/ICategory";
-import path from "path";
+import merchantsList from "../data/merchantsList.json";
+import categoryList from "../data/categoryList.json";
+import merchantCategoryMapping from "../data/merchantCategoryMapping.json";
 
 export class TransactionInfoHandler implements ITransactionInfoHandler {
   merchantRules: IMerchant[] = [];
@@ -11,11 +12,9 @@ export class TransactionInfoHandler implements ITransactionInfoHandler {
   merchantCategoryMapping: { [merchantName: string]: string } = {};
 
   constructor() {
-    const jsonPath = path.resolve(__dirname, "../../../../../packages/backend");;
-
-    this.merchantRules = JSON.parse(fs.readFileSync(path.join(jsonPath, "merchantsList.json"), "utf-8"));
-    this.categoryList = JSON.parse(fs.readFileSync(path.join(jsonPath, "categoryList.json"), "utf-8"));
-    this.merchantCategoryMapping = JSON.parse(fs.readFileSync(path.join(jsonPath, "merchantCategoryMapping.json"), "utf-8"));
+    this.merchantRules = merchantsList as IMerchant[];
+    this.categoryList = categoryList as ICategory[];
+    this.merchantCategoryMapping = merchantCategoryMapping as { [merchantName: string]: string };
   }
 
   resolveMerchant(description: string): string | undefined {

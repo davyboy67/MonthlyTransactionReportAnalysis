@@ -6,7 +6,9 @@ import { User } from '../entities/User';
 import dotenv from 'dotenv';
 import path from 'path';
 
-dotenv.config({ path: path.resolve(__dirname, '../../../../.env') });
+if (!process.env.AWS_LAMBDA_FUNCTION_NAME) {
+  dotenv.config({ path: path.resolve(__dirname, '../../../../.env') });
+}
 
 export const AppDataSource = new DataSource({
   type: 'postgres',

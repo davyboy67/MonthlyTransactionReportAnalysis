@@ -12,7 +12,10 @@ export function createDashboardRouter(dashboardService: IDashboardService): Rout
   router.post('/RetrieveDashboardDetails', async (req: Request, res: Response) => {
     try {
       const request = req.body as DashboardDetailsRequest;
-      const date = new Date(request.Date);
+      let date: Date | undefined = undefined;
+      if (request.Date) {
+        date = new Date(request.Date);
+      }
       const id = request.id;
 
       const response = await dashboardService.retrieveDashboardDetails(date, id);

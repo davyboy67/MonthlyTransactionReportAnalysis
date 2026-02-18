@@ -7,26 +7,29 @@ export class Transaction {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @Column()
+  @Column({ type: 'integer' })
   report_analysis_id!: number;
 
-  @Column()
+  @Column({ type: 'integer' })
   user_id!: number;
 
   @Column({ type: 'date' })
   date!: Date;
 
-  @Column()
+  @Column({ type: 'varchar' })
   description!: string;
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   amount!: number;
 
-  @Column()
+  @Column({ type: 'varchar' })
   category!: string;
 
-  @Column()
+  @Column({ type: 'varchar' })
   merchant!: string;
+
+  @Column({ type: 'varchar' })
+  type!: string;
 
   @ManyToOne(() => ReportAnalysis, reportAnalysis => reportAnalysis.transactions)
   @JoinColumn({ name: 'report_analysis_id' })

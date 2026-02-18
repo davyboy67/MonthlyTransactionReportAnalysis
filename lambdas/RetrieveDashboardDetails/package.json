@@ -1,0 +1,21 @@
+{
+  "name": "retrieve-dashboard-details-lambda",
+  "version": "1.0.0",
+  "main": "dist/handler.js",
+  "scripts": {
+    "build": "tsc",
+    "package": "powershell -Command \"if (Test-Path function.zip) { Remove-Item function.zip }; if (Test-Path temp_package) { Remove-Item temp_package -Recurse -Force }; New-Item -ItemType Directory -Path temp_package | Out-Null; Copy-Item -Path dist/* -Destination temp_package -Recurse; Copy-Item -Path node_modules -Destination temp_package -Recurse -Exclude @transaction-report; New-Item -ItemType Directory -Force -Path temp_package/node_modules/@transaction-report/shared | Out-Null; Copy-Item -Path ../../packages/shared/dist -Destination temp_package/node_modules/@transaction-report/shared/dist -Recurse; Copy-Item -Path ../../packages/shared/package.json -Destination temp_package/node_modules/@transaction-report/shared/; cd temp_package; Compress-Archive -Path * -DestinationPath ../function.zip; cd ..; Remove-Item temp_package -Recurse -Force\""
+  },
+  "dependencies": {
+    "aws-lambda": "^1.0.7",
+    "typeorm": "^0.3.0",
+    "reflect-metadata": "^0.1.13",
+    "pg": "^8.11.0",
+    "@transaction-report/shared": "file:../../packages/shared"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.109",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.9.3"
+  }
+}

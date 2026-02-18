@@ -2,7 +2,7 @@ import request from 'supertest';
 import express from 'express';
 import { createDashboardRouter } from '../src/routes/dashboardRoutes';
 import { IDashboardService } from '../src/services/DashboardService';
-import { ReportAnalysis } from '../src/models/types';
+import { IReportAnalysis } from '@transaction-report/shared';
 
 describe('Dashboard API Routes', () => {
   let app: express.Application;
@@ -22,7 +22,7 @@ describe('Dashboard API Routes', () => {
 
   describe('POST /api/v1/RetrieveDashboardDetails', () => {
     it('should retrieve dashboard details', async () => {
-      const mockReport: ReportAnalysis = {
+      const mockReport: IReportAnalysis = {
         Date: new Date('2024-01-01'),
         TotalIncome: 5000,
         TotalExpenses: 3000,
@@ -62,8 +62,8 @@ describe('Dashboard API Routes', () => {
 
   describe('POST /api/v1/SaveReportInformation', () => {
     it('should save report information', async () => {
-      const mockReport: ReportAnalysis = {
-        Date: '2024-01-01',
+      const mockReport: IReportAnalysis = {
+        Date: new Date('2024-01-01'),
         TotalIncome: 5000,
         TotalExpenses: 3000,
         CategorySummaries: []

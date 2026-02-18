@@ -1,7 +1,6 @@
 import { DashboardService } from '../src/services/DashboardService';
 import { IDashboardRepository } from '../src/repositories/DashboardRepository';
-import { ReportAnalysis } from '../src/models/types';
-import { IStatementExtractionService, IDataAnalysisService } from '@transaction-report/shared';
+import { IReportAnalysis, IStatementExtractionService, IDataAnalysisService } from '@transaction-report/shared';
 
 describe('DashboardService', () => {
   let service: DashboardService;
@@ -29,7 +28,7 @@ describe('DashboardService', () => {
 
   describe('retrieveDashboardDetails', () => {
     it('should return dashboard details response', async () => {
-      const mockReport: ReportAnalysis = {
+      const mockReport: IReportAnalysis = {
         Date: new Date('2024-01-01'),
         TotalIncome: 5000,
         TotalExpenses: 3000,
@@ -55,7 +54,7 @@ describe('DashboardService', () => {
 
   describe('saveDashboardDetails', () => {
     it('should save dashboard details', async () => {
-      const mockReport: ReportAnalysis = {
+      const mockReport: IReportAnalysis = {
         Date: new Date('2024-01-01'),
         TotalIncome: 5000,
         TotalExpenses: 3000,

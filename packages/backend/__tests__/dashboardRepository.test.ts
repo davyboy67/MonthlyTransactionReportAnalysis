@@ -1,8 +1,8 @@
 import { DataSource, Repository } from 'typeorm';
 import { DashboardRepository } from '../src/repositories/DashboardRepository';
-import { ReportAnalysis, Transaction } from '../src/models/types';
 import { ReportAnalysis as ReportAnalysisEntity } from '../src/entities/ReportAnalysis';
 import { Transaction as TransactionEntity } from '../src/entities/Transaction';
+import { IReportAnalysis, ITransaction, TransactionType } from '@transaction-report/shared';
 
 jest.mock('typeorm', () => {
   const actualTypeORM = jest.requireActual('typeorm');
@@ -108,7 +108,7 @@ describe('DashboardRepository', () => {
 
   describe('saveDashboardDetails', () => {
     it('should save dashboard details with transactions', async () => {
-      const reportAnalysis: ReportAnalysis = {
+      const reportAnalysis: IReportAnalysis = {
         Date: new Date('2024-01-01'),
         TotalIncome: 5000,
         TotalExpenses: 3000,
@@ -123,7 +123,8 @@ describe('DashboardRepository', () => {
                 Amount: 100,
                 Category: 'Food',
                 Merchant: 'Test Merchant',
-                Month: '1'
+                Month: '1',
+                Type: TransactionType.Expense
               }
             ]
           }

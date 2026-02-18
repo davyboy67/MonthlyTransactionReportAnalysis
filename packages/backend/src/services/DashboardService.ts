@@ -1,11 +1,12 @@
 import { IDashboardRepository } from '../repositories/DashboardRepository';
-import { ReportAnalysis, DashboardDetailsResponse, Transaction } from '../models/types';
+import { DashboardDetailsResponse } from '../models/types';
+import { IReportAnalysis } from '@transaction-report/shared';
 import { StatementDataObject, IStatementExtractionService, IDataAnalysisService, ITransaction } from '@transaction-report/shared';
 
 export interface IDashboardService {
-  retrieveDashboardDetails(date: Date, id?: number | null): Promise<DashboardDetailsResponse>;
-  saveDashboardDetails(reportAnalysis: ReportAnalysis): Promise<void>;
-  processStatementFile(fileBuffer: Buffer): Promise<ReportAnalysis>;
+  retrieveDashboardDetails(date?: Date, id?: number | null): Promise<DashboardDetailsResponse>;
+  saveDashboardDetails(reportAnalysis: IReportAnalysis): Promise<void>;
+  processStatementFile(fileBuffer: Buffer): Promise<IReportAnalysis>;
 }
 
 export class DashboardService implements IDashboardService {
@@ -31,26 +32,22 @@ export class DashboardService implements IDashboardService {
     };
   }
 
-  async saveDashboardDetails(reportAnalysis: ReportAnalysis): Promise<void> {
+  async saveDashboardDetails(reportAnalysis: IReportAnalysis): Promise<void> {
     await this.dashboardRepository.saveDashboardDetails(reportAnalysis);
   }
 
-  async processStatementFile(fileBuffer: Buffer): Promise<ReportAnalysis> {
-    // Extract statement data from buffer
+  async processStatementFile(fileBuffer: Buffer): Promise<IReportAnalysis> {
     const statementObject: StatementDataObject = {
       filePath: '',
       fileBuffer: fileBuffer
     };
     const csvData = await this.statementExtractionService.getStatementData(statementObject);
 
-    // Compile transactions list
     const transactions: ITransaction[] = await this.statementExtractionService.compileTransactionList(csvData);
 
-    // Analyze transactions (this also saves via apiClient)
     const reportAnalysisFromService = await this.dataAnalysisService.analyseTransactions(transactions);
 
-    // Convert to backend format
-    const reportAnalysis: ReportAnalysis = {
+    const reportAnalysis: IReportAnalysis = {
       Date: reportAnalysisFromService.Date,
       TotalIncome: reportAnalysisFromService.TotalIncome,
       TotalExpenses: reportAnalysisFromService.TotalExpenses,
@@ -64,7 +61,8 @@ export class DashboardService implements IDashboardService {
           Amount: t.Amount,
           Category: t.Category,
           Merchant: t.Merchant || '',
-          Month: t.Month
+          Month: t.Month,
+          Type: t.Type
         }))
       }))
     };
