@@ -4,6 +4,10 @@ dist/
 *.log
 .env
 .env.local
+.env.development
+.env.development.local
+.env.production
+.env.production.local
 .vscode/settings.json
 
 # Backend build artifacts
