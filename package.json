@@ -20,7 +20,9 @@
     "package:retrieve": "npm run shared:build && node scripts/bundle-lambda.js RetrieveDashboardDetails",
     "package:save": "npm run shared:build && node scripts/bundle-lambda.js SaveReportInformation",
     "package:process": "npm run shared:build && node scripts/bundle-lambda.js ProcessStatementFile",
-    "package:all": "npm run shared:build && npm run package:retrieve && npm run package:save && npm run package:process"
+    "package:all": "npm run shared:build && npm run package:retrieve && npm run package:save && npm run package:process",
+    "deploy": "cd packages/frontend && npm run build && gh-pages -d dist"
+  
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
