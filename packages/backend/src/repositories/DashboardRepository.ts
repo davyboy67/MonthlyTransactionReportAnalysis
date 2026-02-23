@@ -4,7 +4,7 @@ import { Transaction as TransactionEntity } from '../entities/Transaction';
 import { IReportAnalysis, ICategorySummary, ITransaction, TransactionType } from '@transaction-report/shared';
 
 export interface IDashboardRepository {
-  getDashboardDetails(date: Date, id?: number | null): Promise<IReportAnalysis | null>;
+  getDashboardDetails(date?: Date, id?: number | null): Promise<IReportAnalysis | null>;
   saveDashboardDetails(reportAnalysis: IReportAnalysis): Promise<void>;
 }
 

@@ -24,7 +24,7 @@ export class DashboardService implements IDashboardService {
     this.dataAnalysisService = dataAnalysisService;
   }
 
-  async retrieveDashboardDetails(date: Date, id?: number | null): Promise<DashboardDetailsResponse> {
+  async retrieveDashboardDetails(date?: Date, id?: number | null): Promise<DashboardDetailsResponse> {
     const reportAnalysis = await this.dashboardRepository.getDashboardDetails(date, id);
     
     return {

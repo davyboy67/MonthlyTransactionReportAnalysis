@@ -24,7 +24,7 @@ export const apiClient = {
     try {
       const requestBody = {
         Date: date,
-        ID: id ? id : null
+        id: id ? id : null
       }
       const response = await axios.post(`${API_URL}/RetrieveDashboardDetails`, requestBody);
       return response.data;

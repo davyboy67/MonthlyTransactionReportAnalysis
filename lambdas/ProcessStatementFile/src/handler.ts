@@ -7,6 +7,12 @@ import { DashboardService } from "../../../packages/backend/src/services/Dashboa
 
 let isInitialized = false;
 
+const corsHeaders = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Headers": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token",
+    "Access-Control-Allow-Methods": "GET,POST,OPTIONS"
+};
+
 export const handler = async (event: APIGatewayProxyEvent) : Promise<APIGatewayProxyResult> => {
     try {
         if (!isInitialized) {
@@ -22,7 +28,7 @@ export const handler = async (event: APIGatewayProxyEvent) : Promise<APIGatewayP
                 statusCode: 400,
                 headers: {
                     "Content-Type": "application/json",
-                    "Access-Control-Allow-Origin": "*"
+                    ...corsHeaders
                 },
                 body: JSON.stringify({ error: "File content is required" })
             };
@@ -44,7 +50,7 @@ export const handler = async (event: APIGatewayProxyEvent) : Promise<APIGatewayP
             statusCode: 200,
             headers: {
                 "Content-Type": "application/json",
-                "Access-Control-Allow-Origin": "*"
+                ...corsHeaders
             },
             body: JSON.stringify({ reportAnalysis: reportAnalysis })
         };
@@ -53,7 +59,7 @@ export const handler = async (event: APIGatewayProxyEvent) : Promise<APIGatewayP
             statusCode: 500,
             headers: {
                 "Content-Type": "application/json",
-                "Access-Control-Allow-Origin": "*"
+                ...corsHeaders
             },
             body: JSON.stringify({ error: "Internal Server Error" })
         }

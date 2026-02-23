@@ -7,6 +7,12 @@ import { DashboardService } from "../../../packages/backend/src/services/Dashboa
 
 let isInitialized = false;
 
+const corsHeaders = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Headers": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token",
+    "Access-Control-Allow-Methods": "GET,POST,OPTIONS"
+};
+
 export const handler = async (event: APIGatewayProxyEvent) : Promise<APIGatewayProxyResult> => {
     try {
         if (!isInitialized) {
@@ -15,7 +21,7 @@ export const handler = async (event: APIGatewayProxyEvent) : Promise<APIGatewayP
         }
 
         const body = JSON.parse(event.body || '{}');
-        const date = body.date ? new Date(body.date) : new Date();
+        const date = body.Date ? new Date(body.Date) : undefined;
         const id = body.id || null;
 
         const dashboardRepository = new DashboardRepository(AppDataSource);
@@ -31,7 +37,7 @@ export const handler = async (event: APIGatewayProxyEvent) : Promise<APIGatewayP
             statusCode: 200,
             headers: {
                 "Content-Type": "application/json",
-                "Access-Control-Allow-Origin": "*"
+                ...corsHeaders
             },
             body: JSON.stringify({ reportAnalysis: reportAnalysis })
         };
@@ -41,7 +47,7 @@ export const handler = async (event: APIGatewayProxyEvent) : Promise<APIGatewayP
             statusCode: 500,
             headers: {
                 "Content-Type": "application/json",
-                "Access-Control-Allow-Origin": "*"
+                ...corsHeaders
             },
             body: JSON.stringify({ 
                 error: "Internal Server Error",
