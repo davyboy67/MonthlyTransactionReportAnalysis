@@ -61,6 +61,7 @@ export class DashboardRepository implements IDashboardRepository {
         return null;
       }
 
+      console.log(`Retrieved report from db for date: ${report.report_date}`);
       // Convert transactions to the expected format
       const transactionList: ITransaction[] = report.transactions.map(t => ({
         Date: t.date,
@@ -82,6 +83,7 @@ export class DashboardRepository implements IDashboardRepository {
         CategorySummaries: categorySummaries
       };
 
+      console.log(`Compiled report analysis for date: ${report.report_date} with ${transactionList.length} transactions`);
       return reportAnalysis;
     } catch (error) {
       console.error('Error getting dashboard details:', error);
@@ -126,7 +128,7 @@ export class DashboardRepository implements IDashboardRepository {
         total_expenses: reportAnalysis.TotalExpenses
       });
 
-      console.log('Report saved to db');
+      console.log(`Report saved to db for date: ${reportDate.toISOString()}`);
 
       const transactions = reportAnalysis.CategorySummaries.flatMap(cs => cs.Transactions);
 

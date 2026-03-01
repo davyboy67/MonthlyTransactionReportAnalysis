@@ -42,10 +42,13 @@ export class DashboardService implements IDashboardService {
       fileBuffer: fileBuffer
     };
     const csvData = await this.statementExtractionService.getStatementData(statementObject);
+    console.log("csv content extracted");
 
     const transactions: ITransaction[] = await this.statementExtractionService.compileTransactionList(csvData);
+    console.log("transactions compiled");
 
     const reportAnalysisFromService = await this.dataAnalysisService.analyseTransactions(transactions);
+    console.log(`report analysis object compiled for date: ${reportAnalysisFromService.Date}`);
 
     const reportAnalysis: IReportAnalysis = {
       Date: reportAnalysisFromService.Date,

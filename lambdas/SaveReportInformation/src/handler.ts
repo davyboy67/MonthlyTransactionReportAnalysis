@@ -42,7 +42,7 @@ export const handler = async (event: APIGatewayProxyEvent) : Promise<APIGatewayP
 
         const dashboardRepository = new DashboardRepository(AppDataSource);
         const transactionInfoHandler = new TransactionInfoHandler()
-        const dataAnalysisService = new DataAnalysisService(transactionInfoHandler);
+        const dataAnalysisService = new DataAnalysisService(transactionInfoHandler, false);
         const statementExtractionService = new StatementExtractionService();
 
         const dashboardService = new DashboardService(dashboardRepository, statementExtractionService, dataAnalysisService);

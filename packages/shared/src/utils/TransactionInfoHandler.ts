@@ -49,11 +49,6 @@ export class TransactionInfoHandler implements ITransactionInfoHandler {
       }
     }
 
-    //TODO - further fallback to handle debit orders
-    if (description.includes("")) {
-
-    }
-
     //if the category still cannot be resolved, assume its entertainment
     return "Entertainment";
   }

@@ -26,12 +26,12 @@ export const handler = async (event: APIGatewayProxyEvent) : Promise<APIGatewayP
 
         const dashboardRepository = new DashboardRepository(AppDataSource);
         const transactionInfoHandler = new TransactionInfoHandler()
-        const dataAnalysisService = new DataAnalysisService(transactionInfoHandler);
+        const dataAnalysisService = new DataAnalysisService(transactionInfoHandler, false);
         const statementExtractionService = new StatementExtractionService();
 
         const dashboardService = new DashboardService(dashboardRepository, statementExtractionService, dataAnalysisService);
 
-        const reportAnalysis = await dashboardService.retrieveDashboardDetails(date, id);
+        const response = await dashboardService.retrieveDashboardDetails(date, id);
 
         return {
             statusCode: 200,
@@ -39,7 +39,7 @@ export const handler = async (event: APIGatewayProxyEvent) : Promise<APIGatewayP
                 "Content-Type": "application/json",
                 ...corsHeaders
             },
-            body: JSON.stringify({ reportAnalysis: reportAnalysis })
+            body: JSON.stringify(response)
         };
     } catch (error) {
         console.error('Error retrieving dashboard details:', error);
