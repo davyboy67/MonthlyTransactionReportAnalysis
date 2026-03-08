@@ -3,7 +3,7 @@ import { IReportAnalysis, SaveReportAnalysisRequest } from '../models/IReportAna
 
 // Updated to point to Node.js backend
 // @ts-ignore - import.metas.env is what should be used to get secrets in a vite env
-const VITE_API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api/v1';
+const VITE_API_URL = import.meta.env?.VITE_API_URL || 'http://localhost:3001/api/v1';
 
 export const apiClient = {
   saveReportAnalysis: async (reportAnalysis: IReportAnalysis) => {
