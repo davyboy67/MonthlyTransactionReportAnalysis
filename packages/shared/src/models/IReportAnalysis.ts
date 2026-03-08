@@ -8,6 +8,7 @@ export interface IReportAnalysis {
   Date: Date;
   TotalIncome: number;
   TotalExpenses: number;
+  TotalSavings: number;
   CategorySummaries: ICategorySummary[];
 }
 

@@ -13,6 +13,7 @@ export const apiClient = {
       reportAnalysisReq.Date = reportAnalysis.Date;
       reportAnalysisReq.TotalExpenses = reportAnalysis.TotalExpenses;
       reportAnalysisReq.TotalIncome = reportAnalysis.TotalIncome;
+      reportAnalysisReq.TotalSavings = reportAnalysis.TotalSavings;
       reportAnalysisReq.CategorySummaries = reportAnalysis.CategorySummaries;
       requestBody.ReportAnalysis = reportAnalysisReq;
       await axios.post(`${VITE_API_URL}/SaveReportInformation`, requestBody);

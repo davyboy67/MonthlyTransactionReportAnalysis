@@ -2,6 +2,7 @@ export interface IMonthlySummary {
     month: string;
     totalIncome: number;
     totalExpenses: number;
+    totalSavings: number;
 }
 
 export interface ICategorySummary {

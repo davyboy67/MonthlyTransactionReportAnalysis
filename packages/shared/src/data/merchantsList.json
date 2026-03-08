@@ -8,6 +8,10 @@
         "patterns": ["uber eats", "new uber eats"]
     },
     {
+        "name": "Uber",
+        "patterns": ["uber"]
+    },
+    {
         "name": "Apple",
         "patterns": ["apple.com", "apple"]
     },
@@ -86,5 +90,26 @@
     {
         "name": "Electricity",
         "patterns": ["electricity"]
+    },
+    {
+        "name": "Discovery",
+        "patterns": ["DISC PREM", "discovery"]
+    },
+    {
+        "name": "Github",
+        "patterns": ["Github"]
+    },
+    {
+        "name": "Standard Bank",
+        "patterns": ["standard bank", "STANDARD"]
+    },
+    {
+        "name": "Vodacom",
+        "patterns": ["vodacom"]
+    },
+    {
+        "name": "Crue",
+        "patterns": ["Crue"]
     }
+
 ]

@@ -80,6 +80,7 @@ export class DashboardRepository implements IDashboardRepository {
         Date: report.report_date,
         TotalIncome: Number(report.total_income),
         TotalExpenses: Number(report.total_expenses),
+        TotalSavings: Number(report.total_savings),
         CategorySummaries: categorySummaries
       };
 

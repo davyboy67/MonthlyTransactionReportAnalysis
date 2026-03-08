@@ -19,6 +19,9 @@ export class ReportAnalysis {
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   total_expenses!: number;
 
+  @Column({ type: 'decimal', precision: 10, scale: 2 })
+  total_savings!: number;
+
   @ManyToOne(() => User, user => user.reportAnalyses)
   @JoinColumn({ name: 'user_id' })
   user!: User;

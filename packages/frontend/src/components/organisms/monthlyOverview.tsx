@@ -10,6 +10,7 @@ export function MonthlyOverview({ summary }: Props) {
     const data = [
         { name: 'Income', value: summary.totalIncome, fill: '#1f57ff' },
         { name: 'Expenses', value: summary.totalExpenses, fill: '#0073ad' },
+        { name: 'Savings', value: summary.totalSavings, fill: '#28a745' },
     ];
 
     return (
@@ -19,6 +20,7 @@ export function MonthlyOverview({ summary }: Props) {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "1rem" }}>
         <MetricTile label="Income" value={`R ${summary.totalIncome.toFixed(2)}`} />
         <MetricTile label="Expenses" value={`R ${summary.totalExpenses.toFixed(2)}`} />
+        <MetricTile label="Savings" value={`R ${summary.totalSavings.toFixed(2)}`} />
       </div>
 
       <div style={{ marginTop: "2rem", height: "300px" }}>

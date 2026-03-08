@@ -179,10 +179,10 @@ See [packages/backend/README.md](packages/backend/README.md) for detailed API do
 ## Development
 
 ### Adding New Categories
-Edit `packages/backend/categoryList.json` to add new transaction categories.
+Edit `packages/shared/src/data/categoryList.json` to add new transaction categories.
 
 ### Adding Merchant Mappings
-Edit `packages/backend/merchantCategoryMapping.json` to map merchants to categories.
+Edit `packages/shared/src/data/merchantCategoryMapping.json` to map merchants to categories.
 
 ### Running Linters
 Currently, no linter is configured. To add ESLint:

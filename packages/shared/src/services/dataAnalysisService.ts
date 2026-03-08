@@ -6,9 +6,11 @@ import { apiClient } from "./apiClient";
 
 export class DataAnalysisService implements IDataAnalysisService {
   private readonly _transactionInfoHandler: ITransactionInfoHandler;
+  private readonly _autoSave: boolean;
 
-  constructor(transactionInfoHandler: ITransactionInfoHandler) {
+  constructor(transactionInfoHandler: ITransactionInfoHandler, autoSave: boolean = true) {
     this._transactionInfoHandler = transactionInfoHandler;
+    this._autoSave = autoSave;
   }
 
   private enhanceTransactionInfo(transactions: ITransaction[]): ITransaction[] {
@@ -19,14 +21,17 @@ export class DataAnalysisService implements IDataAnalysisService {
         transaction.Merchant = merchant;
       }
 
+      transaction.Type = transaction.Amount >= 0 ? TransactionType.Income : TransactionType.Expense;
       //then enhance with category info
       const category = this._transactionInfoHandler.resolveCategory(transaction);
       if (!category) {
         throw new Error(`Could not resolve category for transaction: ${transaction.Description}`);
       }
       transaction.Category = category;
+      if (category === "Savings") {
+        transaction.Type = TransactionType.Savings;
+      }
 
-      transaction.Type = transaction.Amount >= 0 ? TransactionType.Income : TransactionType.Expense;
       transaction.Amount = Math.abs(transaction.Amount);
     });
 
@@ -41,14 +46,20 @@ export class DataAnalysisService implements IDataAnalysisService {
 
     const totalIncome = transactions.filter(t => t.Type === TransactionType.Income).reduce((sum, t) => sum + t.Amount, 0)
     const totalExpenses = transactions.filter(t => t.Type === TransactionType.Expense).reduce((sum, t) => sum + t.Amount, 0)
+    const totalSavings = transactions.filter(t => t.Type === TransactionType.Savings).reduce((sum, t) => sum + t.Amount, 0)
 
     reportAnalysis.TotalExpenses = Math.round(totalExpenses * 100) / 100;
     reportAnalysis.TotalIncome = Math.round(totalIncome * 100) / 100;
+    reportAnalysis.TotalSavings = Math.round(totalSavings * 100) / 100;
 
     let ReportCategoryList = [...new Set(transactions.map(t => t.Category))];
 
 
     for (const category of ReportCategoryList) {
+      if (category === "Income") {
+        continue;
+      }
+
       const categoryTransactions = transactions.filter(t => t.Category === category);
       const categoryMerchants = categoryTransactions.map(t => t.Merchant).filter(m => m !== undefined && m !== "") as string[];
       let summaryItem = {} as ICategorySummary;
@@ -70,13 +81,18 @@ export class DataAnalysisService implements IDataAnalysisService {
     const now = new Date();
     const currentYear = now.getFullYear();
     const currentMonth = now.getMonth();
+    const currentDay = now.getDay();
     
     let startDate = new Date(currentYear, currentMonth -1, 26);
-    const endDate = new Date(currentYear, currentMonth, 25, 23, 59, 59);
+    let endDate = new Date(currentYear, currentMonth, 25, 23, 59, 59);
     
     //people usually get paid early in December
     if (startDate.getMonth() == 11) {
       startDate = new Date(currentYear, currentMonth -1, 13);
+    }
+    else if (currentDay < 9) { //start of a new month, we actually want the analysis of the month that just ended
+      startDate.setMonth(currentMonth - 2);
+      endDate.setMonth(currentMonth - 1);
     }
 
     //we only are interested in the transactions for the month of the report, prevents db duplicates as well
@@ -88,7 +104,9 @@ export class DataAnalysisService implements IDataAnalysisService {
     let enhancedTransactions = this.enhanceTransactionInfo(transactionsInRange);
     let reportAnalysis = this.createReportAnalysis(enhancedTransactions);
 
-    await apiClient.saveReportAnalysis(reportAnalysis);
+    if (this._autoSave) {
+      await apiClient.saveReportAnalysis(reportAnalysis);
+    }
 
     return reportAnalysis;
 

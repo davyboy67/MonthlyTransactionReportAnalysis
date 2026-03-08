@@ -1,6 +1,6 @@
 import { IMerchant } from "../models/IMerchant";
 import { ITransactionInfoHandler } from "./ITransactionInfoHandler";
-import { ITransaction } from "../models/ITransaction";
+import { ITransaction, TransactionType } from "../models/ITransaction";
 import { ICategory } from "../models/ICategory";
 import merchantsList from "../data/merchantsList.json";
 import categoryList from "../data/categoryList.json";
@@ -29,14 +29,21 @@ export class TransactionInfoHandler implements ITransactionInfoHandler {
   }
 
   resolveCategory(transaction: ITransaction): string {
+    if (transaction.Type == "Income") {
+      return "Income";
+    }
+
     if (transaction.Merchant) {
       const category = this.merchantCategoryMapping[transaction.Merchant];
+
       if (category) {
+         if (category.toLowerCase() === "savings") {
+          transaction.Type = TransactionType.Savings;
+        }
         return category;
       }
     }
 
-    // Fallback: look for category keywords in description
     const description = transaction.Description.toLowerCase();
     const categories = Object.values(this.merchantCategoryMapping);
 
@@ -45,8 +52,19 @@ export class TransactionInfoHandler implements ITransactionInfoHandler {
         console.warn(
           `Resolved category from description for transaction "${transaction.Description}": ${category}`,
         );
+
+        //we want to categorise savings properly
+        if (category.toLowerCase() === "savings") {
+          transaction.Type = TransactionType.Savings;
+        }
         return category;
       }
+    }
+
+    //2nd fallback check for specific words
+    switch (transaction.Description.toLowerCase()) {
+      case "rent":
+        return "Utilities";      
     }
 
     //if the category still cannot be resolved, assume its entertainment

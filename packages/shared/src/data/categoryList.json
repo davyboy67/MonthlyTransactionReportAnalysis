@@ -49,5 +49,16 @@
         "name": "Savings",
         "displayName": "Savings & Investments",
         "budget": 6000
+    },
+    {
+        "name": "Income",
+        "displayName": "Income",
+        "budget": 0
+    },
+    {
+        "name": "Fees",
+        "displayName": "Fees & Charges",
+        "budget": 1000
     }
+
 ]

@@ -72,6 +72,7 @@ export function Dashboard() {
     month: new Date(reportAnalysis.Date).toLocaleString('default', { month: 'long', year: 'numeric' }),
     totalIncome: reportAnalysis.TotalIncome,
     totalExpenses: reportAnalysis.TotalExpenses,
+    totalSavings: reportAnalysis.TotalSavings
   };
 
   const categorySummaries: ICategorySummary[] = reportAnalysis.CategorySummaries?.map(summary => ({

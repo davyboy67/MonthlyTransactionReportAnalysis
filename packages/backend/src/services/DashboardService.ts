@@ -47,14 +47,15 @@ export class DashboardService implements IDashboardService {
     const transactions: ITransaction[] = await this.statementExtractionService.compileTransactionList(csvData);
     console.log("transactions compiled");
 
-    const reportAnalysisFromService = await this.dataAnalysisService.analyseTransactions(transactions);
-    console.log(`report analysis object compiled for date: ${reportAnalysisFromService.Date}`);
+    const analysedReportAnalysis = await this.dataAnalysisService.analyseTransactions(transactions);
+    console.log(`report analysis object compiled for date: ${analysedReportAnalysis.Date}`);
 
     const reportAnalysis: IReportAnalysis = {
-      Date: reportAnalysisFromService.Date,
-      TotalIncome: reportAnalysisFromService.TotalIncome,
-      TotalExpenses: reportAnalysisFromService.TotalExpenses,
-      CategorySummaries: reportAnalysisFromService.CategorySummaries.map(summary => ({
+      Date: analysedReportAnalysis.Date,
+      TotalIncome: analysedReportAnalysis.TotalIncome,
+      TotalExpenses: analysedReportAnalysis.TotalExpenses,
+      TotalSavings: analysedReportAnalysis.TotalSavings,
+      CategorySummaries: analysedReportAnalysis.CategorySummaries.map(summary => ({
         CategoryName: summary.CategoryName,
         Merchants: summary.Merchants,
         TotalAmount: summary.TotalAmount,
