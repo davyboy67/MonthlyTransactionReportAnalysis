@@ -126,7 +126,8 @@ export class DashboardRepository implements IDashboardRepository {
         user_id: 1, // Only 1 user for now
         report_date: reportDate,
         total_income: reportAnalysis.TotalIncome,
-        total_expenses: reportAnalysis.TotalExpenses
+        total_expenses: reportAnalysis.TotalExpenses,
+        total_savings: reportAnalysis.TotalSavings
       });
 
       console.log(`Report saved to db for date: ${reportDate.toISOString()}`);
