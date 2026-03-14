@@ -7,6 +7,7 @@
   ],
   "scripts": {
     "test": "jest",
+    "lint": "eslint .",
     "backend:dev": "npm run dev --workspace=@transaction-report/backend",
     "backend:build": "npm run build --workspace=@transaction-report/backend",
     "backend:start": "npm run start --workspace=@transaction-report/backend",

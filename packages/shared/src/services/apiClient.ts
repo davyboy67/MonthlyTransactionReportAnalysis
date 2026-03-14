@@ -8,13 +8,8 @@ const VITE_API_URL = import.meta.env?.VITE_API_URL || 'http://localhost:3001/api
 export const apiClient = {
   saveReportAnalysis: async (reportAnalysis: IReportAnalysis) => {
     try {
-      let requestBody = {} as SaveReportAnalysisRequest;
-      let reportAnalysisReq = {} as IReportAnalysis;
-      reportAnalysisReq.Date = reportAnalysis.Date;
-      reportAnalysisReq.TotalExpenses = reportAnalysis.TotalExpenses;
-      reportAnalysisReq.TotalIncome = reportAnalysis.TotalIncome;
-      reportAnalysisReq.TotalSavings = reportAnalysis.TotalSavings;
-      reportAnalysisReq.CategorySummaries = reportAnalysis.CategorySummaries;
+      const requestBody = {} as SaveReportAnalysisRequest;
+      const reportAnalysisReq: IReportAnalysis = {...reportAnalysis};
       requestBody.ReportAnalysis = reportAnalysisReq;
       await axios.post(`${VITE_API_URL}/SaveReportInformation`, requestBody);
     } catch (error) {

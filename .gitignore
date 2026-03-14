@@ -2,12 +2,7 @@
 node_modules/
 dist/
 *.log
-.env
-.env.local
-.env.development
-.env.development.local
-.env.production
-.env.production.local
+*.env*
 .vscode/settings.json
 
 # Backend build artifacts

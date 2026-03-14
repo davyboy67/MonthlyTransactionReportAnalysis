@@ -60,13 +60,13 @@ export class StatementExtractionService implements IStatementExtractionService {
       return [];
     }
 
-    let transactions: ITransaction[] = [];
+    const transactions: ITransaction[] = [];
 
     data.slice(1).forEach(row => {
       const date = new Date(row[0]);
       date.setHours(0, 0, 0, 0);
       
-      let transaction: ITransaction = {
+      const transaction: ITransaction = {
         Month: date.toLocaleString('en-US', { month: 'short' }),
         Date: date,
         Description: row[3],

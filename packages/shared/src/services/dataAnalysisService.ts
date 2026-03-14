@@ -39,7 +39,7 @@ export class DataAnalysisService implements IDataAnalysisService {
   }
 
   private createReportAnalysis(transactions: ITransaction[]): IReportAnalysis {
-    let reportAnalysis = {} as IReportAnalysis;
+    const reportAnalysis = {} as IReportAnalysis;
     reportAnalysis.CategorySummaries = [] as ICategorySummary[];
 
     reportAnalysis.Date = new Date();
@@ -52,7 +52,7 @@ export class DataAnalysisService implements IDataAnalysisService {
     reportAnalysis.TotalIncome = Math.round(totalIncome * 100) / 100;
     reportAnalysis.TotalSavings = Math.round(totalSavings * 100) / 100;
 
-    let ReportCategoryList = [...new Set(transactions.map(t => t.Category))];
+    const ReportCategoryList = [...new Set(transactions.map(t => t.Category))];
 
 
     for (const category of ReportCategoryList) {
@@ -62,7 +62,7 @@ export class DataAnalysisService implements IDataAnalysisService {
 
       const categoryTransactions = transactions.filter(t => t.Category === category);
       const categoryMerchants = categoryTransactions.map(t => t.Merchant).filter(m => m !== undefined && m !== "") as string[];
-      let summaryItem = {} as ICategorySummary;
+      const summaryItem = {} as ICategorySummary;
 
       summaryItem.CategoryName = category;
       if (categoryMerchants.length > 0) {
@@ -84,7 +84,7 @@ export class DataAnalysisService implements IDataAnalysisService {
     const currentDay = now.getDay();
     
     let startDate = new Date(currentYear, currentMonth -1, 26);
-    let endDate = new Date(currentYear, currentMonth, 25, 23, 59, 59);
+    const endDate = new Date(currentYear, currentMonth, 25, 23, 59, 59);
     
     //people usually get paid early in December
     if (startDate.getMonth() == 11) {
@@ -101,8 +101,8 @@ export class DataAnalysisService implements IDataAnalysisService {
       return transactionDate >= startDate && transactionDate <= endDate;
     });
 
-    let enhancedTransactions = this.enhanceTransactionInfo(transactionsInRange);
-    let reportAnalysis = this.createReportAnalysis(enhancedTransactions);
+    const enhancedTransactions = this.enhanceTransactionInfo(transactionsInRange);
+    const reportAnalysis = this.createReportAnalysis(enhancedTransactions);
 
     if (this._autoSave) {
       await apiClient.saveReportAnalysis(reportAnalysis);
