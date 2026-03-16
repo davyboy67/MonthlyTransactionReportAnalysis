@@ -53,6 +53,7 @@ describe('DashboardRepository', () => {
         report_date: new Date('2024-01-01'),
         total_income: 5000,
         total_expenses: 3000,
+        total_savings: 2000,
         transactions: [
           {
             id: 1,
@@ -61,7 +62,8 @@ describe('DashboardRepository', () => {
             description: 'Test transaction',
             amount: 100,
             category: 'Food',
-            merchant: 'Test Merchant'
+            merchant: 'Test Merchant',
+            type: 'Expense'
           }
         ]
       };
@@ -73,7 +75,9 @@ describe('DashboardRepository', () => {
       expect(result).not.toBeNull();
       expect(result?.TotalIncome).toBe(5000);
       expect(result?.TotalExpenses).toBe(3000);
+      expect(result?.TotalSavings).toBe(2000);
       expect(result?.CategorySummaries).toHaveLength(1);
+      expect(result?.CategorySummaries[0].Merchants).toEqual(['Test Merchant']);
       expect(mockReportAnalysisRepo.findOne).toHaveBeenCalledWith({
         where: { id: 1 },
         relations: ['transactions']
@@ -86,6 +90,7 @@ describe('DashboardRepository', () => {
         report_date: new Date('2024-01-01'),
         total_income: 5000,
         total_expenses: 3000,
+        total_savings: 2000,
         transactions: []
       };
 
@@ -94,10 +99,40 @@ describe('DashboardRepository', () => {
       const result = await repository.getDashboardDetails(new Date('2024-01-01'));
 
       expect(result).not.toBeNull();
+      expect(result?.CategorySummaries).toHaveLength(0);
       expect(mockReportAnalysisRepo.find).toHaveBeenCalled();
     });
 
-    it('should return null when no report is found', async () => {
+    it('should return null when no report is found by date', async () => {
+      mockReportAnalysisRepo.find.mockResolvedValue([]);
+
+      const result = await repository.getDashboardDetails(new Date('2024-01-01'));
+
+      expect(result).toBeNull();
+    });
+
+    it('should retrieve most recent report when called with no arguments', async () => {
+      const mockReport = {
+        id: 2,
+        report_date: new Date('2024-02-01'),
+        total_income: 6000,
+        total_expenses: 4000,
+        total_savings: 2000,
+        transactions: []
+      };
+
+      mockReportAnalysisRepo.find.mockResolvedValue([mockReport]);
+
+      const result = await repository.getDashboardDetails();
+
+      expect(result).not.toBeNull();
+      expect(result?.TotalIncome).toBe(6000);
+      expect(mockReportAnalysisRepo.find).toHaveBeenCalledWith(
+        expect.objectContaining({ order: { report_date: 'DESC' }, take: 1 })
+      );
+    });
+
+    it('should return null when no report is found by id', async () => {
       mockReportAnalysisRepo.findOne.mockResolvedValue(null);
 
       const result = await repository.getDashboardDetails(new Date('2024-01-01'), 1);
@@ -112,6 +147,7 @@ describe('DashboardRepository', () => {
         Date: new Date('2024-01-01'),
         TotalIncome: 5000,
         TotalExpenses: 3000,
+        TotalSavings: 2000,
         CategorySummaries: [
           {
             CategoryName: 'Food',
@@ -135,7 +171,8 @@ describe('DashboardRepository', () => {
         id: 1,
         report_date: new Date('2024-01-01'),
         total_income: 5000,
-        total_expenses: 3000
+        total_expenses: 3000,
+        total_savings: 2000
       };
 
       mockReportAnalysisRepo.save.mockResolvedValue(mockCreatedReport);
@@ -144,6 +181,13 @@ describe('DashboardRepository', () => {
       await repository.saveDashboardDetails(reportAnalysis);
 
       expect(mockReportAnalysisRepo.save).toHaveBeenCalledTimes(1);
+      expect(mockReportAnalysisRepo.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          total_income: 5000,
+          total_expenses: 3000,
+          total_savings: 2000
+        })
+      );
       expect(mockTransactionRepo.save).toHaveBeenCalledTimes(1);
     });
   });

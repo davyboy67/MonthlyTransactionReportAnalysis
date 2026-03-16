@@ -6,6 +6,9 @@ import path from 'path'
 export default defineConfig({
   plugins: [react()],
   base: '/MonthlyTransactionReportAnalysis/',
+  define: {
+    __API_URL__: JSON.stringify(process.env.VITE_API_URL ?? 'http://localhost:3001/api/v1')
+  },
   resolve: {
     alias: {
       '@transaction-report/shared': path.resolve(__dirname, '../shared/dist/esm')

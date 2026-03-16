@@ -1,9 +1,8 @@
 import axios from 'axios';
 import { IReportAnalysis, SaveReportAnalysisRequest } from '../models/IReportAnalysis';
 
-// Updated to point to Node.js backend
-// @ts-ignore - import.metas.env is what should be used to get secrets in a vite env
-const VITE_API_URL = import.meta.env?.VITE_API_URL || 'http://localhost:3001/api/v1';
+declare const __API_URL__: string;
+const VITE_API_URL = typeof __API_URL__ !== 'undefined' ? __API_URL__ : 'http://localhost:3001/api/v1';
 
 export const apiClient = {
   saveReportAnalysis: async (reportAnalysis: IReportAnalysis) => {
