@@ -1,0 +1,109 @@
+.dashboard {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 1.5rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.dashboard__upload {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.dashboard__upload-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text-primary, #1f2937);
+  margin: 0 0 0.75rem;
+}
+
+.dashboard__charts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.chart-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.chart-card--full {
+  grid-column: 1 / -1;
+}
+
+.chart-card__title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--color-text-primary, #1f2937);
+  margin: 0 0 0.25rem;
+}
+
+.chart-card__desc {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary, #6b7280);
+  margin: 0 0 1rem;
+}
+
+.chart-card__body {
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+}
+
+.chart-card__insights {
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding-top: 0.5rem;
+}
+
+.chart-insight {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.chart-insight__dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.chart-insight__label {
+  font-size: 0.82rem;
+  color: var(--color-text-secondary, #6b7280);
+  flex: 1;
+}
+
+.chart-insight__value {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text-primary, #1f2937);
+}
+
+@media (max-width: 900px) {
+  .dashboard {
+    padding: 1rem;
+  }
+
+  .dashboard__charts {
+    grid-template-columns: 1fr;
+  }
+
+  .chart-card--full {
+    grid-column: auto;
+  }
+
+  .chart-card__body {
+    flex-direction: column;
+  }
+}
