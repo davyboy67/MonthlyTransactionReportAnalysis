@@ -1,21 +1,10 @@
 import { useState } from "react";
 import type { TopCategory, TopTransaction } from "../../utils/transactionAnalysis";
+import { CATEGORY_ICONS, DEFAULT_CATEGORY_ICON } from "../../constants";
 import "./TopCategories.css";
 
-const CATEGORY_ICONS: Record<string, string> = {
-  Savings: "💰",
-  Health: "🏥",
-  Groceries: "🛒",
-  Shopping: "��️",
-  Transport: "🚗",
-  "Dining Out": "🍽️",
-  Entertainment: "🎬",
-  Subscriptions: "📱",
-  Utilities: "💡",
-};
-
 function getCategoryIcon(name: string): string {
-  return CATEGORY_ICONS[name] ?? "📊";
+  return CATEGORY_ICONS[name] ?? DEFAULT_CATEGORY_ICON;
 }
 
 const fmt = (n: number) =>

@@ -46,8 +46,8 @@ export function MetricCards({
   totalExpenses,
   totalSavings,
 }: MetricCardsProps) {
-  // Net position = income minus expenses and savings (remaining unallocated funds)
-  const netPosition = totalIncome - totalExpenses - totalSavings;
+  // Net position = assets (income + savings) minus liabilities (expenses)
+  const netPosition = totalIncome + totalSavings - totalExpenses;
   const savingsPercent =
     totalIncome > 0
       ? Math.round((totalSavings / totalIncome) * 100)
