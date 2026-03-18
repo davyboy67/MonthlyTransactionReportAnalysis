@@ -12,6 +12,7 @@
   "dependencies": {
     "@transaction-report/shared": "*",
     "@types/recharts": "^2.0.1",
+    "bootstrap": "^5.3.8",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "recharts": "^3.6.0"

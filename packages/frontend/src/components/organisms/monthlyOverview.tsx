@@ -32,9 +32,7 @@ export function MonthlyOverview({ summary }: Props) {
             cx="50%"
             cy="50%"
             outerRadius="80%"
-            label={({ name, value }) =>
-              `${name}: R ${Number(value).toFixed(2)}`
-            }
+            label={({ value }) => `${Number(value).toFixed(2)}`}
           >
             {data.map((_, index) => (
               <Cell

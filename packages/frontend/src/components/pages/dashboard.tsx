@@ -15,14 +15,17 @@ interface DashboardDetailsResponse {
 }
 
 export function Dashboard() {
-  const [reportAnalysis, setReportAnalysis] = useState<IReportAnalysis | null>(null);
+  const [reportAnalysis, setReportAnalysis] = useState<IReportAnalysis | null>(
+    null,
+  );
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response: DashboardDetailsResponse = await apiClient.RetrieveReportAnalysis();
+        const response: DashboardDetailsResponse =
+          await apiClient.RetrieveReportAnalysis();
         if (!response?.ReportAnalysis) {
           throw new Error("No report analysis data received");
         }
@@ -42,7 +45,8 @@ export function Dashboard() {
       setLoading(true);
       setError(null);
 
-      const response: DashboardDetailsResponse = await apiClient.processStatementFile(file);
+      const response: DashboardDetailsResponse =
+        await apiClient.processStatementFile(file);
 
       if (!response?.ReportAnalysis) {
         throw new Error("Failed to process file");
@@ -62,15 +66,24 @@ export function Dashboard() {
   }
 
   if (error) {
-    return <div className="dashboard-state dashboard-state--error">Error: {error}</div>;
+    return (
+      <div className="dashboard-state dashboard-state--error">
+        Error: {error}
+      </div>
+    );
   }
 
   if (!reportAnalysis) {
     return (
       <main className="dashboard">
         <div className="dashboard__upload">
-          <p className="dashboard__upload-title">Upload your bank statement to get started</p>
-          <FileUpload onFileUploaded={handleFileUploaded} acceptedFileTypes=".csv" />
+          <p className="dashboard__upload-title">
+            Upload your bank statement to get started
+          </p>
+          <FileUpload
+            onFileUploaded={handleFileUploaded}
+            acceptedFileTypes=".csv"
+          />
         </div>
       </main>
     );
@@ -94,14 +107,19 @@ export function Dashboard() {
       expenditure: summary.TotalAmount,
     })) || [];
 
-  const topCategories = getTopCategories(reportAnalysis.CategorySummaries ?? []);
+  const topCategories = getTopCategories(
+    reportAnalysis.CategorySummaries ?? [],
+  );
 
   return (
     <main className="dashboard">
       {/* File Upload */}
       <div className="dashboard__upload">
         <p className="dashboard__upload-title">Upload a new bank statement</p>
-        <FileUpload onFileUploaded={handleFileUploaded} acceptedFileTypes=".csv" />
+        <FileUpload
+          onFileUploaded={handleFileUploaded}
+          acceptedFileTypes=".csv"
+        />
       </div>
 
       {/* Metric Cards */}
@@ -115,28 +133,39 @@ export function Dashboard() {
       <div className="dashboard__charts">
         <div className="chart-card">
           <h2 className="chart-card__title">{monthlySummary.month} Overview</h2>
-          <p className="chart-card__desc">Income vs expenses vs savings breakdown</p>
+          <p className="chart-card__desc">
+            Income vs expenses vs savings breakdown
+          </p>
           <div className="chart-card__body">
             <div style={{ flex: 1 }}>
               <MonthlyOverview summary={monthlySummary} />
             </div>
             <div className="chart-card__insights">
               <div className="chart-insight">
-                <span className="chart-insight__dot" style={{ background: "#10b981" }} />
+                <span
+                  className="chart-insight__dot"
+                  style={{ background: "#10b981" }}
+                />
                 <span className="chart-insight__label">Income</span>
                 <span className="chart-insight__value">
                   R {reportAnalysis.TotalIncome.toFixed(2)}
                 </span>
               </div>
               <div className="chart-insight">
-                <span className="chart-insight__dot" style={{ background: "#ef4444" }} />
+                <span
+                  className="chart-insight__dot"
+                  style={{ background: "#ef4444" }}
+                />
                 <span className="chart-insight__label">Expenses</span>
                 <span className="chart-insight__value">
                   R {reportAnalysis.TotalExpenses.toFixed(2)}
                 </span>
               </div>
               <div className="chart-insight">
-                <span className="chart-insight__dot" style={{ background: "#3b82f6" }} />
+                <span
+                  className="chart-insight__dot"
+                  style={{ background: "#3b82f6" }}
+                />
                 <span className="chart-insight__label">Savings</span>
                 <span className="chart-insight__value">
                   R {reportAnalysis.TotalSavings.toFixed(2)}
