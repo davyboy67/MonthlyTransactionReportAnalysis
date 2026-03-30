@@ -1,6 +1,12 @@
 import { useState } from "react";
-import type { TopCategory, TopTransaction } from "../../utils/transactionAnalysis";
-import { CATEGORY_ICONS, DEFAULT_CATEGORY_ICON } from "../../constants/constants";
+import type {
+  TopCategory,
+  TopTransaction,
+} from "../../../utils/transactionAnalysis";
+import {
+  CATEGORY_ICONS,
+  DEFAULT_CATEGORY_ICON,
+} from "../../../constants/constants";
 import "./TopCategories.css";
 
 function getCategoryIcon(name: string): string {

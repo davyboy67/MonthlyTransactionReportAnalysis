@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 import { apiClient } from "@transaction-report/shared";
 import type { IReportAnalysis } from "@transaction-report/shared";
-import type { ICategorySummary, IMonthlySummary } from "../../types";
-import { CategorySummary } from "../organisms/categorySummary";
-import { MonthlyOverview } from "../organisms/monthlyOverview";
-import { TopCategories } from "../organisms/TopCategories";
-import { FileUpload } from "../molecules/fileUpload";
-import { MetricCards } from "../molecules/MetricCards";
-import { getTopCategories } from "../../utils/transactionAnalysis";
+import type { ICategorySummary, IMonthlySummary } from "../../../types";
+import { CategorySummary } from "../../organisms/categorySummary";
+import { MonthlyOverview } from "../../organisms/monthlyOverview";
+import { TopCategories } from "../../organisms/topCategories/TopCategories";
+import { FileUpload } from "../../molecules/fileUpload/fileUpload";
+import { MetricCards } from "../../molecules/metricComponents/MetricCards";
+import { getTopCategories } from "../../../utils/transactionAnalysis";
 import "./dashboard.css";
 
 interface DashboardDetailsResponse {
