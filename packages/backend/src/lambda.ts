@@ -8,7 +8,7 @@ let serverlessExpressInstance: ServerlessExpressHandler | undefined;
 
 export const handler = async (event: APIGatewayProxyEvent, context: Context): Promise<unknown> => {
   if (!serverlessExpressInstance) {
-    console.log('Cold start - initializing Express app');
+    console.log('Initializing Express app');
     const app = await createApp();
     serverlessExpressInstance = serverlessExpress({ app }) as unknown as ServerlessExpressHandler;
   }
