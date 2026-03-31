@@ -19,12 +19,9 @@
     "shared:dev": "concurrently -k \"tsc -p packages/shared/tsconfig.cjs.json -w\" \"tsc -p packages/shared/tsconfig.esm.json -w\"",
     "build:all": "npm run shared:build && npm run backend:build && npm run frontend:build",
     "dev": "concurrently -k \"npm run shared:dev\" \"npm run backend:dev\" \"npm run frontend:dev\"",
-    "package:retrieve": "npm run shared:build && node scripts/bundle-lambda.js RetrieveDashboardDetails",
-    "package:save": "npm run shared:build && node scripts/bundle-lambda.js SaveReportInformation",
-    "package:process": "npm run shared:build && node scripts/bundle-lambda.js ProcessStatementFile",
-    "package:all": "npm run shared:build && npm run package:retrieve && npm run package:save && npm run package:process",
+    "backend:lambda": "npm run backend:build && node scripts/bundle-lambda.js",
+    "deploy:lambda-manual": "npm run backend:lambda && echo 'Upload packages/backend/dist/lambda-bundle/ to AWS Lambda Console'",
     "deploy": "cd packages/frontend && npm run build && gh-pages -d dist -r https://github.com/davyboy67/MonthlyTransactionReportAnalysis.git"
-  
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
