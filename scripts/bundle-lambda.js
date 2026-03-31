@@ -1,55 +1,50 @@
 const esbuild = require('esbuild');
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
 
-const lambdaName = process.argv[2];
-if (!lambdaName) {
-  console.error('Please provide lambda name (e.g., RetrieveDashboardDetails, SaveReportInformation, ProcessStatementFile)');
+const entryPoint = path.join(__dirname, '..', 'packages', 'backend', 'dist', 'lambda.js');
+const outputDir = path.join(__dirname, '..', 'packages', 'backend', 'dist', 'lambda-bundle');
+const outputFile = path.join(outputDir, 'index.js');
+
+// Check if compiled entry point exists
+if (!fs.existsSync(entryPoint)) {
+  console.error(`Entry point not found: ${entryPoint}`);
+  console.error('Run "npm run backend:build" first to compile TypeScript.');
   process.exit(1);
 }
 
-const lambdaPath = path.join(__dirname, '..', 'lambdas', lambdaName);
-const outputPath = path.join(lambdaPath, 'dist');
-
-// Check if lambda exists
-if (!fs.existsSync(lambdaPath)) {
-  console.error(`Lambda ${lambdaName} not found at ${lambdaPath}`);
-  process.exit(1);
+// Clean output directory
+if (fs.existsSync(outputDir)) {
+  try {
+    fs.rmSync(outputDir, { recursive: true, force: true });
+  } catch (err) {
+    console.error(`Failed to clean output directory: ${err.message}`);
+    process.exit(1);
+  }
 }
+fs.mkdirSync(outputDir, { recursive: true });
 
-// Clean dist folder
-if (fs.existsSync(outputPath)) {
-  fs.rmSync(outputPath, { recursive: true, force: true });
-}
-fs.mkdirSync(outputPath, { recursive: true });
+console.log('Bundling Lambda function...');
 
-console.log(`Bundling ${lambdaName}...`);
-
-// Bundle with esbuild
 esbuild.build({
-  entryPoints: [path.join(lambdaPath, 'src', 'handler.ts')],
+  entryPoints: [entryPoint],
   bundle: true,
   platform: 'node',
   target: 'node18',
-  outfile: path.join(outputPath, 'handler.js'),
-  external: ['aws-sdk', 'pg-native'], // AWS SDK available in runtime, pg-native is optional
+  outfile: outputFile,
+  external: ['aws-sdk', 'pg-native', '@mapbox/node-pre-gyp'],
   minify: true,
   sourcemap: true,
   format: 'cjs',
-  keepNames: true, // Preserve decorator names for TypeORM
+  keepNames: true, // Important for TypeORM decorators
 }).then(() => {
-  console.log(`✓ Bundled ${lambdaName}`);
-  
-  // Create zip
-  const zipFile = path.join(lambdaPath, 'function.zip');
-  if (fs.existsSync(zipFile)) fs.unlinkSync(zipFile);
-  
-  const distPath = path.join(outputPath, '*');
-  execSync(`powershell Compress-Archive -Path "${distPath}" -DestinationPath "${zipFile}"`, { stdio: 'inherit' });
-  console.log(`✓ Created function.zip`);
-  console.log(`✓ Handler path for AWS Lambda: handler.handler`);
+  const stats = fs.statSync(outputFile);
+  const sizeMB = (stats.size / (1024 * 1024)).toFixed(2);
+
+  console.log(`Lambda bundle created at ${outputFile}`);
+  console.log(`Bundle size: ${sizeMB} MB`);
+  console.log('Ready to upload to AWS Lambda');
 }).catch((error) => {
-  console.error('Build failed:', error);
+  console.error('Bundle failed:', error.message || error);
   process.exit(1);
 });

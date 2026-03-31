@@ -17,6 +17,7 @@
     "moduleResolution": "node",
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
+    "noEmit": false,
     "baseUrl": ".",
     "paths": {
       "@transaction-report/shared": ["../shared/dist/cjs"]

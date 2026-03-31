@@ -29,3 +29,7 @@ lambdas/*/node_modules/
 lambdas/*/dist/
 lambdas/*/function.zip
 lambdas/*/temp_*/
+
+# Lambda bundles
+packages/backend/dist/lambda-bundle/
+lambda-deployment.zip

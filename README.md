@@ -1,6 +1,6 @@
 # Monthly Transaction Report Analysis
 
-A comprehensive transaction analysis application that extracts, processes, and analyzes monthly financial transactions with automated categorization and reporting.
+A comprehensive transaction analysis application that extracts, processes, and analyzes monthly financial transactions with automated categorization and reporting. The backend is deployed as a single AWS Lambda function.
 
 ## Overview
 
@@ -8,7 +8,7 @@ This application provides:
 - **Transaction Extraction**: Parse CSV bank statements
 - **Automated Categorization**: Intelligent merchant-based categorization
 - **Data Analysis**: Generate category summaries and spending insights
-- **Dashboard API**: Store and retrieve transaction reports
+- **Dashboard API**: Store and retrieve transaction reports via a unified Lambda function
 - **Frontend Dashboard**: Visualize transaction data (React-based)
 
 ## Technology Stack
@@ -18,6 +18,8 @@ This application provides:
 - **Express.js** - REST API framework
 - **TypeORM** - TypeScript ORM for PostgreSQL
 - **PostgreSQL** (Neon) - Database
+- **AWS Lambda** - Serverless deployment
+- **@vendia/serverless-express** - Express in Lambda adapter
 
 ### Frontend
 - **React** with **TypeScript**
@@ -35,9 +37,12 @@ This application provides:
 
 ```
 .
+├── docs/                     # Deployment guides and checklists
 ├── packages/
-│   ├── backend/              # Node.js/Express API server
+│   ├── backend/              # Node.js/Express API server (also runs in Lambda)
 │   │   ├── src/
+│   │   │   ├── lambda.ts     # Lambda handler entry point
+│   │   │   └── server.ts     # Local Express server entry point
 │   │   ├── __tests__/
 │   │   └── package.json
 │   ├── frontend/             # React frontend application
@@ -46,6 +51,8 @@ This application provides:
 │   └── shared/               # Shared code (interfaces, services)
 │       ├── src/
 │       └── __tests__/
+├── scripts/
+│   └── bundle-lambda.js      # Packages backend for Lambda deployment
 ├── package.json
 └── README.md
 ```
@@ -77,26 +84,48 @@ This application provides:
    # Edit .env and add your database connection string
    ```
 
-### Running the Application
+## Deployment
 
-#### Development Mode (All packages)
+### Local Development
+```bash
+npm run backend:dev  # Express server on localhost:3001
+```
+
+### Production Deployment
+
+The backend is deployed to AWS Lambda as a single function handling all routes using `@vendia/serverless-express`.
+
+See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for detailed deployment instructions.
+
+**Quick deploy:**
+```bash
+npm run backend:lambda  # Build Lambda package
+# Then upload packages/backend/dist/lambda-bundle/ to AWS Lambda
+```
+
+## Running the Application
+
+### Development Mode (All packages)
 ```bash
 # Run backend, frontend, and shared packages concurrently
 npm run dev
 ```
 
-#### Individual Packages
+### Individual Packages
 
 <details>
 <summary>Backend API Server</summary>
 
 ```bash
-# Development mode
+# Development mode (local Express server)
 npm run backend:dev
 
 # Production build
 npm run backend:build
 npm run backend:start
+
+# Build Lambda package for deployment
+npm run backend:lambda
 ```
 The API server will start on `http://localhost:3001` (or the PORT specified in `.env`).
 
@@ -122,6 +151,8 @@ npm test
 ## API Documentation
 
 See [packages/backend/README.md](packages/backend/README.md) for detailed API documentation.
+
+The API is served by a single Lambda function. All routes are available at the same function URL.
 
 ### Available Endpoints
 
@@ -185,10 +216,8 @@ Edit `packages/shared/src/data/categoryList.json` to add new transaction categor
 Edit `packages/shared/src/data/merchantCategoryMapping.json` to map merchants to categories.
 
 ### Running Linters
-Currently, no linter is configured. To add ESLint:
 ```bash
-npm install -D eslint @typescript-eslint/parser @typescript-eslint/eslint-plugin
-npx eslint --init
+npm run lint
 ```
 
 ## Troubleshooting

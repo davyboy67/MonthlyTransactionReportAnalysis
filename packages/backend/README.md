@@ -1,6 +1,6 @@
 # Backend API
 
-This is the Node.js/TypeScript backend API for the Monthly Transaction Report Analysis application. It replaces the previous .NET API and provides endpoints for storing and retrieving transaction report data.
+This is the Node.js/TypeScript backend for the Monthly Transaction Report Analysis application. It runs as an Express server locally and deploys to AWS Lambda as a single unified function using `@vendia/serverless-express`.
 
 ## Technology Stack
 
@@ -8,7 +8,21 @@ This is the Node.js/TypeScript backend API for the Monthly Transaction Report An
 - **Express.js** - Web framework
 - **TypeORM** - TypeScript ORM for PostgreSQL
 - **PostgreSQL** - Database (hosted on Neon)
+- **@vendia/serverless-express** - Runs Express app inside AWS Lambda
 - **Jest** - Testing framework
+
+## Dual-Mode Architecture
+
+The backend supports two execution modes from the same codebase:
+
+| Mode | Entry Point | How to Run |
+|------|------------|------------|
+| Local development | `src/server.ts` | `npm run backend:dev` |
+| AWS Lambda | `src/lambda.ts` | `npm run backend:lambda` then upload bundle |
+
+`src/app.ts` creates and configures the Express application. Both entry points use this shared app, so local and Lambda behaviour is identical.
+
+`@vendia/serverless-express` wraps the Express app in a Lambda handler. When Lambda receives an HTTP event (from a Function URL or API Gateway), it translates it into an Express request and returns the Express response to AWS.
 
 ## Prerequisites
 
@@ -40,13 +54,19 @@ This is the Node.js/TypeScript backend API for the Monthly Transaction Report An
 
 ## Running the Backend
 
-### Development Mode
+### Local Development (Express server)
 ```bash
 npm run backend:dev
 ```
-This starts the server with `ts-node` on port 3001 (or the PORT specified in `.env`).
+Starts the server with `ts-node` on port 3001 (or the PORT specified in `.env`).
 
-### Production Build
+### Production Build (Lambda deployment)
+```bash
+npm run backend:lambda
+```
+Compiles TypeScript and creates a bundled Lambda package at `packages/backend/dist/lambda-bundle/`. See [docs/DEPLOYMENT.md](../../docs/DEPLOYMENT.md) for full deployment instructions.
+
+### Build Only
 ```bash
 npm run backend:build
 npm run backend:start
@@ -99,7 +119,9 @@ npm run backend:start
 ```
 backend/
 ├── src/
-│   ├── controllers/      # (Not used - logic in routes)
+│   ├── app.ts            # Express app factory (shared by server and Lambda)
+│   ├── server.ts         # Local Express server entry point
+│   ├── lambda.ts         # AWS Lambda handler entry point
 │   ├── services/         # Business logic layer
 │   │   └── DashboardService.ts
 │   ├── repositories/     # Data access layer
@@ -108,8 +130,8 @@ backend/
 │   │   └── dashboardRoutes.ts
 │   ├── models/           # TypeScript type definitions
 │   │   └── types.ts
-│   ├── middleware/       # Express middleware (future use)
-│   └── server.ts         # Main application entry point
+│   ├── entities/         # TypeORM entity definitions
+│   └── database/         # TypeORM DataSource configuration
 ├── dist/                 # Compiled JavaScript (generated)
 └── tsconfig.json         # TypeScript configuration
 ```
@@ -128,7 +150,7 @@ npm test
 
 ## CORS Configuration
 
-The backend is configured to allow all origins for development. Update the CORS configuration in `server.ts` for production use.
+The backend is configured to allow all origins for development. Update the CORS configuration in `src/app.ts` for production use.
 
 ## Database Connection
 
@@ -136,17 +158,6 @@ The application uses TypeORM to interact with PostgreSQL. Connection configurati
 - `backend/src/entities/` - Entity definitions
 - `backend/src/database/dataSource.ts` - TypeORM DataSource configuration
 - `.env` - Database connection string
-
-## Migration from .NET API
-
-This backend replaces the C# .NET API (in `DashboardAPI/` folder) with equivalent functionality:
-
-- **Controller** → `routes/dashboardRoutes.ts`
-- **Service** → `services/DashboardService.ts`
-- **Repository** → `repositories/DashboardRepository.ts`
-- **Models** → `models/types.ts`
-
-The API endpoints remain the same to maintain compatibility with existing frontend code.
 
 ## Environment Variables
 
@@ -156,8 +167,11 @@ Required environment variables:
 # Database connection string
 DATABASE_URL="postgresql://user:password@host/database?sslmode=require"
 
-# Server port (optional, defaults to 3001)
+# Server port (optional, defaults to 3001 — local development only)
 PORT=3001
+
+# NODE_ENV (set to "production" in Lambda environment variables)
+NODE_ENV=development
 ```
 
 ## Troubleshooting
