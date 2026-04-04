@@ -1,10 +1,12 @@
 const esbuild = require('esbuild');
 const fs = require('fs');
 const path = require('path');
+const archiver = require('archiver');
 
 const entryPoint = path.join(__dirname, '..', 'packages', 'backend', 'dist', 'lambda.js');
 const outputDir = path.join(__dirname, '..', 'packages', 'backend', 'dist', 'lambda-bundle');
 const outputFile = path.join(outputDir, 'index.js');
+const zipFile = path.join(__dirname, '..', 'packages', 'backend', 'function.zip');
 
 // Check if compiled entry point exists
 if (!fs.existsSync(entryPoint)) {
@@ -40,10 +42,38 @@ esbuild.build({
 }).then(() => {
   const stats = fs.statSync(outputFile);
   const sizeMB = (stats.size / (1024 * 1024)).toFixed(2);
-
-  console.log(`Lambda bundle created at ${outputFile}`);
   console.log(`Bundle size: ${sizeMB} MB`);
-  console.log('Ready to upload to AWS Lambda');
+
+  // Remove old zip if it exists
+  if (fs.existsSync(zipFile)) {
+    fs.rmSync(zipFile);
+  }
+
+  console.log('Creating function.zip...');
+  
+  // Create ZIP using archiver (cross-platform)
+  const output = fs.createWriteStream(zipFile);
+  const archive = archiver('zip', { zlib: { level: 9 } });
+
+  output.on('close', () => {
+    const zipStats = fs.statSync(zipFile);
+    const zipSizeMB = (zipStats.size / (1024 * 1024)).toFixed(2);
+    console.log(`function.zip created at ${zipFile} (${zipSizeMB} MB)`);
+    console.log('Ready to upload to AWS Lambda');
+  });
+
+  archive.on('error', (err) => {
+    console.error('ZIP creation failed:', err.message);
+    process.exit(1);
+  });
+
+  archive.pipe(output);
+  
+  // Add files from lambda-bundle directory (NOT the directory itself)
+  archive.directory(outputDir, false); // false = don't include parent folder
+  
+  archive.finalize();
+  
 }).catch((error) => {
   console.error('Bundle failed:', error.message || error);
   process.exit(1);
