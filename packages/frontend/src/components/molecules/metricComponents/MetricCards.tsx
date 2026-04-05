@@ -8,6 +8,12 @@ interface MetricCardProps {
   accentColor: string;
   bgColor: string;
 }
+const MetricCardColor = {
+  Green: "#10b981",
+  Red: "#ef4444",
+  Blue: "#3b82f6",
+  Background_white: "#f0fdf4",
+};
 
 function MetricCard({
   label,
@@ -28,9 +34,7 @@ function MetricCard({
     >
       <span className="metric-card__label">{label}</span>
       <span className="metric-card__value">{value}</span>
-      {subtitle && (
-        <span className="metric-card__subtitle">{subtitle}</span>
-      )}
+      {subtitle && <span className="metric-card__subtitle">{subtitle}</span>}
     </div>
   );
 }
@@ -47,11 +51,9 @@ export function MetricCards({
   totalSavings,
 }: MetricCardsProps) {
   // Net position = assets (income + savings) minus liabilities (expenses)
-  const netPosition = totalIncome + totalSavings - totalExpenses;
+  const netPosition = totalIncome - totalSavings - totalExpenses;
   const savingsPercent =
-    totalIncome > 0
-      ? Math.round((totalSavings / totalIncome) * 100)
-      : 0;
+    totalIncome > 0 ? Math.round((totalSavings / totalIncome) * 100) : 0;
   const netPercent =
     totalIncome > 0
       ? Math.round((Math.abs(netPosition) / totalIncome) * 100)
@@ -67,28 +69,28 @@ export function MetricCards({
       <MetricCard
         label="Total Income"
         value={fmt(totalIncome)}
-        accentColor="#10b981"
-        bgColor="#f0fdf4"
+        accentColor={MetricCardColor.Green}
+        bgColor={MetricCardColor.Background_white}
       />
       <MetricCard
         label="Total Expenses"
         value={fmt(totalExpenses)}
-        accentColor="#ef4444"
-        bgColor="#fef2f2"
+        accentColor={MetricCardColor.Red}
+        bgColor={MetricCardColor.Background_white}
       />
       <MetricCard
         label="Actual Savings"
         value={fmt(totalSavings)}
         subtitle={`${savingsPercent}% of income saved`}
-        accentColor="#3b82f6"
-        bgColor="#eff6ff"
+        accentColor={MetricCardColor.Blue}
+        bgColor={MetricCardColor.Background_white}
       />
       <MetricCard
         label="Net Position"
         value={fmt(Math.abs(netPosition))}
         subtitle={`${netPositive ? "+" : "-"}${netPercent}% of income`}
-        accentColor={netPositive ? "#10b981" : "#ef4444"}
-        bgColor={netPositive ? "#f0fdf4" : "#fef2f2"}
+        accentColor={netPositive ? MetricCardColor.Green : MetricCardColor.Red}
+        bgColor={netPositive ? MetricCardColor.Background_white : "#fef2f2"}
       />
     </div>
   );
