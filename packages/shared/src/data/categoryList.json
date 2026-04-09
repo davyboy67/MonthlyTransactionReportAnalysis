@@ -2,63 +2,51 @@
 [
     {
         "name": "Groceries",
-        "displayName": "Groceries & Supermarkets",
-        "budget": 5000
+        "displayName": "Groceries & Supermarkets"
     },
     {
         "name": "Dining Out",
-        "displayName": "Restaurants & Cafes",
-        "budget": 2000
+        "displayName": "Restaurants & Cafes"
     },
     {
         "name": "Entertainment",
-        "displayName": "Entertainment & Leisure",
-        "budget": 1500
+        "displayName": "Entertainment & Leisure"
     },
     {
         "name": "Transport",
-        "displayName": "Transport & Travel",
-        "budget": 1000
+        "displayName": "Transport & Travel"
     },
     {
         "name": "Utilities",
-        "displayName": "Utilities",
-        "budget": 2500
+        "displayName": "Utilities"
     },
     {
         "name": "Health",
-        "displayName": "Health & Wellness",
-        "budget": 1200
+        "displayName": "Health & Wellness"
     },
     {
         "name": "Education",
-        "displayName": "Education",
-        "budget": 800
+        "displayName": "Education"
     },
     {
         "name": "Shopping",
-        "displayName": "Shopping",
-        "budget": 3000
+        "displayName": "Shopping"
     },
     {
         "name": "Subscriptions",
-        "displayName": "Subscriptions & Memberships",
-        "budget": 4000
+        "displayName": "Subscriptions & Memberships"
     },
     {
         "name": "Savings",
-        "displayName": "Savings & Investments",
-        "budget": 6000
+        "displayName": "Savings & Investments"
     },
     {
         "name": "Income",
-        "displayName": "Income",
-        "budget": 0
+        "displayName": "Income"
     },
     {
         "name": "Fees",
-        "displayName": "Fees & Charges",
-        "budget": 1000
+        "displayName": "Fees & Charges"
     }
 
 ]

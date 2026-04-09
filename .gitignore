@@ -33,3 +33,5 @@ lambdas/*/temp_*/
 # Lambda bundles
 packages/backend/dist/lambda-bundle/
 lambda-deployment.zip
+*.zip
+*.drawio

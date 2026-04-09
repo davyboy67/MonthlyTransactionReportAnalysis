@@ -1,22 +1,26 @@
-import 'reflect-metadata';
-import { DataSource } from 'typeorm';
-import { ReportAnalysis } from '../entities/ReportAnalysis';
-import { Transaction } from '../entities/Transaction';
-import { User } from '../entities/User';
-import dotenv from 'dotenv';
-import path from 'path';
+import "reflect-metadata";
+import { DataSource } from "typeorm";
+import { ReportAnalysis } from "../entities/ReportAnalysis";
+import { Transaction } from "../entities/Transaction";
+import { Users } from "../entities/Users";
+import { Budget } from "../entities/Budget";
+import { BudgetCategory } from "../entities/BudgetCategory";
+import dotenv from "dotenv";
+import path from "path";
 
 if (!process.env.AWS_LAMBDA_FUNCTION_NAME) {
-  dotenv.config({ path: path.resolve(__dirname, '../../../../.env') });
+  dotenv.config({ path: path.resolve(__dirname, "../../../../.env") });
 }
 
 export const AppDataSource = new DataSource({
-  type: 'postgres',
+  type: "postgres",
   url: process.env.DATABASE_URL,
   synchronize: false,
   logging: false,
-  entities: [User, ReportAnalysis, Transaction],
+  entities: [Users, ReportAnalysis, Transaction, Budget, BudgetCategory],
   migrations: [],
   subscribers: [],
-  ssl: process.env.DATABASE_URL?.includes('sslmode=require') ? { rejectUnauthorized: false } : false,
+  ssl: process.env.DATABASE_URL?.includes("sslmode=require")
+    ? { rejectUnauthorized: false }
+    : false,
 });

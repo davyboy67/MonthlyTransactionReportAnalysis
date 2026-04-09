@@ -1,41 +1,50 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
-import { ReportAnalysis } from './ReportAnalysis';
-import { User } from './User';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+} from "typeorm";
+import { ReportAnalysis } from "./ReportAnalysis";
+import { Users } from "./Users";
 
-@Entity('transaction')
+@Entity("transaction")
 export class Transaction {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @Column({ type: 'integer' })
+  @Column({ type: "integer" })
   report_analysis_id!: number;
 
-  @Column({ type: 'integer' })
-  user_id!: number;
+  @Column({ type: "integer" })
+  user_id!: number; //TODO: redundant - remove
 
-  @Column({ type: 'date' })
+  @Column({ type: "date" })
   date!: Date;
 
-  @Column({ type: 'varchar' })
+  @Column({ type: "varchar" })
   description!: string;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2 })
+  @Column({ type: "decimal", precision: 10, scale: 2 })
   amount!: number;
 
-  @Column({ type: 'varchar' })
+  @Column({ type: "varchar" })
   category!: string;
 
-  @Column({ type: 'varchar' })
+  @Column({ type: "varchar" })
   merchant!: string;
 
-  @Column({ type: 'varchar' })
+  @Column({ type: "varchar" })
   type!: string;
 
-  @ManyToOne(() => ReportAnalysis, reportAnalysis => reportAnalysis.transactions)
-  @JoinColumn({ name: 'report_analysis_id' })
+  @ManyToOne(
+    () => ReportAnalysis,
+    (reportAnalysis) => reportAnalysis.transactions,
+  )
+  @JoinColumn({ name: "report_analysis_id" })
   reportAnalysis!: ReportAnalysis;
 
-  @ManyToOne(() => User, user => user.transactions)
-  @JoinColumn({ name: 'user_id' })
-  user!: User;
+  @ManyToOne(() => Users, (user) => user.transactions)
+  @JoinColumn({ name: "user_id" })
+  user!: Users;
 }
