@@ -3,7 +3,7 @@ import "reflect-metadata";
 import express, { Application, Request, Response, NextFunction } from "express";
 import cors from "cors";
 import { AppDataSource } from "./database/dataSource";
-import { DashboardRepository } from "./repositories/DashboardRepository";
+import { DashboardRepository } from "./repositories/dashboardRepository";
 import { DashboardService } from "./services/DashboardService";
 import { createDashboardRouter } from "./routes/dashboardRoutes";
 import {

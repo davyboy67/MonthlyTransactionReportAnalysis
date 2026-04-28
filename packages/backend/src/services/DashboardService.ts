@@ -1,4 +1,4 @@
-import { IDashboardRepository } from "../repositories/DashboardRepository";
+import { IDashboardRepository } from "../repositories/dashboardRepository";
 import { DashboardDetailsResponse } from "../models/types";
 import { IReportAnalysis } from "@transaction-report/shared";
 import {

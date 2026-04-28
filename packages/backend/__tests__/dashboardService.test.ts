@@ -1,6 +1,11 @@
 import { DashboardService } from '../src/services/DashboardService';
-import { IDashboardRepository } from '../src/repositories/DashboardRepository';
-import { IReportAnalysis, IStatementExtractionService, IDataAnalysisService, TransactionType } from '@transaction-report/shared';
+import { IDashboardRepository } from '../src/repositories/dashboardRepository';
+import {
+  IReportAnalysis,
+  IStatementExtractionService,
+  IDataAnalysisService,
+  TransactionType,
+} from '@transaction-report/shared';
 
 describe('DashboardService', () => {
   let service: DashboardService;
@@ -11,7 +16,7 @@ describe('DashboardService', () => {
   beforeEach(() => {
     mockRepository = {
       getDashboardDetails: jest.fn(),
-      saveDashboardDetails: jest.fn()
+      saveDashboardDetails: jest.fn(),
     };
 
     mockstatementExtractionService = {
@@ -23,7 +28,11 @@ describe('DashboardService', () => {
     mockdataAnalysisService = {
       analyseTransactions: jest.fn(),
     };
-    service = new DashboardService(mockRepository, mockstatementExtractionService, mockdataAnalysisService);
+    service = new DashboardService(
+      mockRepository,
+      mockstatementExtractionService,
+      mockdataAnalysisService
+    );
   });
 
   describe('retrieveDashboardDetails', () => {
@@ -33,7 +42,7 @@ describe('DashboardService', () => {
         TotalIncome: 5000,
         TotalExpenses: 3000,
         TotalSavings: 2000,
-        CategorySummaries: []
+        CategorySummaries: [],
       };
 
       mockRepository.getDashboardDetails.mockResolvedValue(mockReport);
@@ -41,7 +50,10 @@ describe('DashboardService', () => {
       const result = await service.retrieveDashboardDetails(new Date('2024-01-01'));
 
       expect(result.ReportAnalysis).toEqual(mockReport);
-      expect(mockRepository.getDashboardDetails).toHaveBeenCalledWith(new Date('2024-01-01'), undefined);
+      expect(mockRepository.getDashboardDetails).toHaveBeenCalledWith(
+        new Date('2024-01-01'),
+        undefined
+      );
     });
 
     it('should pass id parameter correctly', async () => {
@@ -69,7 +81,7 @@ describe('DashboardService', () => {
         TotalIncome: 5000,
         TotalExpenses: 3000,
         TotalSavings: 2000,
-        CategorySummaries: []
+        CategorySummaries: [],
       };
 
       mockRepository.saveDashboardDetails.mockResolvedValue();
@@ -82,7 +94,10 @@ describe('DashboardService', () => {
 
   describe('processStatementFile', () => {
     it('should process a file buffer and return a report analysis', async () => {
-      const csvData = [['Date', 'Description', 'Amount'], ['2024-01-15', 'Groceries', '50']];
+      const csvData = [
+        ['Date', 'Description', 'Amount'],
+        ['2024-01-15', 'Groceries', '50'],
+      ];
       const mockTransactions = [
         {
           Date: new Date('2024-01-15'),
@@ -91,8 +106,8 @@ describe('DashboardService', () => {
           Category: 'Food',
           Merchant: 'Supermarket',
           Month: '1',
-          Type: TransactionType.Expense
-        }
+          Type: TransactionType.Expense,
+        },
       ];
       const mockAnalysed: IReportAnalysis = {
         Date: new Date('2024-01-01'),
@@ -104,9 +119,9 @@ describe('DashboardService', () => {
             CategoryName: 'Food',
             Merchants: ['Supermarket'],
             TotalAmount: 50,
-            Transactions: mockTransactions
-          }
-        ]
+            Transactions: mockTransactions,
+          },
+        ],
       };
 
       mockstatementExtractionService.getStatementData.mockResolvedValue(csvData);
@@ -130,7 +145,9 @@ describe('DashboardService', () => {
     it('should propagate errors from extraction service', async () => {
       mockstatementExtractionService.getStatementData.mockRejectedValue(new Error('Parse failed'));
 
-      await expect(service.processStatementFile(Buffer.from('bad'))).rejects.toThrow('Parse failed');
+      await expect(service.processStatementFile(Buffer.from('bad'))).rejects.toThrow(
+        'Parse failed'
+      );
     });
   });
 });

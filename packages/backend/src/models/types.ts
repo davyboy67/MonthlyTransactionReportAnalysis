@@ -1,4 +1,4 @@
-import { IReportAnalysis } from "@transaction-report/shared";
+import { IReportAnalysis, IBudget } from "@transaction-report/shared";
 
 export interface DashboardDetailsRequest {
   Date: Date;
@@ -11,4 +11,8 @@ export interface DashboardSaveInfoRequest {
 
 export interface DashboardDetailsResponse {
   ReportAnalysis: IReportAnalysis | null;
+}
+
+export interface BudgetResponse {
+  budget: IBudget;
 }
