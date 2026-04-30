@@ -12,7 +12,9 @@ const MetricCardColor = {
   Green: "#10b981",
   Red: "#ef4444",
   Blue: "#3b82f6",
-  Background_white: "#f0fdf4",
+  GreenBg: "#f0fdf4",
+  RedBg: "#fef2f2",
+  BlueBg: "#eff6ff",
 };
 
 function MetricCard({
@@ -70,27 +72,27 @@ export function MetricCards({
         label="Total Income"
         value={fmt(totalIncome)}
         accentColor={MetricCardColor.Green}
-        bgColor={MetricCardColor.Background_white}
+        bgColor={MetricCardColor.GreenBg}
       />
       <MetricCard
         label="Total Expenses"
         value={fmt(totalExpenses)}
         accentColor={MetricCardColor.Red}
-        bgColor={MetricCardColor.Background_white}
+        bgColor={MetricCardColor.RedBg}
       />
       <MetricCard
         label="Actual Savings"
         value={fmt(totalSavings)}
         subtitle={`${savingsPercent}% of income saved`}
         accentColor={MetricCardColor.Blue}
-        bgColor={MetricCardColor.Background_white}
+        bgColor={MetricCardColor.BlueBg}
       />
       <MetricCard
         label="Net Position"
         value={fmt(Math.abs(netPosition))}
         subtitle={`${netPositive ? "+" : "-"}${netPercent}% of income`}
         accentColor={netPositive ? MetricCardColor.Green : MetricCardColor.Red}
-        bgColor={netPositive ? MetricCardColor.Background_white : "#fef2f2"}
+        bgColor={netPositive ? MetricCardColor.GreenBg : MetricCardColor.RedBg}
       />
     </div>
   );

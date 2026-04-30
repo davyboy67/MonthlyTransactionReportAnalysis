@@ -7,6 +7,7 @@ import { MonthlyOverview } from "../../organisms/monthlyOverview";
 import { TopCategories } from "../../organisms/topCategories/TopCategories";
 import { FileUpload } from "../../molecules/fileUpload/fileUpload";
 import { MetricCards } from "../../molecules/metricComponents/MetricCards";
+import { Tabs } from "../../atoms/tabs/Tabs";
 import { getTopCategories } from "../../../utils/transactionAnalysis";
 import "./dashboard.css";
 
@@ -14,12 +15,20 @@ interface DashboardDetailsResponse {
   ReportAnalysis: IReportAnalysis;
 }
 
+type ActiveTab = "overview" | "budgets";
+
+const DASHBOARD_TABS: Array<{ id: ActiveTab; label: string }> = [
+  { id: "overview", label: "Report Overview" },
+  { id: "budgets", label: "Budgets" },
+];
+
 export function Dashboard() {
   const [reportAnalysis, setReportAnalysis] = useState<IReportAnalysis | null>(
     null,
   );
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<ActiveTab>("overview");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -61,21 +70,21 @@ export function Dashboard() {
     }
   };
 
-  if (loading) {
-    return <div className="dashboard-state">Loading...</div>;
-  }
+  const renderOverviewTab = () => {
+    if (loading) {
+      return <div className="dashboard-state">Loading...</div>;
+    }
 
-  if (error) {
-    return (
-      <div className="dashboard-state dashboard-state--error">
-        Error: {error}
-      </div>
-    );
-  }
+    if (error) {
+      return (
+        <div className="dashboard-state dashboard-state--error">
+          Error: {error}
+        </div>
+      );
+    }
 
-  if (!reportAnalysis) {
-    return (
-      <main className="dashboard">
+    if (!reportAnalysis) {
+      return (
         <div className="dashboard__upload">
           <p className="dashboard__upload-title">
             Upload your bank statement to get started
@@ -85,105 +94,125 @@ export function Dashboard() {
             acceptedFileTypes=".csv"
           />
         </div>
-      </main>
+      );
+    }
+
+    const monthlySummary: IMonthlySummary = {
+      month: new Date(reportAnalysis.Date).toLocaleString("default", {
+        month: "long",
+        year: "numeric",
+      }),
+      totalIncome: reportAnalysis.TotalIncome,
+      totalExpenses: reportAnalysis.TotalExpenses,
+      totalSavings: reportAnalysis.TotalSavings,
+    };
+
+    const categorySummaries: ICategorySummary[] =
+      reportAnalysis.CategorySummaries?.map((summary) => ({
+        name: summary.CategoryName,
+        transactionCount: summary.Transactions?.length || 0,
+        budget: 0,
+        expenditure: summary.TotalAmount,
+      })) || [];
+
+    const topCategories = getTopCategories(
+      reportAnalysis.CategorySummaries ?? [],
     );
-  }
 
-  const monthlySummary: IMonthlySummary = {
-    month: new Date(reportAnalysis.Date).toLocaleString("default", {
-      month: "long",
-      year: "numeric",
-    }),
-    totalIncome: reportAnalysis.TotalIncome,
-    totalExpenses: reportAnalysis.TotalExpenses,
-    totalSavings: reportAnalysis.TotalSavings,
-  };
+    return (
+      <>
+        <div className="dashboard__upload">
+          <p className="dashboard__upload-title">Upload a new bank statement</p>
+          <FileUpload
+            onFileUploaded={handleFileUploaded}
+            acceptedFileTypes=".csv"
+          />
+        </div>
 
-  const categorySummaries: ICategorySummary[] =
-    reportAnalysis.CategorySummaries?.map((summary) => ({
-      name: summary.CategoryName,
-      transactionCount: summary.Transactions?.length || 0,
-      budget: 0,
-      expenditure: summary.TotalAmount,
-    })) || [];
-
-  const topCategories = getTopCategories(
-    reportAnalysis.CategorySummaries ?? [],
-  );
-
-  return (
-    <main className="dashboard">
-      {/* File Upload */}
-      <div className="dashboard__upload">
-        <p className="dashboard__upload-title">Upload a new bank statement</p>
-        <FileUpload
-          onFileUploaded={handleFileUploaded}
-          acceptedFileTypes=".csv"
+        <MetricCards
+          totalIncome={reportAnalysis.TotalIncome}
+          totalExpenses={reportAnalysis.TotalExpenses}
+          totalSavings={reportAnalysis.TotalSavings}
         />
-      </div>
 
-      {/* Metric Cards */}
-      <MetricCards
-        totalIncome={reportAnalysis.TotalIncome}
-        totalExpenses={reportAnalysis.TotalExpenses}
-        totalSavings={reportAnalysis.TotalSavings}
-      />
-
-      {/* Charts */}
-      <div className="dashboard__charts">
-        <div className="chart-card">
-          <h2 className="chart-card__title">{monthlySummary.month} Overview</h2>
-          <p className="chart-card__desc">
-            Income vs expenses vs savings breakdown
-          </p>
-          <div className="chart-card__body">
-            <div style={{ flex: 1 }}>
-              <MonthlyOverview summary={monthlySummary} />
-            </div>
-            <div className="chart-card__insights">
-              <div className="chart-insight">
-                <span
-                  className="chart-insight__dot"
-                  style={{ background: "#10b981" }}
-                />
-                <span className="chart-insight__label">Income</span>
-                <span className="chart-insight__value">
-                  R {reportAnalysis.TotalIncome.toFixed(2)}
-                </span>
+        <div className="dashboard__charts">
+          <div className="chart-card">
+            <h2 className="chart-card__title">
+              {monthlySummary.month} Overview
+            </h2>
+            <p className="chart-card__desc">
+              Income vs expenses vs savings breakdown
+            </p>
+            <div className="chart-card__body">
+              <div style={{ flex: 1 }}>
+                <MonthlyOverview summary={monthlySummary} />
               </div>
-              <div className="chart-insight">
-                <span
-                  className="chart-insight__dot"
-                  style={{ background: "#ef4444" }}
-                />
-                <span className="chart-insight__label">Expenses</span>
-                <span className="chart-insight__value">
-                  R {reportAnalysis.TotalExpenses.toFixed(2)}
-                </span>
-              </div>
-              <div className="chart-insight">
-                <span
-                  className="chart-insight__dot"
-                  style={{ background: "#3b82f6" }}
-                />
-                <span className="chart-insight__label">Savings</span>
-                <span className="chart-insight__value">
-                  R {reportAnalysis.TotalSavings.toFixed(2)}
-                </span>
+              <div className="chart-card__insights">
+                <div className="chart-insight">
+                  <span
+                    className="chart-insight__dot"
+                    style={{ background: "#10b981" }}
+                  />
+                  <span className="chart-insight__label">Income</span>
+                  <span className="chart-insight__value">
+                    R {reportAnalysis.TotalIncome.toFixed(2)}
+                  </span>
+                </div>
+                <div className="chart-insight">
+                  <span
+                    className="chart-insight__dot"
+                    style={{ background: "#ef4444" }}
+                  />
+                  <span className="chart-insight__label">Expenses</span>
+                  <span className="chart-insight__value">
+                    R {reportAnalysis.TotalExpenses.toFixed(2)}
+                  </span>
+                </div>
+                <div className="chart-insight">
+                  <span
+                    className="chart-insight__dot"
+                    style={{ background: "#3b82f6" }}
+                  />
+                  <span className="chart-insight__label">Savings</span>
+                  <span className="chart-insight__value">
+                    R {reportAnalysis.TotalSavings.toFixed(2)}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
+
+          <div className="chart-card">
+            <h2 className="chart-card__title">Category Breakdown</h2>
+            <p className="chart-card__desc">Spending by category this month</p>
+            <CategorySummary summaries={categorySummaries} />
+          </div>
         </div>
 
-        <div className="chart-card">
-          <h2 className="chart-card__title">Category Breakdown</h2>
-          <p className="chart-card__desc">Spending by category this month</p>
-          <CategorySummary summaries={categorySummaries} />
-        </div>
+        <TopCategories categories={topCategories} />
+      </>
+    );
+  };
+
+  const renderBudgetsTab = () => {
+    return (
+      <div className="chart-card">
+        <h2 className="chart-card__title">Budgets</h2>
+        <p className="chart-card__desc">Budget management coming soon</p>
       </div>
+    );
+  };
 
-      {/* Top Spending Categories */}
-      <TopCategories categories={topCategories} />
+  return (
+    <main className="dashboard">
+      <Tabs
+        tabs={DASHBOARD_TABS}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+      />
+
+      {activeTab === "overview" && renderOverviewTab()}
+      {activeTab === "budgets" && renderBudgetsTab()}
     </main>
   );
 }
