@@ -8,6 +8,7 @@ import { TopCategories } from "../../organisms/topCategories/TopCategories";
 import { FileUpload } from "../../molecules/fileUpload/fileUpload";
 import { MetricCards } from "../../molecules/metricComponents/MetricCards";
 import { Tabs } from "../../atoms/tabs/Tabs";
+import { BudgetTab } from "../../organisms/budgetTab/BudgetTab";
 import { getTopCategories } from "../../../utils/transactionAnalysis";
 import "./dashboard.css";
 
@@ -194,14 +195,7 @@ export function Dashboard() {
     );
   };
 
-  const renderBudgetsTab = () => {
-    return (
-      <div className="chart-card">
-        <h2 className="chart-card__title">Budgets</h2>
-        <p className="chart-card__desc">Budget management coming soon</p>
-      </div>
-    );
-  };
+  const renderBudgetsTab = () => <BudgetTab />;
 
   return (
     <main className="dashboard">

@@ -1,0 +1,72 @@
+.budget-table-wrap {
+  overflow-x: auto;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.budget-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.budget-table__head-row {
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.budget-table__th {
+  padding: 0.75rem 1rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-secondary, #6b7280);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.budget-table__th--budget,
+.budget-table__th--actual,
+.budget-table__th--diff {
+  text-align: right;
+}
+
+.budget-table__th--name {
+  width: 35%;
+}
+
+.budget-table__th--budget {
+  width: 18%;
+}
+
+.budget-table__th--actual {
+  width: 15%;
+}
+
+.budget-table__th--diff {
+  width: 15%;
+}
+
+.budget-table__th--bar {
+  width: 17%;
+}
+
+.budget-table__totals-row {
+  border-top: 2px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+.budget-table__total-label {
+  padding: 0.75rem 1rem;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--color-text-primary, #1f2937);
+}
+
+.budget-table__total-value {
+  padding: 0.75rem 1rem;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--color-text-primary, #1f2937);
+  text-align: right;
+}

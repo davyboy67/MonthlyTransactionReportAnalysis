@@ -1,0 +1,171 @@
+.budget-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* ── Header bar ─────────────────────────────────── */
+
+.budget-tab__header {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  background: #fff;
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.budget-tab__month-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.budget-tab__nav-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  color: var(--color-text-primary, #1f2937);
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.budget-tab__nav-btn:hover {
+  background: #e5e7eb;
+  border-color: #d1d5db;
+}
+
+.budget-tab__month-label {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text-primary, #1f2937);
+  min-width: 140px;
+  text-align: center;
+}
+
+.budget-tab__prev-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.88rem;
+  color: var(--color-text-secondary, #6b7280);
+  cursor: pointer;
+  user-select: none;
+}
+
+.budget-tab__prev-label input[type="checkbox"] {
+  width: 15px;
+  height: 15px;
+  accent-color: #10b981;
+  cursor: pointer;
+}
+
+.budget-tab__prev-label input:disabled {
+  cursor: not-allowed;
+}
+
+.budget-tab__actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+}
+
+.budget-tab__save-btn {
+  padding: 0.5rem 1.25rem;
+  background: #10b981;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, opacity 0.15s;
+}
+
+.budget-tab__save-btn:hover:not(:disabled) {
+  background: #059669;
+}
+
+.budget-tab__save-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.budget-tab__lock-badge {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #b45309;
+  background: #fef3c7;
+  border: 1px solid #fde68a;
+  border-radius: 6px;
+  padding: 0.35rem 0.75rem;
+}
+
+/* ── Summary strip ──────────────────────────────── */
+
+.budget-tab__summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.budget-tab__metric {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.budget-tab__metric-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-secondary, #6b7280);
+}
+
+.budget-tab__metric-value {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--color-text-primary, #1f2937);
+}
+
+.budget-tab__metric-value--muted {
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--color-text-secondary, #6b7280);
+}
+
+.budget-tab__metric-value--muted small {
+  font-size: 0.75rem;
+  display: block;
+  margin-top: 0.15rem;
+}
+
+/* ── Responsive ─────────────────────────────────── */
+
+@media (max-width: 900px) {
+  .budget-tab__summary {
+    grid-template-columns: 1fr;
+  }
+
+  .budget-tab__header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .budget-tab__actions {
+    margin-left: 0;
+  }
+}
