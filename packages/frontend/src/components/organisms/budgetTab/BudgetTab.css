@@ -153,6 +153,32 @@
   margin-top: 0.15rem;
 }
 
+.budget-tab__metric-value--negative {
+  color: #ef4444;
+}
+
+.budget-tab__metric-value--negative small {
+  font-size: 0.75rem;
+  font-weight: 400;
+  display: block;
+  margin-top: 0.15rem;
+}
+
+.budget-tab__error {
+  font-size: 0.82rem;
+  color: #ef4444;
+  margin-right: 0.75rem;
+}
+
+.budget-tab__loading {
+  background: #fff;
+  border-radius: 12px;
+  padding: 2rem;
+  text-align: center;
+  color: var(--color-text-secondary, #6b7280);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
 /* ── Responsive ─────────────────────────────────── */
 
 @media (max-width: 900px) {

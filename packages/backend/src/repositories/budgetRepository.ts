@@ -36,10 +36,13 @@ export class BudgetRepository implements IBudgetRepository {
 
   async saveOrUpdateBudget(budget: IBudget): Promise<void> {
     try {
+      const raw = new Date(budget.budget_month);
+      const budgetMonth = new Date(Date.UTC(raw.getUTCFullYear(), raw.getUTCMonth(), 1));
+
       if (budget.budget_id === 0) {
         const savedBudget = await this.budgetRepository.save({
           user_id: budget.user_id,
-          budget_month: budget.budget_month,
+          budget_month: budgetMonth,
           notes: budget.notes,
           created_at: new Date(),
           updated_at: null,
@@ -58,7 +61,7 @@ export class BudgetRepository implements IBudgetRepository {
         await this.budgetRepository.save({
           budget_id: budget.budget_id,
           user_id: budget.user_id,
-          budget_month: budget.budget_month,
+          budget_month: budgetMonth,
           notes: budget.notes,
           updated_at: new Date(),
         });
@@ -82,7 +85,7 @@ export class BudgetRepository implements IBudgetRepository {
 
   async findByUserAndMonth(userId: number, month: number, year: number): Promise<IBudget | null> {
     try {
-      const budgetDate = new Date(year, month - 1, 1);
+      const budgetDate = new Date(Date.UTC(year, month - 1, 1));
 
       const user = await this.userRepository.findOne({
         where: { user_id: userId },
@@ -95,18 +98,10 @@ export class BudgetRepository implements IBudgetRepository {
 
       const budgets = [...(user?.budgets || [])];
 
-      if (budgets.length > 0) {
-        let entityBudget = budgets.find(
-          b => new Date(b.budget_month).getTime() === budgetDate.getTime()
-        );
-        entityBudget = entityBudget
-          ? entityBudget
-          : budgets.reduce((prev, current) =>
-              prev.budget_month > current.budget_month ? prev : current
-            );
-        return this.convertBudget(entityBudget);
-      }
-      return null;
+      const entityBudget = budgets.find(
+        b => new Date(b.budget_month).getTime() === budgetDate.getTime()
+      );
+      return entityBudget ? this.convertBudget(entityBudget) : null;
     } catch (error) {
       throw new Error(`Error fetching budgets: ${error}`);
     }
@@ -136,7 +131,7 @@ export class BudgetRepository implements IBudgetRepository {
         category_id: category.category_id,
         budget_id: category.budget_id,
         category_name: category.category_name,
-        amount: category.amount,
+        amount: Number(category.amount),
       })) || []
     );
   }

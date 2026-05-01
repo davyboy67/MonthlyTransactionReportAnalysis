@@ -33,7 +33,7 @@ export class BudgetService implements IBudgetService {
     const defaultBudget: IBudget = {
       budget_id: 0,
       user_id: userId,
-      budget_month: new Date(year, month - 1, 1),
+      budget_month: new Date(Date.UTC(year, month - 1, 1)),
       notes: null,
       created_at: new Date(),
       updated_at: null,
@@ -50,7 +50,7 @@ export class BudgetService implements IBudgetService {
   async saveOrUpdateBudget(budget: IBudget): Promise<void> {
     if (budget.budget_id > 0) {
       const budgetMonth = new Date(budget.budget_month);
-      const monthEnd = new Date(budgetMonth.getFullYear(), budgetMonth.getMonth() + 1, 1);
+      const monthEnd = new Date(Date.UTC(budgetMonth.getUTCFullYear(), budgetMonth.getUTCMonth() + 1, 1));
       if (monthEnd < new Date()) {
         throw new Error('Cannot modify budget after month has ended');
       }

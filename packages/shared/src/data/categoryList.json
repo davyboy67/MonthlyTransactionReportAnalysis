@@ -47,6 +47,14 @@
     {
         "name": "Fees",
         "displayName": "Fees & Charges"
+    },
+    {
+        "name": "Insurance",
+        "displayName": "Insurance"
+    },
+    {
+        "name": "Miscellaneous",
+        "displayName": "Miscellaneous"
     }
 
 ]

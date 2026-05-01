@@ -195,7 +195,9 @@ export function Dashboard() {
     );
   };
 
-  const renderBudgetsTab = () => <BudgetTab />;
+  const renderBudgetsTab = () => (
+    <BudgetTab reportAnalysis={reportAnalysis ?? undefined} />
+  );
 
   return (
     <main className="dashboard">

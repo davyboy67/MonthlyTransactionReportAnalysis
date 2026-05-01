@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { IReportAnalysis, SaveReportAnalysisRequest } from '../models/IReportAnalysis';
+import type { IBudget } from '../models/IBudget';
 
 declare const __API_URL__: string;
 const VITE_API_URL = typeof __API_URL__ !== 'undefined' ? __API_URL__ : 'http://localhost:3001/api/v1';
@@ -33,7 +34,7 @@ export const apiClient = {
     try {
       const formData = new FormData();
       formData.append('file', file);
-      
+
       const response = await axios.post(`${VITE_API_URL}/ProcessStatementFile`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
@@ -44,5 +45,33 @@ export const apiClient = {
       console.error('Error processing statement file:', error);
       throw error;
     }
-  }
+  },
+  getBudgetForMonth: async (month: number, year: number): Promise<{ budget: IBudget }> => {
+    try {
+      const response = await axios.get(`${VITE_API_URL}/GetBudgetForMonth`, {
+        params: { month, year },
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching budget:', error);
+      throw error;
+    }
+  },
+  saveOrUpdateBudget: async (budget: IBudget): Promise<void> => {
+    try {
+      await axios.post(`${VITE_API_URL}/SaveBudget`, { budget });
+    } catch (error) {
+      console.error('Error saving budget:', error);
+      throw error;
+    }
+  },
+  getLatestBudget: async (): Promise<{ budget: IBudget | null }> => {
+    try {
+      const response = await axios.get(`${VITE_API_URL}/GetLatestBudget`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching latest budget:', error);
+      throw error;
+    }
+  },
 };

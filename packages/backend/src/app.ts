@@ -6,6 +6,9 @@ import { AppDataSource } from "./database/dataSource";
 import { DashboardRepository } from "./repositories/dashboardRepository";
 import { DashboardService } from "./services/DashboardService";
 import { createDashboardRouter } from "./routes/dashboardRoutes";
+import { BudgetRepository } from "./repositories/budgetRepository";
+import { BudgetService } from "./services/BudgetService";
+import { createBudgetRouter } from "./routes/budgetRoutes";
 import {
   StatementExtractionService,
   TransactionInfoHandler,
@@ -48,8 +51,14 @@ export async function createApp(): Promise<Application> {
   );
   const dashboardRouter = createDashboardRouter(dashboardService);
 
+  const budgetRepository = new BudgetRepository(AppDataSource);
+  const budgetService = new BudgetService(budgetRepository);
+  const budgetRouter = createBudgetRouter(budgetService);
+
   app.use("/api/v1", dashboardRouter);
+  app.use("/api/v1", budgetRouter);
   app.use("/:stage/api/v1", dashboardRouter);
+  app.use("/:stage/api/v1", budgetRouter);
 
   app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
     console.error("Unhandled error:", err);

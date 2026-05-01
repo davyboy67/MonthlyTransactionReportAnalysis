@@ -2,7 +2,7 @@ import categoryList from '../../../shared/src/data/categoryList.json';
 import type { IBudgetCategory } from '@transaction-report/shared';
 
 export const categoryDisplayName: Record<string, string> = Object.fromEntries(
-  categoryList.map((cat) => [cat.name, cat.displayName])
+  categoryList.map(cat => [cat.name, cat.displayName])
 );
 
 export function createDefaultCategories(): IBudgetCategory[] {
