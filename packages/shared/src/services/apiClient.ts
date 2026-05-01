@@ -74,4 +74,15 @@ export const apiClient = {
       throw error;
     }
   },
+  getReportForMonth: async (month: number, year: number): Promise<{ ReportAnalysis: IReportAnalysis | null }> => {
+    try {
+      const response = await axios.get(`${VITE_API_URL}/GetReportForMonth`, {
+        params: { month, year },
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching report for month:', error);
+      throw error;
+    }
+  },
 };

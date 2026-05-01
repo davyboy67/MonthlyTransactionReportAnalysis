@@ -7,6 +7,49 @@
   gap: 1.5rem;
 }
 
+.dashboard__month-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: #fff;
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.dashboard__nav-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  color: var(--color-text-primary, #1f2937);
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.dashboard__nav-btn:hover:not(:disabled) {
+  background: #e5e7eb;
+  border-color: #d1d5db;
+}
+
+.dashboard__nav-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.dashboard__month-label {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text-primary, #1f2937);
+  min-width: 140px;
+  text-align: center;
+}
+
 .dashboard__upload {
   background: #fff;
   border-radius: 12px;

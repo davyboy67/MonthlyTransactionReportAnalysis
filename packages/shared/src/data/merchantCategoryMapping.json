@@ -26,5 +26,7 @@
     "Standard Bank": "Income",
     "Rent": "Utilities",
     "Vodacom": "Utilities",
-    "Crue": "Health"
+    "Crue": "Health",
+    "Claude": "Subscriptions",
+    "Bolt": "Transport"
   }

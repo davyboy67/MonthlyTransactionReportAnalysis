@@ -110,6 +110,14 @@
     {
         "name": "Crue",
         "patterns": ["Crue"]
+    },
+    {
+        "name": "Claude",
+        "patterns": ["Claude", "Claude.AI"]
+    },
+    {
+        "name": "Bolt",
+        "patterns": ["Bolt"]
     }
 
 ]

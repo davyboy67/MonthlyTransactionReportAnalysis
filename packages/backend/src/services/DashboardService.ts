@@ -13,6 +13,7 @@ export interface IDashboardService {
     date?: Date,
     id?: number | null,
   ): Promise<DashboardDetailsResponse>;
+  getReportForMonth(month: number, year: number): Promise<DashboardDetailsResponse>;
   saveDashboardDetails(reportAnalysis: IReportAnalysis): Promise<void>;
   processStatementFile(fileBuffer: Buffer): Promise<IReportAnalysis>;
 }
@@ -44,6 +45,11 @@ export class DashboardService implements IDashboardService {
     return {
       ReportAnalysis: reportAnalysis,
     };
+  }
+
+  async getReportForMonth(month: number, year: number): Promise<DashboardDetailsResponse> {
+    const reportAnalysis = await this.dashboardRepository.getReportForMonth(1, month, year);
+    return { ReportAnalysis: reportAnalysis };
   }
 
   async saveDashboardDetails(reportAnalysis: IReportAnalysis): Promise<void> {
@@ -91,6 +97,9 @@ export class DashboardService implements IDashboardService {
         }),
       ),
     };
+
+    await this.dashboardRepository.saveDashboardDetails(reportAnalysis);
+    console.log("report analysis persisted to db");
 
     return reportAnalysis;
   }

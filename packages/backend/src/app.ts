@@ -43,7 +43,7 @@ export async function createApp(): Promise<Application> {
   const dashboardRepository = new DashboardRepository(AppDataSource);
   const statementExtractionService = new StatementExtractionService();
   const transactionInfoHandler = new TransactionInfoHandler();
-  const dataAnalysisService = new DataAnalysisService(transactionInfoHandler);
+  const dataAnalysisService = new DataAnalysisService(transactionInfoHandler, false);
   const dashboardService = new DashboardService(
     dashboardRepository,
     statementExtractionService,

@@ -12,10 +12,6 @@ import { BudgetTab } from "../../organisms/budgetTab/BudgetTab";
 import { getTopCategories } from "../../../utils/transactionAnalysis";
 import "./dashboard.css";
 
-interface DashboardDetailsResponse {
-  ReportAnalysis: IReportAnalysis;
-}
-
 type ActiveTab = "overview" | "budgets";
 
 const DASHBOARD_TABS: Array<{ id: ActiveTab; label: string }> = [
@@ -23,48 +19,82 @@ const DASHBOARD_TABS: Array<{ id: ActiveTab; label: string }> = [
   { id: "budgets", label: "Budgets" },
 ];
 
+function formatMonthLabel(month: number, year: number): string {
+  return new Date(year, month - 1, 1).toLocaleString("default", {
+    month: "long",
+    year: "numeric",
+  });
+}
+
 export function Dashboard() {
-  const [reportAnalysis, setReportAnalysis] = useState<IReportAnalysis | null>(
-    null,
-  );
+  const now = new Date();
+  const currentMonth = now.getMonth() + 1;
+  const currentYear = now.getFullYear();
+
+  const [selectedMonth, setSelectedMonth] = useState(currentMonth);
+  const [selectedYear, setSelectedYear] = useState(currentYear);
+  const [reportAnalysis, setReportAnalysis] = useState<IReportAnalysis | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<ActiveTab>("overview");
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response: DashboardDetailsResponse =
-          await apiClient.RetrieveReportAnalysis();
-        if (!response?.ReportAnalysis) {
-          throw new Error("No report analysis data received");
-        }
-        setReportAnalysis(response.ReportAnalysis);
-      } catch (err) {
-        setError(`Failed to fetch report analysis: ${err}`);
-      } finally {
-        setLoading(false);
-      }
-    };
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
 
-    fetchData();
-  }, []);
+    apiClient
+      .getReportForMonth(selectedMonth, selectedYear)
+      .then((response) => {
+        if (!cancelled) setReportAnalysis(response.ReportAnalysis);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setReportAnalysis(null);
+          setError(null); // no report for month is not an error
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedMonth, selectedYear]);
+
+  const navigateMonth = (delta: number): void => {
+    let m = selectedMonth + delta;
+    let y = selectedYear;
+    if (m > 12) { m = 1; y++; }
+    if (m < 1) { m = 12; y--; }
+    setSelectedMonth(m);
+    setSelectedYear(y);
+  };
+
+  const isOnCurrentMonth =
+    selectedMonth === currentMonth && selectedYear === currentYear;
 
   const handleFileUploaded = async (file: File) => {
     try {
       setLoading(true);
       setError(null);
 
-      const response: DashboardDetailsResponse =
-        await apiClient.processStatementFile(file);
+      const response = await apiClient.processStatementFile(file);
 
       if (!response?.ReportAnalysis) {
         throw new Error("Failed to process file");
       }
 
+      // Navigate to the month the uploaded statement belongs to
+      const reportDate = new Date(response.ReportAnalysis.Date);
+      const uploadedMonth = reportDate.getUTCMonth() + 1;
+      const uploadedYear = reportDate.getUTCFullYear();
+      setSelectedMonth(uploadedMonth);
+      setSelectedYear(uploadedYear);
       setReportAnalysis(response.ReportAnalysis);
-    } catch (error) {
-      console.error("Error processing file:", error);
+    } catch (err) {
+      console.error("Error processing file:", err);
       setError("Failed to process the uploaded file");
     } finally {
       setLoading(false);
@@ -72,6 +102,8 @@ export function Dashboard() {
   };
 
   const renderOverviewTab = () => {
+    const showUpload = !reportAnalysis || isOnCurrentMonth;
+
     if (loading) {
       return <div className="dashboard-state">Loading...</div>;
     }
@@ -86,15 +118,39 @@ export function Dashboard() {
 
     if (!reportAnalysis) {
       return (
-        <div className="dashboard__upload">
-          <p className="dashboard__upload-title">
-            Upload your bank statement to get started
-          </p>
-          <FileUpload
-            onFileUploaded={handleFileUploaded}
-            acceptedFileTypes=".csv"
-          />
-        </div>
+        <>
+          <div className="dashboard__month-nav">
+            <button
+              className="dashboard__nav-btn"
+              onClick={() => navigateMonth(-1)}
+              aria-label="Previous month"
+            >
+              ←
+            </button>
+            <span className="dashboard__month-label">
+              {formatMonthLabel(selectedMonth, selectedYear)}
+            </span>
+            <button
+              className="dashboard__nav-btn"
+              onClick={() => navigateMonth(1)}
+              disabled={isOnCurrentMonth}
+              aria-label="Next month"
+            >
+              →
+            </button>
+          </div>
+          <div className="dashboard__upload">
+            <p className="dashboard__upload-title">
+              {isOnCurrentMonth
+                ? "Upload your bank statement to get started"
+                : `No report for ${formatMonthLabel(selectedMonth, selectedYear)}`}
+            </p>
+            <FileUpload
+              onFileUploaded={handleFileUploaded}
+              acceptedFileTypes=".csv"
+            />
+          </div>
+        </>
       );
     }
 
@@ -122,13 +178,36 @@ export function Dashboard() {
 
     return (
       <>
-        <div className="dashboard__upload">
-          <p className="dashboard__upload-title">Upload a new bank statement</p>
-          <FileUpload
-            onFileUploaded={handleFileUploaded}
-            acceptedFileTypes=".csv"
-          />
+        <div className="dashboard__month-nav">
+          <button
+            className="dashboard__nav-btn"
+            onClick={() => navigateMonth(-1)}
+            aria-label="Previous month"
+          >
+            ←
+          </button>
+          <span className="dashboard__month-label">
+            {formatMonthLabel(selectedMonth, selectedYear)}
+          </span>
+          <button
+            className="dashboard__nav-btn"
+            onClick={() => navigateMonth(1)}
+            disabled={isOnCurrentMonth}
+            aria-label="Next month"
+          >
+            →
+          </button>
         </div>
+
+        {showUpload && (
+          <div className="dashboard__upload">
+            <p className="dashboard__upload-title">Upload a new bank statement</p>
+            <FileUpload
+              onFileUploaded={handleFileUploaded}
+              acceptedFileTypes=".csv"
+            />
+          </div>
+        )}
 
         <MetricCards
           totalIncome={reportAnalysis.TotalIncome}

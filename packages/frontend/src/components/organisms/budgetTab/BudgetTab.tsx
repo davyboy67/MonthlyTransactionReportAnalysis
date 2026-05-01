@@ -183,7 +183,7 @@ export function BudgetTab({ reportAnalysis }: BudgetTabProps) {
             disabled={readOnly || isLoading}
             onChange={e => handleUsePreviousBudget(e.target.checked)}
           />
-          Use latest previous budget
+          Use previous budget
         </label>
 
         <div className="budget-tab__actions">

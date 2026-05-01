@@ -41,6 +41,22 @@ export function createDashboardRouter(dashboardService: IDashboardService): Rout
     }
   });
 
+  // GET /api/v1/GetReportForMonth?month=X&year=Y
+  router.get('/GetReportForMonth', async (req: Request, res: Response) => {
+    try {
+      const month = parseInt(req.query.month as string);
+      const year = parseInt(req.query.year as string);
+      if (!month || !year) {
+        return res.status(400).json({ error: 'month and year are required' });
+      }
+      const response = await dashboardService.getReportForMonth(month, year);
+      res.json(response);
+    } catch (error) {
+      console.error('Error fetching report for month:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
   // POST /api/v1/ProcessStatementFile
   router.post('/ProcessStatementFile', upload.single('file'), async (req: Request, res: Response) => {
     try {
