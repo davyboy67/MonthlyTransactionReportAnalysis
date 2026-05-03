@@ -37,6 +37,10 @@ export function BudgetTab({ reportAnalysis }: BudgetTabProps) {
 
   const readOnly = isPastMonth(selectedMonth, selectedYear);
 
+  const incomeCategory = categories.find(c => c.category_name === 'Income');
+  const expenseCategories = categories.filter(c => c.category_name !== 'Income');
+  const anticipatedIncome = incomeCategory?.amount ?? 0;
+
   useEffect(() => {
     let cancelled = false;
     setIsLoading(true);
@@ -64,7 +68,7 @@ export function BudgetTab({ reportAnalysis }: BudgetTabProps) {
     };
   }, [selectedMonth, selectedYear]);
 
-  // Build actuals map from report — only when the report month matches selected month
+  // Build actuals map — only when report month matches selected month
   const actuals = useMemo<Record<string, number> | undefined>(() => {
     if (!reportAnalysis?.CategorySummaries) return undefined;
     const reportDate = new Date(reportAnalysis.Date);
@@ -75,11 +79,17 @@ export function BudgetTab({ reportAnalysis }: BudgetTabProps) {
     );
   }, [reportAnalysis, selectedMonth, selectedYear]);
 
-  const totalBudgeted = categories.reduce((sum, c) => sum + c.amount, 0);
-  const totalIncome = actuals ? reportAnalysis!.TotalIncome : undefined;
+  const actualIncome = actuals ? (reportAnalysis!.TotalIncome ?? 0) : undefined;
+
+  // Use actual income when report is loaded; otherwise fall back to anticipated for immediate feedback
+  const effectiveIncome = actualIncome ?? (anticipatedIncome > 0 ? anticipatedIncome : undefined);
+
+  const totalBudgeted = expenseCategories.reduce((sum, c) => sum + c.amount, 0);
   const vsIncomePercent =
-    totalIncome && totalIncome > 0 ? Math.round((totalBudgeted / totalIncome) * 100) : undefined;
-  const unallocated = totalIncome !== undefined ? totalIncome - totalBudgeted : undefined;
+    effectiveIncome && effectiveIncome > 0
+      ? Math.round((totalBudgeted / effectiveIncome) * 100)
+      : undefined;
+  const unallocated = effectiveIncome !== undefined ? effectiveIncome - totalBudgeted : undefined;
 
   const navigateMonth = (delta: number) => {
     let m = selectedMonth + delta;
@@ -98,6 +108,11 @@ export function BudgetTab({ reportAnalysis }: BudgetTabProps) {
 
   const handleAmountChange = (categoryId: number, amount: number) => {
     setCategories(prev => prev.map(c => (c.category_id === categoryId ? { ...c, amount } : c)));
+  };
+
+  const handleAnticipatedIncomeChange = (value: number) => {
+    if (!incomeCategory) return;
+    handleAmountChange(incomeCategory.category_id, value);
   };
 
   const handleUsePreviousBudget = async (checked: boolean) => {
@@ -176,6 +191,30 @@ export function BudgetTab({ reportAnalysis }: BudgetTabProps) {
           </button>
         </div>
 
+        <div className="budget-tab__income-field">
+          <span className="budget-tab__income-label">Anticipated Income</span>
+          {readOnly ? (
+            <span className="budget-tab__income-static">{fmt(anticipatedIncome)}</span>
+          ) : (
+            <div className="budget-tab__income-input-wrap">
+              <span className="budget-tab__income-prefix">R</span>
+              <input
+                className="budget-tab__income-input"
+                type="number"
+                min={0}
+                step={100}
+                value={anticipatedIncome || ''}
+                placeholder="0.00"
+                disabled={isLoading}
+                onChange={e => handleAnticipatedIncomeChange(parseFloat(e.target.value) || 0)}
+              />
+            </div>
+          )}
+          {actualIncome !== undefined && (
+            <span className="budget-tab__income-actual">Actual: {fmt(actualIncome)}</span>
+          )}
+        </div>
+
         <label className="budget-tab__prev-label">
           <input
             type="checkbox"
@@ -208,12 +247,14 @@ export function BudgetTab({ reportAnalysis }: BudgetTabProps) {
           <span className="budget-tab__metric-value">{fmt(totalBudgeted)}</span>
         </div>
         <div className="budget-tab__metric">
-          <span className="budget-tab__metric-label">vs Income</span>
+          <span className="budget-tab__metric-label">
+            vs {actualIncome !== undefined ? 'Actual' : 'Anticipated'} Income
+          </span>
           {vsIncomePercent !== undefined ? (
             <span className="budget-tab__metric-value">{vsIncomePercent}%</span>
           ) : (
             <span className="budget-tab__metric-value budget-tab__metric-value--muted">
-              — <small>load the matching month's report</small>
+              — <small>set anticipated income above</small>
             </span>
           )}
         </div>
@@ -228,7 +269,7 @@ export function BudgetTab({ reportAnalysis }: BudgetTabProps) {
             </span>
           ) : (
             <span className="budget-tab__metric-value budget-tab__metric-value--muted">
-              — <small>load the matching month's report</small>
+              — <small>set anticipated income above</small>
             </span>
           )}
         </div>
@@ -238,7 +279,7 @@ export function BudgetTab({ reportAnalysis }: BudgetTabProps) {
         <div className="budget-tab__loading">Loading…</div>
       ) : (
         <BudgetTable
-          categories={categories}
+          categories={expenseCategories}
           actuals={actuals}
           readOnly={readOnly}
           onChange={handleAmountChange}
