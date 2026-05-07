@@ -19,7 +19,7 @@ export function createDashboardRouter(dashboardService: IDashboardService): Rout
       const id = request.id;
 
       const response = await dashboardService.retrieveDashboardDetails(date, id);
-      
+
       res.json(response);
     } catch (error) {
       console.error('Error retrieving dashboard details:', error);
@@ -31,9 +31,9 @@ export function createDashboardRouter(dashboardService: IDashboardService): Rout
   router.post('/SaveReportInformation', async (req: Request, res: Response) => {
     try {
       const request = req.body as DashboardSaveInfoRequest;
-      
+
       await dashboardService.saveDashboardDetails(request.ReportAnalysis);
-      
+
       res.status(200).send();
     } catch (error) {
       console.error('Error saving report information:', error);
@@ -70,20 +70,24 @@ export function createDashboardRouter(dashboardService: IDashboardService): Rout
   });
 
   // POST /api/v1/ProcessStatementFile
-  router.post('/ProcessStatementFile', upload.single('file'), async (req: Request, res: Response) => {
-    try {
-      if (!req.file) {
-        return res.status(400).json({ error: 'No file uploaded' });
-      }
+  router.post(
+    '/ProcessStatementFile',
+    upload.single('file'),
+    async (req: Request, res: Response) => {
+      try {
+        if (!req.file) {
+          return res.status(400).json({ error: 'No file uploaded' });
+        }
 
-      const reportAnalysis = await dashboardService.processStatementFile(req.file.buffer);
-      
-      res.json({ ReportAnalysis: reportAnalysis });
-    } catch (error) {
-      console.error('Error processing statement file:', error);
-      res.status(500).json({ error: 'Internal server error' });
+        const reportAnalysis = await dashboardService.processStatementFile(req.file.buffer);
+
+        res.json({ ReportAnalysis: reportAnalysis });
+      } catch (error) {
+        console.error('Error processing statement file:', error);
+        res.status(500).json({ error: 'Internal server error' });
+      }
     }
-  });
+  );
 
   return router;
 }

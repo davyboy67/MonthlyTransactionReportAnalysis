@@ -12,7 +12,7 @@ export class BudgetCategory {
   @PrimaryGeneratedColumn()
   category_id!: number;
 
-  @Column()
+  @Column({ type: 'int' })
   budget_id!: number;
 
   @Column("varchar", { length: 255 })

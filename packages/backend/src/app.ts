@@ -1,19 +1,19 @@
-import "dotenv/config";
-import "reflect-metadata";
-import express, { Application, Request, Response, NextFunction } from "express";
-import cors from "cors";
-import { AppDataSource } from "./database/dataSource";
-import { DashboardRepository } from "./repositories/dashboardRepository";
-import { DashboardService } from "./services/DashboardService";
-import { createDashboardRouter } from "./routes/dashboardRoutes";
-import { BudgetRepository } from "./repositories/budgetRepository";
-import { BudgetService } from "./services/BudgetService";
-import { createBudgetRouter } from "./routes/budgetRoutes";
+import 'dotenv/config';
+import 'reflect-metadata';
+import express, { Application, Request, Response, NextFunction } from 'express';
+import cors from 'cors';
+import { AppDataSource } from './database/dataSource';
+import { DashboardRepository } from './repositories/dashboardRepository';
+import { DashboardService } from './services/DashboardService';
+import { createDashboardRouter } from './routes/dashboardRoutes';
+import { BudgetRepository } from './repositories/budgetRepository';
+import { BudgetService } from './services/BudgetService';
+import { createBudgetRouter } from './routes/budgetRoutes';
 import {
   StatementExtractionService,
   TransactionInfoHandler,
   DataAnalysisService,
-} from "@transaction-report/shared";
+} from '@transaction-report/shared';
 
 export async function createApp(): Promise<Application> {
   const app: Application = express();
@@ -24,19 +24,19 @@ export async function createApp(): Promise<Application> {
 
   app.use(
     cors({
-      origin: "*",
-      methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-      allowedHeaders: ["Content-Type", "Authorization"],
-    }),
+      origin: '*',
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization'],
+    })
   );
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
 
-  app.get("/health", (_req: Request, res: Response) => {
+  app.get('/health', (_req: Request, res: Response) => {
     res.json({
-      status: "healthy",
+      status: 'healthy',
       timestamp: new Date().toISOString(),
-      database: AppDataSource.isInitialized ? "connected" : "disconnected",
+      database: AppDataSource.isInitialized ? 'connected' : 'disconnected',
     });
   });
 
@@ -47,7 +47,7 @@ export async function createApp(): Promise<Application> {
   const dashboardService = new DashboardService(
     dashboardRepository,
     statementExtractionService,
-    dataAnalysisService,
+    dataAnalysisService
   );
   const dashboardRouter = createDashboardRouter(dashboardService);
 
@@ -55,16 +55,16 @@ export async function createApp(): Promise<Application> {
   const budgetService = new BudgetService(budgetRepository);
   const budgetRouter = createBudgetRouter(budgetService);
 
-  app.use("/api/v1", dashboardRouter);
-  app.use("/api/v1", budgetRouter);
-  app.use("/:stage/api/v1", dashboardRouter);
-  app.use("/:stage/api/v1", budgetRouter);
+  app.use('/api/v1', dashboardRouter);
+  app.use('/api/v1', budgetRouter);
+  app.use('/:stage/api/v1', dashboardRouter);
+  app.use('/:stage/api/v1', budgetRouter);
 
   app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
-    console.error("Unhandled error:", err);
+    console.error('Unhandled error:', err);
     res.status(500).json({
-      error: "Internal server error",
-      ...(process.env.NODE_ENV === "development" && { details: err.message }),
+      error: 'Internal server error',
+      ...(process.env.NODE_ENV === 'development' && { details: err.message }),
     });
   });
 

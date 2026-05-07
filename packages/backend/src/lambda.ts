@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import serverlessExpress from '@vendia/serverless-express';
 import { APIGatewayProxyEvent, Context } from 'aws-lambda';
 import { createApp } from './app';
