@@ -13,6 +13,7 @@ import {
 export interface IDashboardRepository {
   getDashboardDetails(date?: Date, id?: number | null): Promise<IReportAnalysis | null>;
   getReportForMonth(userId: number, month: number, year: number): Promise<IReportAnalysis | null>;
+  getLastNMonthsReports(userId: number, n: number): Promise<IReportAnalysis[]>;
   saveDashboardDetails(reportAnalysis: IReportAnalysis): Promise<void>;
 }
 
@@ -82,6 +83,16 @@ export class DashboardRepository implements IDashboardRepository {
     const entity = await this.findReportEntityForMonth(userId, month, year);
     if (!entity) return null;
     return this.convertReport(entity);
+  }
+
+  async getLastNMonthsReports(userId: number, n: number): Promise<IReportAnalysis[]> {
+    const reports = await this.reportAnalysisRepository.find({
+      where: { user_id: userId },
+      relations: ['transactions'],
+      order: { report_date: 'DESC' },
+      take: n,
+    });
+    return reports.reverse().map(r => this.convertReport(r));
   }
 
   private async findReportEntityForMonth(

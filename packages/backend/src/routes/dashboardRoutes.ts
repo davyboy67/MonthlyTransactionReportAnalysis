@@ -57,6 +57,18 @@ export function createDashboardRouter(dashboardService: IDashboardService): Rout
     }
   });
 
+  // GET /api/v1/GetTrendAnalysis?months=N
+  router.get('/GetTrendAnalysis', async (req: Request, res: Response) => {
+    try {
+      const months = Math.min(parseInt(req.query.months as string) || 12, 12);
+      const response = await dashboardService.getTrendAnalysis(months);
+      res.json(response);
+    } catch (error) {
+      console.error('Error fetching trend analysis:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
   // POST /api/v1/ProcessStatementFile
   router.post('/ProcessStatementFile', upload.single('file'), async (req: Request, res: Response) => {
     try {

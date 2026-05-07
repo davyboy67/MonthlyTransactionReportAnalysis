@@ -9,14 +9,16 @@ import { FileUpload } from "../../molecules/fileUpload/fileUpload";
 import { MetricCards } from "../../molecules/metricComponents/MetricCards";
 import { Tabs } from "../../atoms/tabs/Tabs";
 import { BudgetTab } from "../../organisms/budgetTab/BudgetTab";
+import { TrendAnalysisTab } from "../../organisms/trendAnalysisTab/TrendAnalysisTab";
 import { getTopCategories } from "../../../utils/transactionAnalysis";
 import "./dashboard.css";
 
-type ActiveTab = "overview" | "budgets";
+type ActiveTab = "overview" | "budgets" | "trends";
 
 const DASHBOARD_TABS: Array<{ id: ActiveTab; label: string }> = [
   { id: "overview", label: "Report Overview" },
   { id: "budgets", label: "Budgets" },
+  { id: "trends", label: "Trend Analysis" },
 ];
 
 function formatMonthLabel(month: number, year: number): string {
@@ -278,6 +280,8 @@ export function Dashboard() {
     <BudgetTab reportAnalysis={reportAnalysis ?? undefined} />
   );
 
+  const renderTrendsTab = () => <TrendAnalysisTab />;
+
   return (
     <main className="dashboard">
       <Tabs
@@ -286,8 +290,9 @@ export function Dashboard() {
         onTabChange={setActiveTab}
       />
 
-      {activeTab === "overview" && renderOverviewTab()}
-      {activeTab === "budgets" && renderBudgetsTab()}
+      {activeTab === "overview" ? renderOverviewTab() : null}
+      {activeTab === "budgets" ? renderBudgetsTab() : null}
+      {activeTab === "trends" ? renderTrendsTab() : null}
     </main>
   );
 }

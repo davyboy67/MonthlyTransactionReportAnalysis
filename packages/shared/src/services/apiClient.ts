@@ -85,4 +85,15 @@ export const apiClient = {
       throw error;
     }
   },
+  getTrendAnalysis: async (months = 12): Promise<{ reports: IReportAnalysis[] }> => {
+    try {
+      const response = await axios.get(`${VITE_API_URL}/GetTrendAnalysis`, {
+        params: { months },
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching trend analysis:', error);
+      throw error;
+    }
+  },
 };

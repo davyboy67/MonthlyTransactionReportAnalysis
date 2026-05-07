@@ -14,6 +14,7 @@ export interface IDashboardService {
     id?: number | null,
   ): Promise<DashboardDetailsResponse>;
   getReportForMonth(month: number, year: number): Promise<DashboardDetailsResponse>;
+  getTrendAnalysis(months: number): Promise<{ reports: IReportAnalysis[] }>;
   saveDashboardDetails(reportAnalysis: IReportAnalysis): Promise<void>;
   processStatementFile(fileBuffer: Buffer): Promise<IReportAnalysis>;
 }
@@ -50,6 +51,11 @@ export class DashboardService implements IDashboardService {
   async getReportForMonth(month: number, year: number): Promise<DashboardDetailsResponse> {
     const reportAnalysis = await this.dashboardRepository.getReportForMonth(1, month, year);
     return { ReportAnalysis: reportAnalysis };
+  }
+
+  async getTrendAnalysis(months: number): Promise<{ reports: IReportAnalysis[] }> {
+    const reports = await this.dashboardRepository.getLastNMonthsReports(1, months);
+    return { reports };
   }
 
   async saveDashboardDetails(reportAnalysis: IReportAnalysis): Promise<void> {

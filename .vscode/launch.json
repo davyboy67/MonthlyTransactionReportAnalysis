@@ -14,8 +14,9 @@
             "cwd": "${workspaceFolder}/packages/backend",
             "sourceMaps": true,
             "smartStep": true,
-            "skipFiles": [
-                "<node_internals>/**"
+            "skipFiles": [  
+                "<node_internals>/**",
+                "**/*.js"
             ],
             "env": {
                 "TS_NODE_PROJECT": "${workspaceFolder}/packages/backend/tsconfig.json",
