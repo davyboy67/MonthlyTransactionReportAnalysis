@@ -1,13 +1,7 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  ManyToOne,
-  JoinColumn,
-} from "typeorm";
-import { Budget } from "./Budget";
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import { Budget } from './Budget';
 
-@Entity("budget_category")
+@Entity('budget_category')
 export class BudgetCategory {
   @PrimaryGeneratedColumn()
   category_id!: number;
@@ -15,15 +9,15 @@ export class BudgetCategory {
   @Column({ type: 'int' })
   budget_id!: number;
 
-  @Column("varchar", { length: 255 })
+  @Column('varchar', { length: 255 })
   category_name!: string;
 
-  @Column("numeric", { precision: 10, scale: 2 })
+  @Column('numeric', { precision: 10, scale: 2 })
   amount!: number;
 
-  @ManyToOne(() => Budget, (budget) => budget.categories, {
-    onDelete: "CASCADE",
+  @ManyToOne(() => Budget, budget => budget.categories, {
+    onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: "budget_id" })
+  @JoinColumn({ name: 'budget_id' })
   budget!: Budget;
 }

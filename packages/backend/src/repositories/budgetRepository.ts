@@ -1,8 +1,7 @@
 import { IBudget, IBudgetCategory } from '@transaction-report/shared';
-import { Budget } from 'src/entities/Budget';
-import { BudgetCategory } from 'src/entities/BudgetCategory';
-import { ReportAnalysis } from 'src/entities/ReportAnalysis';
-import { Users } from 'src/entities/Users';
+import { Budget } from '../entities/Budget';
+import { BudgetCategory } from '../entities/BudgetCategory';
+import { ReportAnalysis } from '../entities/ReportAnalysis';
 import { DataSource, Repository } from 'typeorm';
 
 export interface IBudgetRepository {
@@ -14,13 +13,11 @@ export interface IBudgetRepository {
 
 export class BudgetRepository implements IBudgetRepository {
   private budgetRepository: Repository<Budget>;
-  private userRepository: Repository<Users>;
   private reportAnalysisRepository: Repository<ReportAnalysis>;
   private budgetCategoryRepository: Repository<BudgetCategory>;
 
   constructor(dataSource: DataSource) {
     this.budgetRepository = dataSource.getRepository(Budget);
-    this.userRepository = dataSource.getRepository(Users);
     this.reportAnalysisRepository = dataSource.getRepository(ReportAnalysis);
     this.budgetCategoryRepository = dataSource.getRepository(BudgetCategory);
   }
@@ -87,21 +84,12 @@ export class BudgetRepository implements IBudgetRepository {
     try {
       const budgetDate = new Date(Date.UTC(year, month - 1, 1));
 
-      const user = await this.userRepository.findOne({
-        where: { user_id: userId },
-        relations: ['budgets', 'budgets.categories'],
+      const budget = await this.budgetRepository.findOne({
+        where: { user_id: userId, budget_month: budgetDate },
+        relations: ['categories'],
       });
 
-      if (!user) {
-        throw new Error('User not found');
-      }
-
-      const budgets = [...(user?.budgets || [])];
-
-      const entityBudget = budgets.find(
-        b => new Date(b.budget_month).getTime() === budgetDate.getTime()
-      );
-      return entityBudget ? this.convertBudget(entityBudget) : null;
+      return budget ? this.convertBudget(budget) : null;
     } catch (error) {
       throw new Error(`Error fetching budgets: ${error}`);
     }
