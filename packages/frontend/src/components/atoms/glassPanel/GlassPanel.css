@@ -1,0 +1,22 @@
+.glass {
+  background-color: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--glass-radius);
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+}
+
+.glass--tinted {
+  background-color: color-mix(in oklab, var(--glass-tint) 18%, var(--glass-bg));
+  border-color: color-mix(in oklab, var(--glass-tint) 45%, var(--glass-border));
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass {
+    background-color: var(--color-bg-elevated);
+  }
+  .glass--tinted {
+    background-color: color-mix(in oklab, var(--glass-tint) 22%, var(--color-bg-elevated));
+  }
+}

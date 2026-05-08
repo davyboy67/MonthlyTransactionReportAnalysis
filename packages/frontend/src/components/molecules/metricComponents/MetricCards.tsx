@@ -1,43 +1,21 @@
-import React from "react";
+import { GlassPanel } from "../../atoms/glassPanel/GlassPanel";
+import { SERIES_COLORS } from "../../../theme/theme";
 import "./MetricCards.css";
 
 interface MetricCardProps {
   label: string;
   value: string;
   subtitle?: string;
-  accentColor: string;
-  bgColor: string;
+  tint: string;
 }
-const MetricCardColor = {
-  Green: "#10b981",
-  Red: "#ef4444",
-  Blue: "#3b82f6",
-  GreenBg: "#f0fdf4",
-  RedBg: "#fef2f2",
-  BlueBg: "#eff6ff",
-};
 
-function MetricCard({
-  label,
-  value,
-  subtitle,
-  accentColor,
-  bgColor,
-}: MetricCardProps) {
+function MetricCard({ label, value, subtitle, tint }: MetricCardProps) {
   return (
-    <div
-      className="metric-card"
-      style={
-        {
-          "--accent-color": accentColor,
-          "--bg-color": bgColor,
-        } as React.CSSProperties
-      }
-    >
+    <GlassPanel className="metric-card" tint={tint}>
       <span className="metric-card__label">{label}</span>
       <span className="metric-card__value">{value}</span>
       {subtitle && <span className="metric-card__subtitle">{subtitle}</span>}
-    </div>
+    </GlassPanel>
   );
 }
 
@@ -52,7 +30,6 @@ export function MetricCards({
   totalExpenses,
   totalSavings,
 }: MetricCardsProps) {
-  // Net position = assets (income + savings) minus liabilities (expenses)
   const netPosition = totalIncome - totalSavings - totalExpenses;
   const savingsPercent =
     totalIncome > 0 ? Math.round((totalSavings / totalIncome) * 100) : 0;
@@ -71,28 +48,24 @@ export function MetricCards({
       <MetricCard
         label="Total Income"
         value={fmt(totalIncome)}
-        accentColor={MetricCardColor.Green}
-        bgColor={MetricCardColor.GreenBg}
+        tint={SERIES_COLORS.income}
       />
       <MetricCard
         label="Total Expenses"
         value={fmt(totalExpenses)}
-        accentColor={MetricCardColor.Red}
-        bgColor={MetricCardColor.RedBg}
+        tint={SERIES_COLORS.expenses}
       />
       <MetricCard
         label="Actual Savings"
         value={fmt(totalSavings)}
         subtitle={`${savingsPercent}% of income saved`}
-        accentColor={MetricCardColor.Blue}
-        bgColor={MetricCardColor.BlueBg}
+        tint={SERIES_COLORS.savings}
       />
       <MetricCard
         label="Net Position"
         value={fmt(Math.abs(netPosition))}
         subtitle={`${netPositive ? "+" : "-"}${netPercent}% of income`}
-        accentColor={netPositive ? MetricCardColor.Green : MetricCardColor.Red}
-        bgColor={netPositive ? MetricCardColor.GreenBg : MetricCardColor.RedBg}
+        tint={netPositive ? SERIES_COLORS.income : SERIES_COLORS.expenses}
       />
     </div>
   );

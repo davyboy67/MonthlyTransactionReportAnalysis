@@ -5,12 +5,21 @@ import {
   Pie,
   Cell,
   Tooltip,
-  Legend,
 } from "recharts";
+import {
+  SERIES_COLORS,
+  CHART_TOOLTIP_STYLE,
+  CHART_TOOLTIP_LABEL_STYLE,
+  COLORS,
+} from "../../theme/theme";
+import "./monthlyOverview.css";
 
 type Props = {
   summary: IMonthlySummary;
 };
+
+const fmt = (n: number) =>
+  `R ${n.toLocaleString("en-ZA", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 export function MonthlyOverview({ summary }: Props) {
   const data = [
@@ -19,11 +28,13 @@ export function MonthlyOverview({ summary }: Props) {
     { name: "Savings", value: summary.totalSavings },
   ];
 
-  const colours = ["#10b981", "#ef4444", "#3b82f6"];
+  const colours = [SERIES_COLORS.income, SERIES_COLORS.expenses, SERIES_COLORS.savings];
+  const net = summary.totalIncome - summary.totalExpenses - summary.totalSavings;
+  const netPositive = net >= 0;
 
   return (
-    <section>
-      <ResponsiveContainer width="100%" height={350}>
+    <section style={{ position: "relative", width: "100%" }}>
+      <ResponsiveContainer width="100%" height={280}>
         <PieChart>
           <Pie
             data={data}
@@ -31,8 +42,13 @@ export function MonthlyOverview({ summary }: Props) {
             nameKey="name"
             cx="50%"
             cy="50%"
-            outerRadius="80%"
-            label={({ value }) => `${Number(value).toFixed(2)}`}
+            innerRadius="62%"
+            outerRadius="88%"
+            paddingAngle={3}
+            cornerRadius={6}
+            stroke="none"
+            startAngle={90}
+            endAngle={-270}
           >
             {data.map((_, index) => (
               <Cell
@@ -42,13 +58,24 @@ export function MonthlyOverview({ summary }: Props) {
             ))}
           </Pie>
           <Tooltip
+            contentStyle={CHART_TOOLTIP_STYLE}
+            labelStyle={CHART_TOOLTIP_LABEL_STYLE}
+            itemStyle={{ color: COLORS.textPrimary }}
             formatter={(value: number | undefined) =>
-              value !== undefined ? `R ${value.toFixed(2)}` : ""
+              value !== undefined ? fmt(value) : ""
             }
           />
-          <Legend />
         </PieChart>
       </ResponsiveContainer>
+      <div className="monthly-overview__centre">
+        <span className="monthly-overview__centre-label">Net</span>
+        <span
+          className="monthly-overview__centre-value"
+          style={{ color: netPositive ? SERIES_COLORS.income : SERIES_COLORS.expenses }}
+        >
+          {netPositive ? "+" : "−"} {fmt(Math.abs(net))}
+        </span>
+      </div>
     </section>
   );
 }

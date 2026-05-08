@@ -1,6 +1,6 @@
 .progress-bar {
   height: 6px;
-  background: #e5e7eb;
+  background: rgba(255, 255, 255, 0.08);
   border-radius: 3px;
   overflow: hidden;
   min-width: 80px;
@@ -8,11 +8,11 @@
 
 .progress-bar__fill {
   height: 100%;
-  background: #10b981;
+  background: var(--color-income);
   border-radius: 3px;
   transition: width 0.2s ease;
 }
 
 .progress-bar__fill--over {
-  background: #ef4444;
+  background: var(--color-expenses);
 }

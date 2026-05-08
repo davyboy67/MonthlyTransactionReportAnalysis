@@ -3,15 +3,8 @@ import type {
   TopCategory,
   TopTransaction,
 } from "../../../utils/transactionAnalysis";
-import {
-  CATEGORY_ICONS,
-  DEFAULT_CATEGORY_ICON,
-} from "../../../constants/constants";
+import { GlassPanel } from "../../atoms/glassPanel/GlassPanel";
 import "./TopCategories.css";
-
-function getCategoryIcon(name: string): string {
-  return CATEGORY_ICONS[name] ?? DEFAULT_CATEGORY_ICON;
-}
 
 const fmt = (n: number) =>
   `R ${n.toLocaleString("en-ZA", {
@@ -38,69 +31,61 @@ function CategoryCard({ category, rank }: CategoryCardProps) {
   const handleDragOver = (e: React.DragEvent) => e.preventDefault();
 
   return (
-    <div className="top-category-card" onDragOver={handleDragOver}>
-      <div className="top-category-card__header">
-        <span className="top-category-card__rank">{rank}</span>
-        <span className="top-category-card__icon">
-          {getCategoryIcon(category.categoryName)}
-        </span>
-        <div className="top-category-card__info">
-          <span className="top-category-card__name">
-            {category.categoryName}
-          </span>
-          <span className="top-category-card__count">
-            {category.transactionCount} transaction
-            {category.transactionCount !== 1 ? "s" : ""}
-          </span>
-        </div>
-        <div className="top-category-card__amounts">
-          <span className="top-category-card__total">
-            {fmt(category.totalAmount)}
-          </span>
-          <span className="top-category-card__percent">
-            {category.percentOfTotal.toFixed(1)}% of spending
-          </span>
-        </div>
-      </div>
-
-      <div className="top-category-card__progress-bar">
-        <div
-          className="top-category-card__progress-fill"
-          style={{ width: `${Math.min(category.percentOfTotal, 100)}%` }}
-        />
-      </div>
-
-      <div className="top-category-card__transactions">
-        {displayedTransactions.map((tx, i) => (
-          <div key={txKey(tx, i)} className="top-category-card__transaction">
-            <span className="top-category-card__tx-bullet">•</span>
-            <span className="top-category-card__tx-desc">
-              {tx.merchant || tx.description}
-            </span>
-            <span className="top-category-card__tx-date">
-              {new Date(tx.date).toLocaleDateString("en-ZA", {
-                day: "numeric",
-                month: "short",
-              })}
-            </span>
-            <span className="top-category-card__tx-amount">
-              {fmt(tx.amount)}
+    <GlassPanel className="top-category-card">
+      <div onDragOver={handleDragOver} className="top-category-card__inner">
+        <div className="top-category-card__header">
+          <span className="top-category-card__rank">{String(rank).padStart(2, "0")}</span>
+          <div className="top-category-card__info">
+            <span className="top-category-card__name">{category.categoryName}</span>
+            <span className="top-category-card__count">
+              {category.transactionCount} transaction
+              {category.transactionCount !== 1 ? "s" : ""}
             </span>
           </div>
-        ))}
+          <div className="top-category-card__amounts">
+            <span className="top-category-card__total">{fmt(category.totalAmount)}</span>
+            <span className="top-category-card__percent">
+              {category.percentOfTotal.toFixed(1)}% of spending
+            </span>
+          </div>
+        </div>
 
-        {hasMore && (
-          <button
-            className="top-category-card__view-all"
-            onClick={() => setExpanded((prev) => !prev)}
-          >
-            {expanded
-              ? "Show less"
-              : `View all ${category.transactionCount} transactions`}
-          </button>
-        )}
+        <div className="top-category-card__progress-bar">
+          <div
+            className="top-category-card__progress-fill"
+            style={{ width: `${Math.min(category.percentOfTotal, 100)}%` }}
+          />
+        </div>
+
+        <div className="top-category-card__transactions">
+          {displayedTransactions.map((tx, i) => (
+            <div key={txKey(tx, i)} className="top-category-card__transaction">
+              <span className="top-category-card__tx-desc">
+                {tx.merchant || tx.description}
+              </span>
+              <span className="top-category-card__tx-date">
+                {new Date(tx.date).toLocaleDateString("en-ZA", {
+                  day: "numeric",
+                  month: "short",
+                })}
+              </span>
+              <span className="top-category-card__tx-amount">{fmt(tx.amount)}</span>
+            </div>
+          ))}
+
+          {hasMore && (
+            <button
+              className="top-category-card__view-all"
+              onClick={() => setExpanded((prev) => !prev)}
+            >
+              {expanded
+                ? "Show less"
+                : `View all ${category.transactionCount} transactions`}
+            </button>
+          )}
+        </div>
       </div>
-    </div>
+    </GlassPanel>
   );
 }
 

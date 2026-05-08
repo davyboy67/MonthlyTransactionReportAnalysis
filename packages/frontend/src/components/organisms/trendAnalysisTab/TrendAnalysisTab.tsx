@@ -14,21 +14,24 @@ import {
 } from 'recharts';
 import { apiClient } from '@transaction-report/shared';
 import type { IReportAnalysis } from '@transaction-report/shared';
+import { GlassPanel } from '../../atoms/glassPanel/GlassPanel';
+import {
+  CHART_PALETTE,
+  CHART_GRID,
+  CHART_AXIS,
+  CHART_TOOLTIP_STYLE,
+  CHART_TOOLTIP_LABEL_STYLE,
+  CHART_CURSOR_FILL,
+  CHART_CURSOR_LINE,
+  SERIES_COLORS,
+} from '../../../theme/theme';
 import './TrendAnalysisTab.css';
-
-const CHART_COLORS = [
-  '#10b981',
-  '#3b82f6',
-  '#f59e0b',
-  '#ef4444',
-  '#8b5cf6',
-  '#06b6d4',
-  '#f97316',
-  '#ec4899',
-];
 
 const fmtCurrency = (v: number | undefined) =>
   `R ${(v ?? 0).toLocaleString('en-ZA', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+
+const axisTick = { fontSize: 11, fill: CHART_AXIS };
+const legendStyle = { fontSize: 11, color: CHART_AXIS };
 
 export function TrendAnalysisTab() {
   const [reports, setReports] = useState<IReportAnalysis[]>([]);
@@ -150,93 +153,113 @@ export function TrendAnalysisTab() {
     <div className="trend-tab">
       <div className="trend-tab__grid">
         {/* Chart 1 — Savings Rate */}
-        <div className="trend-card">
+        <GlassPanel className="trend-card">
           <h2 className="trend-card__title">Savings Rate</h2>
           <p className="trend-card__desc">Percentage of income saved each month</p>
           <ResponsiveContainer width="100%" height={260}>
             <LineChart data={savingsRateData} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-              <XAxis dataKey="month" tick={{ fontSize: 11 }} />
-              <YAxis unit="%" tick={{ fontSize: 11 }} domain={[0, 'auto']} />
-              <Tooltip formatter={(v: number | undefined) => [`${v ?? 0}%`, 'Savings Rate']} />
+              <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} />
+              <XAxis dataKey="month" tick={axisTick} stroke={CHART_AXIS} />
+              <YAxis unit="%" tick={axisTick} stroke={CHART_AXIS} domain={[0, 'auto']} />
+              <Tooltip
+                contentStyle={CHART_TOOLTIP_STYLE}
+                labelStyle={CHART_TOOLTIP_LABEL_STYLE}
+                cursor={{ stroke: CHART_CURSOR_LINE, strokeWidth: 1 }}
+                formatter={(v: number | undefined) => [`${v ?? 0}%`, 'Savings Rate']}
+              />
               <ReferenceLine
                 y={20}
-                stroke="#10b981"
+                stroke={SERIES_COLORS.income}
                 strokeDasharray="4 4"
-                label={{ value: '20% target', fontSize: 10, fill: '#10b981' }}
+                label={{ value: '20% target', fontSize: 10, fill: SERIES_COLORS.income }}
               />
               <Line
                 type="monotone"
                 dataKey="rate"
-                stroke="#10b981"
+                stroke={SERIES_COLORS.income}
                 strokeWidth={2}
                 dot={{ r: 3 }}
                 activeDot={{ r: 5 }}
               />
             </LineChart>
           </ResponsiveContainer>
-        </div>
+        </GlassPanel>
 
         {/* Chart 2 — Net Position */}
-        <div className="trend-card">
+        <GlassPanel className="trend-card">
           <h2 className="trend-card__title">Net Position</h2>
           <p className="trend-card__desc">Income, expenses and savings per month</p>
           <ResponsiveContainer width="100%" height={260}>
             <BarChart data={netPositionData} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-              <XAxis dataKey="month" tick={{ fontSize: 11 }} />
-              <YAxis tickFormatter={v => `R${(v / 1000).toFixed(0)}k`} tick={{ fontSize: 11 }} />
-              <Tooltip formatter={fmtCurrency} />
-              <Legend wrapperStyle={{ fontSize: 11 }} />
-              <Bar dataKey="Income" fill="#10b981" radius={[3, 3, 0, 0]} />
-              <Bar dataKey="Expenses" fill="#ef4444" radius={[3, 3, 0, 0]} />
-              <Bar dataKey="Savings" fill="#3b82f6" radius={[3, 3, 0, 0]} />
+              <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} />
+              <XAxis dataKey="month" tick={axisTick} stroke={CHART_AXIS} />
+              <YAxis tickFormatter={v => `R${(v / 1000).toFixed(0)}k`} tick={axisTick} stroke={CHART_AXIS} />
+              <Tooltip
+                contentStyle={CHART_TOOLTIP_STYLE}
+                labelStyle={CHART_TOOLTIP_LABEL_STYLE}
+                cursor={{ fill: CHART_CURSOR_FILL }}
+                formatter={fmtCurrency}
+              />
+              <Legend wrapperStyle={legendStyle} />
+              <Bar dataKey="Income" fill={SERIES_COLORS.income} radius={[3, 3, 0, 0]} />
+              <Bar dataKey="Expenses" fill={SERIES_COLORS.expenses} radius={[3, 3, 0, 0]} />
+              <Bar dataKey="Savings" fill={SERIES_COLORS.savings} radius={[3, 3, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
-        </div>
+        </GlassPanel>
 
-        <div className="trend-card trend-card--full">
+        <GlassPanel className="trend-card trend-card--full">
           <h2 className="trend-card__title">Top 5 Spending Categories</h2>
           <p className="trend-card__desc">Monthly breakdown of your biggest expense areas</p>
           <ResponsiveContainer width="100%" height={280}>
             <BarChart data={categorySpendData} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-              <XAxis dataKey="month" tick={{ fontSize: 11 }} />
-              <YAxis tickFormatter={v => `R${(v / 1000).toFixed(0)}k`} tick={{ fontSize: 11 }} />
-              <Tooltip formatter={fmtCurrency} />
-              <Legend wrapperStyle={{ fontSize: 11 }} />
+              <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} />
+              <XAxis dataKey="month" tick={axisTick} stroke={CHART_AXIS} />
+              <YAxis tickFormatter={v => `R${(v / 1000).toFixed(0)}k`} tick={axisTick} stroke={CHART_AXIS} />
+              <Tooltip
+                contentStyle={CHART_TOOLTIP_STYLE}
+                labelStyle={CHART_TOOLTIP_LABEL_STYLE}
+                cursor={{ fill: CHART_CURSOR_FILL }}
+                formatter={fmtCurrency}
+              />
+              <Legend wrapperStyle={legendStyle} />
               {top5Categories.map((cat, i) => (
                 <Bar
                   key={cat}
                   dataKey={cat}
                   stackId="a"
-                  fill={CHART_COLORS[i % CHART_COLORS.length]}
+                  fill={CHART_PALETTE[i % CHART_PALETTE.length]}
                   radius={i === top5Categories.length - 1 ? [3, 3, 0, 0] : [0, 0, 0, 0]}
                 />
               ))}
             </BarChart>
           </ResponsiveContainer>
-        </div>
+        </GlassPanel>
 
         {recurringMerchants.length > 0 && (
-          <div className="trend-card trend-card--full">
+          <GlassPanel className="trend-card trend-card--full">
             <h2 className="trend-card__title">Recurring Transactions</h2>
             <p className="trend-card__desc">
               Merchants appearing in 2 or more months — track how costs change over time
             </p>
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={recurringData} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-                <XAxis dataKey="month" tick={{ fontSize: 11 }} />
-                <YAxis tickFormatter={v => `R${(v / 1000).toFixed(1)}k`} tick={{ fontSize: 11 }} />
-                <Tooltip formatter={fmtCurrency} />
-                <Legend wrapperStyle={{ fontSize: 11 }} />
+                <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} />
+                <XAxis dataKey="month" tick={axisTick} stroke={CHART_AXIS} />
+                <YAxis tickFormatter={v => `R${(v / 1000).toFixed(1)}k`} tick={axisTick} stroke={CHART_AXIS} />
+                <Tooltip
+                  contentStyle={CHART_TOOLTIP_STYLE}
+                  labelStyle={CHART_TOOLTIP_LABEL_STYLE}
+                  cursor={{ stroke: CHART_CURSOR_LINE, strokeWidth: 1 }}
+                  formatter={fmtCurrency}
+                />
+                <Legend wrapperStyle={legendStyle} />
                 {recurringMerchants.map(([merchant], i) => (
                   <Line
                     key={merchant}
                     type="monotone"
                     dataKey={merchant}
-                    stroke={CHART_COLORS[i % CHART_COLORS.length]}
+                    stroke={CHART_PALETTE[i % CHART_PALETTE.length]}
                     strokeWidth={2}
                     dot={{ r: 3 }}
                     connectNulls
@@ -244,7 +267,7 @@ export function TrendAnalysisTab() {
                 ))}
               </LineChart>
             </ResponsiveContainer>
-          </div>
+          </GlassPanel>
         )}
       </div>
     </div>

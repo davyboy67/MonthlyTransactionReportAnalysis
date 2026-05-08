@@ -1,8 +1,10 @@
 .budget-table-wrap {
   overflow-x: auto;
-  border-radius: 12px;
-  background: #fff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border-radius: var(--glass-radius);
+  background-color: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(140%);
 }
 
 .budget-table {
@@ -11,7 +13,7 @@
 }
 
 .budget-table__head-row {
-  border-bottom: 2px solid #e5e7eb;
+  border-bottom: 1px solid var(--glass-border);
 }
 
 .budget-table__th {
@@ -20,7 +22,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--color-text-secondary, #6b7280);
+  color: var(--color-text-secondary);
   text-align: left;
   white-space: nowrap;
 }
@@ -52,21 +54,21 @@
 }
 
 .budget-table__totals-row {
-  border-top: 2px solid #e5e7eb;
-  background: #f9fafb;
+  border-top: 1px solid var(--glass-border);
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .budget-table__total-label {
   padding: 0.75rem 1rem;
   font-size: 0.88rem;
   font-weight: 700;
-  color: var(--color-text-primary, #1f2937);
+  color: var(--color-text-primary);
 }
 
 .budget-table__total-value {
   padding: 0.75rem 1rem;
   font-size: 0.88rem;
   font-weight: 700;
-  color: var(--color-text-primary, #1f2937);
+  color: var(--color-text-primary);
   text-align: right;
 }

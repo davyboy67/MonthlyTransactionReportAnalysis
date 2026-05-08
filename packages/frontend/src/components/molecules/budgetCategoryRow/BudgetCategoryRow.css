@@ -1,5 +1,5 @@
 .budget-row {
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid var(--glass-border);
   transition: background 0.1s;
 }
 
@@ -8,12 +8,12 @@
 }
 
 .budget-row:hover {
-  background: #f9fafb;
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .budget-row__name {
   font-size: 0.9rem;
-  color: var(--color-text-primary, #1f2937);
+  color: var(--color-text-primary);
   font-weight: 500;
   padding: 0.75rem 1rem;
 }
@@ -26,42 +26,42 @@
 .budget-row__input {
   width: 120px;
   padding: 0.4rem 0.6rem;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--glass-border);
   border-radius: 6px;
   font-size: 0.9rem;
-  color: var(--color-text-primary, #1f2937);
-  background: #fff;
+  color: var(--color-text-primary);
+  background: rgba(255, 255, 255, 0.04);
   transition: border-color 0.15s;
   text-align: right;
 }
 
 .budget-row__input:focus {
   outline: none;
-  border-color: #10b981;
-  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.15);
+  border-color: var(--color-income);
+  box-shadow: 0 0 0 2px rgba(52, 211, 153, 0.20);
 }
 
 .budget-row__input:read-only {
-  background: #f3f4f6;
+  background: rgba(255, 255, 255, 0.02);
   cursor: not-allowed;
-  color: var(--color-text-secondary, #6b7280);
+  color: var(--color-text-secondary);
 }
 
 .budget-row__actual,
 .budget-row__diff {
   padding: 0.75rem 1rem;
   font-size: 0.88rem;
-  color: var(--color-text-secondary, #6b7280);
+  color: var(--color-text-secondary);
   text-align: right;
 }
 
 .budget-row__diff--under {
-  color: #10b981;
+  color: var(--color-income);
   font-weight: 600;
 }
 
 .budget-row__diff--over {
-  color: #ef4444;
+  color: var(--color-expenses);
   font-weight: 600;
 }
 
@@ -71,6 +71,6 @@
 }
 
 .budget-row__no-data {
-  color: var(--color-text-secondary, #6b7280);
+  color: var(--color-text-secondary);
   font-size: 0.88rem;
 }

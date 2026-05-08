@@ -8,9 +8,11 @@ import { TopCategories } from "../../organisms/topCategories/TopCategories";
 import { FileUpload } from "../../molecules/fileUpload/fileUpload";
 import { MetricCards } from "../../molecules/metricComponents/MetricCards";
 import { Tabs } from "../../atoms/tabs/Tabs";
+import { GlassPanel } from "../../atoms/glassPanel/GlassPanel";
 import { BudgetTab } from "../../organisms/budgetTab/BudgetTab";
 import { TrendAnalysisTab } from "../../organisms/trendAnalysisTab/TrendAnalysisTab";
 import { getTopCategories } from "../../../utils/transactionAnalysis";
+import { SERIES_COLORS } from "../../../theme/theme";
 import "./dashboard.css";
 
 type ActiveTab = "overview" | "budgets" | "trends";
@@ -218,7 +220,7 @@ export function Dashboard() {
         />
 
         <div className="dashboard__charts">
-          <div className="chart-card">
+          <GlassPanel className="chart-card">
             <h2 className="chart-card__title">
               {monthlySummary.month} Overview
             </h2>
@@ -233,7 +235,7 @@ export function Dashboard() {
                 <div className="chart-insight">
                   <span
                     className="chart-insight__dot"
-                    style={{ background: "#10b981" }}
+                    style={{ background: SERIES_COLORS.income }}
                   />
                   <span className="chart-insight__label">Income</span>
                   <span className="chart-insight__value">
@@ -243,7 +245,7 @@ export function Dashboard() {
                 <div className="chart-insight">
                   <span
                     className="chart-insight__dot"
-                    style={{ background: "#ef4444" }}
+                    style={{ background: SERIES_COLORS.expenses }}
                   />
                   <span className="chart-insight__label">Expenses</span>
                   <span className="chart-insight__value">
@@ -253,7 +255,7 @@ export function Dashboard() {
                 <div className="chart-insight">
                   <span
                     className="chart-insight__dot"
-                    style={{ background: "#3b82f6" }}
+                    style={{ background: SERIES_COLORS.savings }}
                   />
                   <span className="chart-insight__label">Savings</span>
                   <span className="chart-insight__value">
@@ -262,13 +264,13 @@ export function Dashboard() {
                 </div>
               </div>
             </div>
-          </div>
+          </GlassPanel>
 
-          <div className="chart-card">
+          <GlassPanel className="chart-card">
             <h2 className="chart-card__title">Category Breakdown</h2>
             <p className="chart-card__desc">Spending by category this month</p>
             <CategorySummary summaries={categorySummaries} />
-          </div>
+          </GlassPanel>
         </div>
 
         <TopCategories categories={topCategories} />
@@ -284,11 +286,13 @@ export function Dashboard() {
 
   return (
     <main className="dashboard">
-      <Tabs
-        tabs={DASHBOARD_TABS}
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-      />
+      <div className="dashboard__topbar">
+        <Tabs
+          tabs={DASHBOARD_TABS}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+        />
+      </div>
 
       {activeTab === "overview" ? renderOverviewTab() : null}
       {activeTab === "budgets" ? renderBudgetsTab() : null}

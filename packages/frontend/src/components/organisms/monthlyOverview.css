@@ -1,0 +1,24 @@
+.monthly-overview__centre {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  gap: 0.25rem;
+}
+
+.monthly-overview__centre-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-secondary);
+}
+
+.monthly-overview__centre-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1;
+}

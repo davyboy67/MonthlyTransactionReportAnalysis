@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { apiClient } from '@transaction-report/shared';
 import type { IBudget, IBudgetCategory, IReportAnalysis } from '@transaction-report/shared';
 import { BudgetTable } from '../budgetTable/BudgetTable';
+import { GlassPanel } from '../../atoms/glassPanel/GlassPanel';
 import { createDefaultCategories } from '../../../utils/categoryUtils';
 import './BudgetTab.css';
 
@@ -170,7 +171,7 @@ export function BudgetTab({ reportAnalysis }: BudgetTabProps) {
 
   return (
     <div className="budget-tab">
-      <div className="budget-tab__header">
+      <GlassPanel className="budget-tab__header">
         <div className="budget-tab__month-nav">
           <button
             className="budget-tab__nav-btn"
@@ -239,9 +240,9 @@ export function BudgetTab({ reportAnalysis }: BudgetTabProps) {
             </button>
           )}
         </div>
-      </div>
+      </GlassPanel>
 
-      <div className="budget-tab__summary">
+      <GlassPanel className="budget-tab__summary">
         <div className="budget-tab__metric">
           <span className="budget-tab__metric-label">Total Budgeted</span>
           <span className="budget-tab__metric-value">{fmt(totalBudgeted)}</span>
@@ -273,7 +274,7 @@ export function BudgetTab({ reportAnalysis }: BudgetTabProps) {
             </span>
           )}
         </div>
-      </div>
+      </GlassPanel>
 
       {isLoading ? (
         <div className="budget-tab__loading">Loading…</div>

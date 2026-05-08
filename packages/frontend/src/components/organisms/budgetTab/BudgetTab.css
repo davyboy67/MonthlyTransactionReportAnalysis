@@ -4,17 +4,12 @@
   gap: 1.5rem;
 }
 
-/* ── Header bar ─────────────────────────────────── */
-
 .budget-tab__header {
   display: flex;
   align-items: center;
   gap: 1.5rem;
   flex-wrap: wrap;
-  background: #fff;
-  border-radius: 12px;
   padding: 1rem 1.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .budget-tab__month-nav {
@@ -29,24 +24,25 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f3f4f6;
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
   cursor: pointer;
   font-size: 1rem;
-  color: var(--color-text-primary, #1f2937);
+  color: var(--color-text-primary);
   transition: background 0.15s, border-color 0.15s;
+  padding: 0;
 }
 
 .budget-tab__nav-btn:hover {
-  background: #e5e7eb;
-  border-color: #d1d5db;
+  background: var(--glass-bg-strong);
+  border-color: var(--color-border-strong);
 }
 
 .budget-tab__month-label {
   font-size: 1rem;
   font-weight: 600;
-  color: var(--color-text-primary, #1f2937);
+  color: var(--color-text-primary);
   min-width: 140px;
   text-align: center;
 }
@@ -56,9 +52,9 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.4rem 0.75rem;
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
-  border-radius: 8px;
+  background: rgba(52, 211, 153, 0.10);
+  border: 1px solid rgba(52, 211, 153, 0.30);
+  border-radius: 10px;
 }
 
 .budget-tab__income-label {
@@ -66,7 +62,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #065f46;
+  color: var(--color-income);
   white-space: nowrap;
 }
 
@@ -79,25 +75,25 @@
 .budget-tab__income-prefix {
   font-size: 0.88rem;
   font-weight: 600;
-  color: #065f46;
+  color: var(--color-income);
 }
 
 .budget-tab__income-input {
   width: 110px;
   padding: 0.25rem 0.4rem;
-  border: 1px solid #bbf7d0;
+  border: 1px solid rgba(52, 211, 153, 0.30);
   border-radius: 6px;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.04);
   font-size: 0.9rem;
   font-weight: 600;
-  color: #065f46;
+  color: var(--color-text-primary);
   text-align: right;
 }
 
 .budget-tab__income-input:focus {
   outline: none;
-  border-color: #10b981;
-  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.15);
+  border-color: var(--color-income);
+  box-shadow: 0 0 0 2px rgba(52, 211, 153, 0.20);
 }
 
 .budget-tab__income-input:disabled {
@@ -107,14 +103,14 @@
 .budget-tab__income-static {
   font-size: 0.9rem;
   font-weight: 700;
-  color: #065f46;
+  color: var(--color-income);
 }
 
 .budget-tab__income-actual {
   font-size: 0.78rem;
   font-weight: 600;
-  color: #059669;
-  background: #d1fae5;
+  color: var(--color-income);
+  background: rgba(52, 211, 153, 0.15);
   border-radius: 4px;
   padding: 0.15rem 0.45rem;
   white-space: nowrap;
@@ -125,7 +121,7 @@
   align-items: center;
   gap: 0.5rem;
   font-size: 0.88rem;
-  color: var(--color-text-secondary, #6b7280);
+  color: var(--color-text-secondary);
   cursor: pointer;
   user-select: none;
 }
@@ -133,7 +129,7 @@
 .budget-tab__prev-label input[type="checkbox"] {
   width: 15px;
   height: 15px;
-  accent-color: #10b981;
+  accent-color: var(--color-income);
   cursor: pointer;
 }
 
@@ -149,18 +145,19 @@
 
 .budget-tab__save-btn {
   padding: 0.5rem 1.25rem;
-  background: #10b981;
-  color: #fff;
+  background: var(--color-income);
+  color: #0b1220;
   border: none;
   border-radius: 8px;
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s, opacity 0.15s;
+  transition: background 0.15s, opacity 0.15s, transform 0.15s;
 }
 
 .budget-tab__save-btn:hover:not(:disabled) {
-  background: #059669;
+  background: #6ee7b7;
+  transform: translateY(-1px);
 }
 
 .budget-tab__save-btn:disabled {
@@ -171,29 +168,30 @@
 .budget-tab__lock-badge {
   font-size: 0.82rem;
   font-weight: 600;
-  color: #b45309;
-  background: #fef3c7;
-  border: 1px solid #fde68a;
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.10);
+  border: 1px solid rgba(251, 191, 36, 0.30);
   border-radius: 6px;
   padding: 0.35rem 0.75rem;
 }
 
-/* ── Summary strip ──────────────────────────────── */
-
 .budget-tab__summary {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 1rem;
+  gap: 0;
+  padding: 0;
 }
 
 .budget-tab__metric {
-  background: #fff;
-  border-radius: 12px;
   padding: 1.25rem 1.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
+  border-right: 1px solid var(--glass-border);
+}
+
+.budget-tab__metric:last-child {
+  border-right: none;
 }
 
 .budget-tab__metric-label {
@@ -201,19 +199,19 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--color-text-secondary, #6b7280);
+  color: var(--color-text-secondary);
 }
 
 .budget-tab__metric-value {
   font-size: 1.4rem;
   font-weight: 700;
-  color: var(--color-text-primary, #1f2937);
+  color: var(--color-text-primary);
 }
 
 .budget-tab__metric-value--muted {
   font-size: 1rem;
   font-weight: 400;
-  color: var(--color-text-secondary, #6b7280);
+  color: var(--color-text-secondary);
 }
 
 .budget-tab__metric-value--muted small {
@@ -223,7 +221,7 @@
 }
 
 .budget-tab__metric-value--negative {
-  color: #ef4444;
+  color: var(--color-expenses);
 }
 
 .budget-tab__metric-value--negative small {
@@ -235,24 +233,33 @@
 
 .budget-tab__error {
   font-size: 0.82rem;
-  color: #ef4444;
+  color: var(--color-expenses);
   margin-right: 0.75rem;
 }
 
 .budget-tab__loading {
-  background: #fff;
-  border-radius: 12px;
+  background-color: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--glass-radius);
   padding: 2rem;
   text-align: center;
-  color: var(--color-text-secondary, #6b7280);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  color: var(--color-text-secondary);
+  backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(140%);
 }
-
-/* ── Responsive ─────────────────────────────────── */
 
 @media (max-width: 900px) {
   .budget-tab__summary {
     grid-template-columns: 1fr;
+  }
+
+  .budget-tab__metric {
+    border-right: none;
+    border-bottom: 1px solid var(--glass-border);
+  }
+
+  .budget-tab__metric:last-child {
+    border-bottom: none;
   }
 
   .budget-tab__header {
