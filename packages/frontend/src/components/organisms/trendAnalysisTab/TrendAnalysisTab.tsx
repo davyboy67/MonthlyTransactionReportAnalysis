@@ -16,14 +16,14 @@ import { apiClient } from '@transaction-report/shared';
 import type { IReportAnalysis } from '@transaction-report/shared';
 import { GlassPanel } from '../../atoms/glassPanel/GlassPanel';
 import {
-  CHART_PALETTE,
+  CHART_PALETTE_MUTED,
   CHART_GRID,
   CHART_AXIS,
   CHART_TOOLTIP_STYLE,
   CHART_TOOLTIP_LABEL_STYLE,
   CHART_CURSOR_FILL,
   CHART_CURSOR_LINE,
-  SERIES_COLORS,
+  SERIES_COLORS_MUTED,
 } from '../../../theme/theme';
 import './TrendAnalysisTab.css';
 
@@ -169,14 +169,14 @@ export function TrendAnalysisTab() {
               />
               <ReferenceLine
                 y={20}
-                stroke={SERIES_COLORS.income}
+                stroke={SERIES_COLORS_MUTED.income}
                 strokeDasharray="4 4"
-                label={{ value: '20% target', fontSize: 10, fill: SERIES_COLORS.income }}
+                label={{ value: '20% target', fontSize: 10, fill: SERIES_COLORS_MUTED.income }}
               />
               <Line
                 type="monotone"
                 dataKey="rate"
-                stroke={SERIES_COLORS.income}
+                stroke={SERIES_COLORS_MUTED.income}
                 strokeWidth={2}
                 dot={{ r: 3 }}
                 activeDot={{ r: 5 }}
@@ -201,9 +201,9 @@ export function TrendAnalysisTab() {
                 formatter={fmtCurrency}
               />
               <Legend wrapperStyle={legendStyle} />
-              <Bar dataKey="Income" fill={SERIES_COLORS.income} radius={[3, 3, 0, 0]} />
-              <Bar dataKey="Expenses" fill={SERIES_COLORS.expenses} radius={[3, 3, 0, 0]} />
-              <Bar dataKey="Savings" fill={SERIES_COLORS.savings} radius={[3, 3, 0, 0]} />
+              <Bar dataKey="Income" fill={SERIES_COLORS_MUTED.income} radius={[3, 3, 0, 0]} />
+              <Bar dataKey="Expenses" fill={SERIES_COLORS_MUTED.expenses} radius={[3, 3, 0, 0]} />
+              <Bar dataKey="Savings" fill={SERIES_COLORS_MUTED.savings} radius={[3, 3, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </GlassPanel>
@@ -228,7 +228,7 @@ export function TrendAnalysisTab() {
                   key={cat}
                   dataKey={cat}
                   stackId="a"
-                  fill={CHART_PALETTE[i % CHART_PALETTE.length]}
+                  fill={CHART_PALETTE_MUTED[i % CHART_PALETTE_MUTED.length]}
                   radius={i === top5Categories.length - 1 ? [3, 3, 0, 0] : [0, 0, 0, 0]}
                 />
               ))}
@@ -259,7 +259,7 @@ export function TrendAnalysisTab() {
                     key={merchant}
                     type="monotone"
                     dataKey={merchant}
-                    stroke={CHART_PALETTE[i % CHART_PALETTE.length]}
+                    stroke={CHART_PALETTE_MUTED[i % CHART_PALETTE_MUTED.length]}
                     strokeWidth={2}
                     dot={{ r: 3 }}
                     connectNulls

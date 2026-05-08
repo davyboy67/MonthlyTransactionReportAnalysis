@@ -42,6 +42,23 @@ export const COLORS = {
     '#9d174d', // pink
   ] as const,
 
+  // Muted variants — desaturated mid-tone colours designed for dark-background
+  // charts. Readable without the sharp contrast of the full-saturation palette.
+  mutedIncome: '#52a870',
+  mutedExpenses: '#c46b6b',
+  mutedSavings: '#5585c5',
+
+  mutedPalette: [
+    '#52a870', // sage green
+    '#5585c5', // steel blue
+    '#c4953a', // muted amber
+    '#c46b6b', // dusty rose
+    '#8b6bbf', // muted violet
+    '#4a9aaa', // muted teal
+    '#c47850', // muted orange
+    '#b05a8c', // muted pink
+  ] as const,
+
   // Glass surface
   glassBg: 'rgba(255, 255, 255, 0.05)',
   glassBgStrong: 'rgba(255, 255, 255, 0.09)',
@@ -72,6 +89,13 @@ export const SERIES_COLORS = {
   income: COLORS.income,
   expenses: COLORS.expenses,
   savings: COLORS.savings,
+};
+
+export const CHART_PALETTE_MUTED = COLORS.mutedPalette;
+export const SERIES_COLORS_MUTED = {
+  income: COLORS.mutedIncome,
+  expenses: COLORS.mutedExpenses,
+  savings: COLORS.mutedSavings,
 };
 
 export const CHART_TOOLTIP_STYLE = {
