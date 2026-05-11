@@ -9,6 +9,8 @@ import { createDashboardRouter } from './routes/dashboardRoutes';
 import { BudgetRepository } from './repositories/budgetRepository';
 import { BudgetService } from './services/BudgetService';
 import { createBudgetRouter } from './routes/budgetRoutes';
+import { ReportEmailService } from './services/ReportEmailService';
+import { createEmailRouter } from './routes/emailRoutes';
 import {
   StatementExtractionService,
   TransactionInfoHandler,
@@ -55,10 +57,15 @@ export async function createApp(): Promise<Application> {
   const budgetService = new BudgetService(budgetRepository);
   const budgetRouter = createBudgetRouter(budgetService);
 
+  const reportEmailService = new ReportEmailService(dashboardRepository, budgetRepository);
+  const emailRouter = createEmailRouter(reportEmailService);
+
   app.use('/api/v1', dashboardRouter);
   app.use('/api/v1', budgetRouter);
+  app.use('/api/v1', emailRouter);
   app.use('/:stage/api/v1', dashboardRouter);
   app.use('/:stage/api/v1', budgetRouter);
+  app.use('/:stage/api/v1', emailRouter);
 
   app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
     console.error('Unhandled error:', err);

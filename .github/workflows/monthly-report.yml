@@ -1,0 +1,43 @@
+name: Monthly Financial Report
+
+on:
+  schedule:
+    - cron: '0 8 1 * *' # 8 AM UTC on the 1st of every month — reports on the prior month
+  workflow_dispatch:     # "Run workflow" button for manual testing
+    inputs:
+      month:
+        description: 'Month (1-12, leave blank for previous month)'
+        required: false
+      year:
+        description: 'Year (e.g. 2025, leave blank for previous month year)'
+        required: false
+
+jobs:
+  send-report:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Calculate target month
+        id: target
+        run: |
+          if [ -n "${{ github.event.inputs.month }}" ] && [ -n "${{ github.event.inputs.year }}" ]; then
+            echo "month=${{ github.event.inputs.month }}" >> $GITHUB_OUTPUT
+            echo "year=${{ github.event.inputs.year }}" >> $GITHUB_OUTPUT
+          else
+            PREV=$(date -d "$(date +%Y-%m-01) -1 day" +%Y-%m)
+            echo "month=$(echo $PREV | cut -d- -f2 | sed 's/^0//')" >> $GITHUB_OUTPUT
+            echo "year=$(echo $PREV | cut -d- -f1)" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Send monthly report
+        run: |
+          RESPONSE=$(curl -s -o /tmp/response.json -w "%{http_code}" \
+            -X POST "${{ secrets.API_URL }}/api/v1/TriggerMonthlyReport" \
+            -H "Content-Type: application/json" \
+            -d "{\"month\":${{ steps.target.outputs.month }},\"year\":${{ steps.target.outputs.year }}}")
+          echo "HTTP status: $RESPONSE"
+          cat /tmp/response.json
+          if [ "$RESPONSE" != "200" ]; then
+            echo "Report trigger failed with status $RESPONSE"
+            exit 1
+          fi
