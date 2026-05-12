@@ -13,6 +13,7 @@ import {
 export interface IDashboardRepository {
   getDashboardDetails(date?: Date, id?: number | null): Promise<IReportAnalysis | null>;
   getReportForMonth(userId: number, month: number, year: number): Promise<IReportAnalysis | null>;
+  getReportIdForMonth(userId: number, month: number, year: number): Promise<number | null>;
   getLastNMonthsReports(userId: number, n: number): Promise<IReportAnalysis[]>;
   saveDashboardDetails(reportAnalysis: IReportAnalysis): Promise<void>;
 }
@@ -83,6 +84,15 @@ export class DashboardRepository implements IDashboardRepository {
     const entity = await this.findReportEntityForMonth(userId, month, year);
     if (!entity) return null;
     return this.convertReport(entity);
+  }
+
+  async getReportIdForMonth(
+    userId: number,
+    month: number,
+    year: number
+  ): Promise<number | null> {
+    const entity = await this.findReportEntityForMonth(userId, month, year);
+    return entity?.id ?? null;
   }
 
   async getLastNMonthsReports(userId: number, n: number): Promise<IReportAnalysis[]> {

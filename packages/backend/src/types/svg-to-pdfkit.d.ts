@@ -4,7 +4,7 @@ declare module 'svg-to-pdfkit' {
     svg: string,
     x: number,
     y: number,
-    options?: Record<string, unknown>,
+    options?: Record<string, unknown>
   ): void;
   export = SVGtoPDF;
 }
