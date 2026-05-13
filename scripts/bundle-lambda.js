@@ -34,7 +34,7 @@ esbuild.build({
   platform: 'node',
   target: 'node18',
   outfile: outputFile,
-  external: ['aws-sdk', 'pg-native', '@mapbox/node-pre-gyp'],
+  external: ['aws-sdk', 'pg-native', '@mapbox/node-pre-gyp', 'keytar'],
   minify: true,
   sourcemap: true,
   format: 'cjs',
