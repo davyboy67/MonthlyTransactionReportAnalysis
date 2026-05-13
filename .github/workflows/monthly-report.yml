@@ -3,7 +3,7 @@ name: Monthly Financial Report
 on:
   schedule:
     - cron: '0 8 1 * *' # 8 AM UTC on the 1st of every month — reports on the prior month
-  workflow_dispatch:     # "Run workflow" button for manual testing
+  workflow_dispatch: # "Run workflow" button for manual testing
     inputs:
       month:
         description: 'Month (1-12, leave blank for previous month)'
@@ -32,7 +32,7 @@ jobs:
       - name: Send monthly report
         run: |
           RESPONSE=$(curl -s -o /tmp/response.json -w "%{http_code}" \
-            -X POST "${{ secrets.API_URL }}/api/v1/TriggerMonthlyReport" \
+            -X POST "${{ secrets.VITE_API_URL }}/api/v1/TriggerMonthlyReport" \
             -H "Content-Type: application/json" \
             -d "{\"month\":${{ steps.target.outputs.month }},\"year\":${{ steps.target.outputs.year }}}")
           echo "HTTP status: $RESPONSE"
