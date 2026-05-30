@@ -35,39 +35,6 @@
   width: fit-content;
 }
 
-.dashboard__nav-btn {
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 1rem;
-  color: var(--color-text-primary);
-  transition: background 0.15s, border-color 0.15s;
-  padding: 0;
-}
-
-.dashboard__nav-btn:hover:not(:disabled) {
-  background: var(--glass-bg-strong);
-  border-color: var(--color-border-strong);
-}
-
-.dashboard__nav-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.dashboard__month-label {
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--color-text-primary);
-  min-width: 140px;
-  text-align: center;
-}
 
 .dashboard__upload {
   background-color: var(--glass-bg);

@@ -171,20 +171,20 @@ export function BudgetTab({ reportAnalysis }: BudgetTabProps) {
 
   return (
     <div className="budget-tab">
-      <GlassPanel className="budget-tab__header">
-        <div className="budget-tab__month-nav">
+      <GlassPanel className="tab-header">
+        <div className="tab-month-nav">
           <button
-            className="budget-tab__nav-btn"
+            className="tab-nav-btn"
             onClick={() => navigateMonth(-1)}
             aria-label="Previous month"
           >
             ←
           </button>
-          <span className="budget-tab__month-label">
+          <span className="tab-month-label">
             {formatMonthLabel(selectedMonth, selectedYear)}
           </span>
           <button
-            className="budget-tab__nav-btn"
+            className="tab-nav-btn"
             onClick={() => navigateMonth(1)}
             aria-label="Next month"
           >
@@ -226,13 +226,13 @@ export function BudgetTab({ reportAnalysis }: BudgetTabProps) {
           Use previous budget
         </label>
 
-        <div className="budget-tab__actions">
-          {saveError && <span className="budget-tab__error">{saveError}</span>}
+        <div className="tab-actions">
+          {saveError && <span className="tab-error-text">{saveError}</span>}
           {readOnly ? (
-            <span className="budget-tab__lock-badge">Read only — month has ended</span>
+            <span className="tab-amber-badge">Read only — month has ended</span>
           ) : (
             <button
-              className="budget-tab__save-btn"
+              className="tab-primary-btn"
               onClick={handleSave}
               disabled={isSaving || isLoading}
             >
@@ -277,7 +277,7 @@ export function BudgetTab({ reportAnalysis }: BudgetTabProps) {
       </GlassPanel>
 
       {isLoading ? (
-        <div className="budget-tab__loading">Loading…</div>
+        <GlassPanel><div className="tab-state-block">Loading…</div></GlassPanel>
       ) : (
         <BudgetTable
           categories={expenseCategories}

@@ -100,26 +100,26 @@ export function TransactionsTab({ reportAnalysis: initialReport }: TransactionsT
 
   return (
     <div className="transactions-tab">
-      <GlassPanel className="transactions-tab__header">
-        <div className="transactions-tab__month-nav">
-          <button className="transactions-tab__nav-btn" onClick={() => navigateMonth(-1)} aria-label="Previous month">←</button>
-          <span className="transactions-tab__month-label">{formatMonthLabel(month, year)}</span>
-          <button className="transactions-tab__nav-btn" onClick={() => navigateMonth(1)} disabled={isCurrentMonth} aria-label="Next month">→</button>
+      <GlassPanel className="tab-header">
+        <div className="tab-month-nav">
+          <button className="tab-nav-btn" onClick={() => navigateMonth(-1)} aria-label="Previous month">←</button>
+          <span className="tab-month-label">{formatMonthLabel(month, year)}</span>
+          <button className="tab-nav-btn" onClick={() => navigateMonth(1)} disabled={isCurrentMonth} aria-label="Next month">→</button>
         </div>
 
-        <div className="transactions-tab__actions">
+        <div className="tab-actions">
           {hasPendingChanges && (
-            <span className="transactions-tab__pending-count">{pendingChanges.size} unsaved change{pendingChanges.size !== 1 ? 's' : ''}</span>
+            <span className="tab-amber-badge">{pendingChanges.size} unsaved change{pendingChanges.size !== 1 ? 's' : ''}</span>
           )}
           <button
-            className="transactions-tab__reset-btn"
+            className="tab-ghost-btn"
             onClick={handleReset}
             disabled={!hasPendingChanges || saving}
           >
             Reset
           </button>
           <button
-            className="transactions-tab__save-btn"
+            className="tab-primary-btn"
             onClick={handleSave}
             disabled={!hasPendingChanges || saving}
           >
@@ -131,11 +131,11 @@ export function TransactionsTab({ reportAnalysis: initialReport }: TransactionsT
       {error && <div className="transactions-tab__error">{error}</div>}
 
       {loading ? (
-        <div className="transactions-tab__loading">Loading transactions…</div>
+        <GlassPanel><div className="tab-state-block">Loading transactions…</div></GlassPanel>
       ) : !report || allTransactions.length === 0 ? (
-        <GlassPanel className="transactions-tab__empty">
+        <GlassPanel><div className="tab-state-block">
           No transactions found for {formatMonthLabel(month, year)}.
-        </GlassPanel>
+        </div></GlassPanel>
       ) : (
         report.CategorySummaries
           .filter(cs => cs.Transactions.length > 0)

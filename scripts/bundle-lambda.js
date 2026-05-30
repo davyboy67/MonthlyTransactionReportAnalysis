@@ -71,6 +71,9 @@ esbuild.build({
   
   // Add files from lambda-bundle directory (NOT the directory itself)
   archive.directory(outputDir, false); // false = don't include parent folder
+
+  // Include pdfkit built-in font metrics so standard fonts like Helvetica can load at runtime
+  archive.directory(path.join(__dirname, '..', 'node_modules', 'pdfkit', 'js', 'data'), 'data');
   
   archive.finalize();
   

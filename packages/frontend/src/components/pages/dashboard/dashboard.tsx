@@ -127,17 +127,17 @@ export function Dashboard() {
         <>
           <div className="dashboard__month-nav">
             <button
-              className="dashboard__nav-btn"
+              className="tab-nav-btn"
               onClick={() => navigateMonth(-1)}
               aria-label="Previous month"
             >
               ←
             </button>
-            <span className="dashboard__month-label">
+            <span className="tab-month-label">
               {formatMonthLabel(selectedMonth, selectedYear)}
             </span>
             <button
-              className="dashboard__nav-btn"
+              className="tab-nav-btn"
               onClick={() => navigateMonth(1)}
               disabled={isOnCurrentMonth}
               aria-label="Next month"
@@ -186,17 +186,17 @@ export function Dashboard() {
       <>
         <div className="dashboard__month-nav">
           <button
-            className="dashboard__nav-btn"
+            className="tab-nav-btn"
             onClick={() => navigateMonth(-1)}
             aria-label="Previous month"
           >
             ←
           </button>
-          <span className="dashboard__month-label">
+          <span className="tab-month-label">
             {formatMonthLabel(selectedMonth, selectedYear)}
           </span>
           <button
-            className="dashboard__nav-btn"
+            className="tab-nav-btn"
             onClick={() => navigateMonth(1)}
             disabled={isOnCurrentMonth}
             aria-label="Next month"
