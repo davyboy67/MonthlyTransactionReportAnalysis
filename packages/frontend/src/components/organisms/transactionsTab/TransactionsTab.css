@@ -118,6 +118,12 @@
   font-size: 0.85rem;
   cursor: pointer;
   transition: border-color 0.15s;
+  color-scheme: dark;
+}
+
+.transactions-tab__select option {
+  background: #111a2e;
+  color: var(--color-text-primary);
 }
 
 .transactions-tab__select:focus {
