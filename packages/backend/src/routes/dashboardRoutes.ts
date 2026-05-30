@@ -69,6 +69,21 @@ export function createDashboardRouter(dashboardService: IDashboardService): Rout
     }
   });
 
+  // PUT /api/v1/UpdateTransactionCategories
+  router.put('/UpdateTransactionCategories', async (req: Request, res: Response) => {
+    try {
+      const { updates } = req.body as { updates: Array<{ id: number; category: string }> };
+      if (!Array.isArray(updates) || updates.length === 0) {
+        return res.status(400).json({ error: 'updates must be a non-empty array' });
+      }
+      await dashboardService.updateTransactionCategories(updates);
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error updating transaction categories:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
   // POST /api/v1/ProcessStatementFile
   router.post(
     '/ProcessStatementFile',

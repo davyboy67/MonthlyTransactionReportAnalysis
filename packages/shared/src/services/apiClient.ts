@@ -96,4 +96,12 @@ export const apiClient = {
       throw error;
     }
   },
+  updateTransactionCategories: async (updates: Array<{ id: number; category: string }>): Promise<void> => {
+    try {
+      await axios.put(`${VITE_API_URL}/UpdateTransactionCategories`, { updates });
+    } catch (error) {
+      console.error('Error updating transaction categories:', error);
+      throw error;
+    }
+  },
 };

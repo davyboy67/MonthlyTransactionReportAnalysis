@@ -11,16 +11,18 @@ import { Tabs } from "../../atoms/tabs/Tabs";
 import { GlassPanel } from "../../atoms/glassPanel/GlassPanel";
 import { BudgetTab } from "../../organisms/budgetTab/BudgetTab";
 import { TrendAnalysisTab } from "../../organisms/trendAnalysisTab/TrendAnalysisTab";
+import { TransactionsTab } from "../../organisms/transactionsTab/TransactionsTab";
 import { getTopCategories } from "../../../utils/transactionAnalysis";
 import { SERIES_COLORS } from "../../../theme/theme";
 import "./dashboard.css";
 
-type ActiveTab = "overview" | "budgets" | "trends";
+type ActiveTab = "overview" | "budgets" | "trends" | "transactions";
 
 const DASHBOARD_TABS: Array<{ id: ActiveTab; label: string }> = [
   { id: "overview", label: "Report Overview" },
   { id: "budgets", label: "Budgets" },
   { id: "trends", label: "Trend Analysis" },
+  { id: "transactions", label: "Transactions" },
 ];
 
 function formatMonthLabel(month: number, year: number): string {
@@ -284,6 +286,10 @@ export function Dashboard() {
 
   const renderTrendsTab = () => <TrendAnalysisTab />;
 
+  const renderTransactionsTab = () => (
+    <TransactionsTab reportAnalysis={reportAnalysis ?? undefined} />
+  );
+
   return (
     <main className="dashboard">
       <div className="dashboard__topbar">
@@ -297,6 +303,7 @@ export function Dashboard() {
       {activeTab === "overview" ? renderOverviewTab() : null}
       {activeTab === "budgets" ? renderBudgetsTab() : null}
       {activeTab === "trends" ? renderTrendsTab() : null}
+      {activeTab === "transactions" ? renderTransactionsTab() : null}
     </main>
   );
 }

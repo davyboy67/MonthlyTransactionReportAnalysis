@@ -17,6 +17,7 @@ export interface IDashboardService {
   getTrendAnalysis(months: number): Promise<{ reports: IReportAnalysis[] }>;
   saveDashboardDetails(reportAnalysis: IReportAnalysis): Promise<void>;
   processStatementFile(fileBuffer: Buffer): Promise<IReportAnalysis>;
+  updateTransactionCategories(updates: Array<{ id: number; category: string }>): Promise<void>;
 }
 
 export class DashboardService implements IDashboardService {
@@ -60,6 +61,10 @@ export class DashboardService implements IDashboardService {
 
   async saveDashboardDetails(reportAnalysis: IReportAnalysis): Promise<void> {
     await this.dashboardRepository.saveDashboardDetails(reportAnalysis);
+  }
+
+  async updateTransactionCategories(updates: Array<{ id: number; category: string }>): Promise<void> {
+    await this.dashboardRepository.updateTransactionCategories(updates);
   }
 
   async processStatementFile(fileBuffer: Buffer): Promise<IReportAnalysis> {

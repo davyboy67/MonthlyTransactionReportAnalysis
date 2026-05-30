@@ -16,6 +16,7 @@ export interface IDashboardRepository {
   getReportIdForMonth(userId: number, month: number, year: number): Promise<number | null>;
   getLastNMonthsReports(userId: number, n: number): Promise<IReportAnalysis[]>;
   saveDashboardDetails(reportAnalysis: IReportAnalysis): Promise<void>;
+  updateTransactionCategories(updates: Array<{ id: number; category: string }>): Promise<void>;
 }
 
 export class DashboardRepository implements IDashboardRepository {
@@ -158,6 +159,7 @@ export class DashboardRepository implements IDashboardRepository {
 
   private convertReport(report: ReportAnalysisEntity): IReportAnalysis {
     const transactionList: ITransaction[] = report.transactions.map(t => ({
+      id: t.id,
       Date: t.date,
       Description: t.description,
       Amount: Number(t.amount),
@@ -245,5 +247,11 @@ export class DashboardRepository implements IDashboardRepository {
       console.error('Error saving dashboard details:', error);
       throw error;
     }
+  }
+
+  async updateTransactionCategories(updates: Array<{ id: number; category: string }>): Promise<void> {
+    await Promise.all(
+      updates.map(u => this.transactionRepository.update(u.id, { category: u.category }))
+    );
   }
 }
