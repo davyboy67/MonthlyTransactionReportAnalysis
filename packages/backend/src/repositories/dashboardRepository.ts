@@ -11,12 +11,12 @@ import {
 } from '@transaction-report/shared';
 
 export interface IDashboardRepository {
-  getDashboardDetails(date?: Date, id?: number | null): Promise<IReportAnalysis | null>;
+  getDashboardDetails(userId: number, date?: Date, id?: number | null): Promise<IReportAnalysis | null>;
   getReportForMonth(userId: number, month: number, year: number): Promise<IReportAnalysis | null>;
   getReportIdForMonth(userId: number, month: number, year: number): Promise<number | null>;
   getLastNMonthsReports(userId: number, n: number): Promise<IReportAnalysis[]>;
-  saveDashboardDetails(reportAnalysis: IReportAnalysis): Promise<void>;
-  updateTransactionCategories(updates: Array<{ id: number; category: string }>): Promise<void>;
+  saveDashboardDetails(userId: number, reportAnalysis: IReportAnalysis): Promise<void>;
+  updateTransactionCategories(userId: number, updates: Array<{ id: number; category: string }>): Promise<void>;
 }
 
 export class DashboardRepository implements IDashboardRepository {
@@ -28,13 +28,13 @@ export class DashboardRepository implements IDashboardRepository {
     this.transactionRepository = dataSource.getRepository(TransactionEntity);
   }
 
-  async getDashboardDetails(date?: Date, id?: number | null): Promise<IReportAnalysis | null> {
+  async getDashboardDetails(userId: number, date?: Date, id?: number | null): Promise<IReportAnalysis | null> {
     try {
       let report;
 
       if (id != null) {
         report = await this.reportAnalysisRepository.findOne({
-          where: { id },
+          where: { id, user_id: userId },
           relations: ['transactions'],
         });
       } else if (date != null) {
@@ -43,6 +43,7 @@ export class DashboardRepository implements IDashboardRepository {
 
         const reports = await this.reportAnalysisRepository.find({
           where: {
+            user_id: userId,
             report_date: queryDate,
           },
           relations: ['transactions'],
@@ -55,6 +56,7 @@ export class DashboardRepository implements IDashboardRepository {
         report = reports.length > 0 ? reports[0] : null;
       } else {
         const reports = await this.reportAnalysisRepository.find({
+          where: { user_id: userId },
           relations: ['transactions'],
           order: {
             report_date: 'DESC',
@@ -178,7 +180,7 @@ export class DashboardRepository implements IDashboardRepository {
     };
   }
 
-  async saveDashboardDetails(reportAnalysis: IReportAnalysis): Promise<void> {
+  async saveDashboardDetails(userId: number, reportAnalysis: IReportAnalysis): Promise<void> {
     try {
       const startTime = Date.now();
 
@@ -196,7 +198,7 @@ export class DashboardRepository implements IDashboardRepository {
         ? new Date(reportAnalysis.Date)
         : new Date(Date.UTC(year, month, 0)); // last day of month
 
-      const existing = await this.findReportEntityForMonth(1, month, year);
+      const existing = await this.findReportEntityForMonth(userId, month, year);
 
       let reportId: number;
       if (existing) {
@@ -212,7 +214,7 @@ export class DashboardRepository implements IDashboardRepository {
         console.log(`Report updated for ${year}-${month}`);
       } else {
         const report = await this.reportAnalysisRepository.save({
-          user_id: 1,
+          user_id: userId,
           report_date: reportDate,
           total_income: reportAnalysis.TotalIncome,
           total_expenses: reportAnalysis.TotalExpenses,
@@ -227,7 +229,7 @@ export class DashboardRepository implements IDashboardRepository {
         transactionDate.setHours(0, 0, 0, 0);
         return {
           report_analysis_id: reportId,
-          user_id: 1,
+          user_id: userId,
           date: transactionDate,
           description: transaction.Description || '',
           amount: transaction.Amount,
@@ -249,9 +251,11 @@ export class DashboardRepository implements IDashboardRepository {
     }
   }
 
-  async updateTransactionCategories(updates: Array<{ id: number; category: string }>): Promise<void> {
+  async updateTransactionCategories(userId: number, updates: Array<{ id: number; category: string }>): Promise<void> {
     await Promise.all(
-      updates.map(u => this.transactionRepository.update(u.id, { category: u.category }))
+      updates.map(u =>
+        this.transactionRepository.update({ id: u.id, user_id: userId }, { category: u.category })
+      )
     );
   }
 }

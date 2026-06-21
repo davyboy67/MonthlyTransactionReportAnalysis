@@ -17,6 +17,9 @@ export class Users {
   @Column({ type: "varchar", length: 256 })
   email!: string;
 
+  @Column({ type: "varchar", length: 255, nullable: true })
+  password_hash!: string | null;
+
   @OneToMany(() => ReportAnalysis, (reportAnalysis) => reportAnalysis.user)
   reportAnalyses!: ReportAnalysis[];
 

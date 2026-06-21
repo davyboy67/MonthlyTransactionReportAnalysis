@@ -10,14 +10,15 @@ import {
 
 export interface IDashboardService {
   retrieveDashboardDetails(
+    userId: number,
     date?: Date,
     id?: number | null,
   ): Promise<DashboardDetailsResponse>;
-  getReportForMonth(month: number, year: number): Promise<DashboardDetailsResponse>;
-  getTrendAnalysis(months: number): Promise<{ reports: IReportAnalysis[] }>;
-  saveDashboardDetails(reportAnalysis: IReportAnalysis): Promise<void>;
-  processStatementFile(fileBuffer: Buffer): Promise<IReportAnalysis>;
-  updateTransactionCategories(updates: Array<{ id: number; category: string }>): Promise<void>;
+  getReportForMonth(userId: number, month: number, year: number): Promise<DashboardDetailsResponse>;
+  getTrendAnalysis(userId: number, months: number): Promise<{ reports: IReportAnalysis[] }>;
+  saveDashboardDetails(userId: number, reportAnalysis: IReportAnalysis): Promise<void>;
+  processStatementFile(userId: number, fileBuffer: Buffer): Promise<IReportAnalysis>;
+  updateTransactionCategories(userId: number, updates: Array<{ id: number; category: string }>): Promise<void>;
 }
 
 export class DashboardService implements IDashboardService {
@@ -36,10 +37,12 @@ export class DashboardService implements IDashboardService {
   }
 
   async retrieveDashboardDetails(
+    userId: number,
     date?: Date,
     id?: number | null,
   ): Promise<DashboardDetailsResponse> {
     const reportAnalysis = await this.dashboardRepository.getDashboardDetails(
+      userId,
       date,
       id,
     );
@@ -49,25 +52,25 @@ export class DashboardService implements IDashboardService {
     };
   }
 
-  async getReportForMonth(month: number, year: number): Promise<DashboardDetailsResponse> {
-    const reportAnalysis = await this.dashboardRepository.getReportForMonth(1, month, year);
+  async getReportForMonth(userId: number, month: number, year: number): Promise<DashboardDetailsResponse> {
+    const reportAnalysis = await this.dashboardRepository.getReportForMonth(userId, month, year);
     return { ReportAnalysis: reportAnalysis };
   }
 
-  async getTrendAnalysis(months: number): Promise<{ reports: IReportAnalysis[] }> {
-    const reports = await this.dashboardRepository.getLastNMonthsReports(1, months);
+  async getTrendAnalysis(userId: number, months: number): Promise<{ reports: IReportAnalysis[] }> {
+    const reports = await this.dashboardRepository.getLastNMonthsReports(userId, months);
     return { reports };
   }
 
-  async saveDashboardDetails(reportAnalysis: IReportAnalysis): Promise<void> {
-    await this.dashboardRepository.saveDashboardDetails(reportAnalysis);
+  async saveDashboardDetails(userId: number, reportAnalysis: IReportAnalysis): Promise<void> {
+    await this.dashboardRepository.saveDashboardDetails(userId, reportAnalysis);
   }
 
-  async updateTransactionCategories(updates: Array<{ id: number; category: string }>): Promise<void> {
-    await this.dashboardRepository.updateTransactionCategories(updates);
+  async updateTransactionCategories(userId: number, updates: Array<{ id: number; category: string }>): Promise<void> {
+    await this.dashboardRepository.updateTransactionCategories(userId, updates);
   }
 
-  async processStatementFile(fileBuffer: Buffer): Promise<IReportAnalysis> {
+  async processStatementFile(userId: number, fileBuffer: Buffer): Promise<IReportAnalysis> {
     const statementObject: StatementDataObject = {
       filePath: "",
       fileBuffer: fileBuffer,
@@ -109,7 +112,7 @@ export class DashboardService implements IDashboardService {
       ),
     };
 
-    await this.dashboardRepository.saveDashboardDetails(reportAnalysis);
+    await this.dashboardRepository.saveDashboardDetails(userId, reportAnalysis);
     console.log("report analysis persisted to db");
 
     return reportAnalysis;

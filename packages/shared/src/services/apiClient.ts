@@ -3,15 +3,82 @@ import { IReportAnalysis, SaveReportAnalysisRequest } from '../models/IReportAna
 import type { IBudget } from '../models/IBudget';
 
 declare const __API_URL__: string;
-const VITE_API_URL = typeof __API_URL__ !== 'undefined' ? __API_URL__ : 'http://localhost:3001/api/v1';
+const VITE_API_URL =
+  typeof __API_URL__ !== 'undefined' ? __API_URL__ : 'http://localhost:3001/api/v1';
+
+const TOKEN_KEY = 'authToken';
+
+const globalScope = globalThis as unknown as {
+  localStorage?: {
+    getItem(key: string): string | null;
+    setItem(key: string, value: string): void;
+    removeItem(key: string): void;
+  };
+  dispatchEvent?: (event: unknown) => boolean;
+  CustomEvent?: new (type: string) => unknown;
+};
+
+let authToken: string | null = globalScope.localStorage?.getItem(TOKEN_KEY) ?? null;
+
+function setToken(token: string): void {
+  authToken = token;
+  globalScope.localStorage?.setItem(TOKEN_KEY, token);
+}
+
+function clearToken(): void {
+  authToken = null;
+  globalScope.localStorage?.removeItem(TOKEN_KEY);
+}
+
+function emitLogout(): void {
+  if (globalScope.dispatchEvent && globalScope.CustomEvent) {
+    globalScope.dispatchEvent(new globalScope.CustomEvent('auth:logout'));
+  }
+}
+
+const api = axios.create({ baseURL: VITE_API_URL });
+
+api.interceptors.request.use(config => {
+  if (authToken) {
+    config.headers = config.headers ?? {};
+    config.headers.Authorization = `Bearer ${authToken}`;
+  }
+  return config;
+});
+
+api.interceptors.response.use(
+  response => response,
+  error => {
+    if (error?.response?.status === 401) {
+      clearToken();
+      emitLogout();
+    }
+    return Promise.reject(error);
+  }
+);
+
+export interface LoginResponse {
+  token: string;
+  user: { userId: number; firstName: string };
+}
 
 export const apiClient = {
+  login: async (email: string, password: string): Promise<LoginResponse> => {
+    const response = await api.post('/Login', { email, password });
+    setToken(response.data.token);
+    return response.data;
+  },
+  logout: (): void => {
+    clearToken();
+    emitLogout();
+  },
+  isAuthenticated: (): boolean => authToken != null,
   saveReportAnalysis: async (reportAnalysis: IReportAnalysis) => {
     try {
       const requestBody = {} as SaveReportAnalysisRequest;
-      const reportAnalysisReq: IReportAnalysis = {...reportAnalysis};
+      const reportAnalysisReq: IReportAnalysis = { ...reportAnalysis };
       requestBody.ReportAnalysis = reportAnalysisReq;
-      await axios.post(`${VITE_API_URL}/SaveReportInformation`, requestBody);
+      await api.post(`/SaveReportInformation`, requestBody);
     } catch (error) {
       console.error('Error saving report analysis:', error);
       throw error;
@@ -21,9 +88,9 @@ export const apiClient = {
     try {
       const requestBody = {
         Date: date,
-        id: id ? id : null
-      }
-      const response = await axios.post(`${VITE_API_URL}/RetrieveDashboardDetails`, requestBody);
+        id: id ? id : null,
+      };
+      const response = await api.post(`/RetrieveDashboardDetails`, requestBody);
       return response.data;
     } catch (error) {
       console.error('Error retrieving report analysis:', error);
@@ -35,7 +102,7 @@ export const apiClient = {
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await axios.post(`${VITE_API_URL}/ProcessStatementFile`, formData, {
+      const response = await api.post(`/ProcessStatementFile`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -48,7 +115,7 @@ export const apiClient = {
   },
   getBudgetForMonth: async (month: number, year: number): Promise<{ budget: IBudget }> => {
     try {
-      const response = await axios.get(`${VITE_API_URL}/GetBudgetForMonth`, {
+      const response = await api.get(`/GetBudgetForMonth`, {
         params: { month, year },
       });
       return response.data;
@@ -59,7 +126,7 @@ export const apiClient = {
   },
   saveOrUpdateBudget: async (budget: IBudget): Promise<void> => {
     try {
-      await axios.post(`${VITE_API_URL}/SaveBudget`, { budget });
+      await api.post(`/SaveBudget`, { budget });
     } catch (error) {
       console.error('Error saving budget:', error);
       throw error;
@@ -67,16 +134,19 @@ export const apiClient = {
   },
   getLatestBudget: async (): Promise<{ budget: IBudget | null }> => {
     try {
-      const response = await axios.get(`${VITE_API_URL}/GetLatestBudget`);
+      const response = await api.get(`/GetLatestBudget`);
       return response.data;
     } catch (error) {
       console.error('Error fetching latest budget:', error);
       throw error;
     }
   },
-  getReportForMonth: async (month: number, year: number): Promise<{ ReportAnalysis: IReportAnalysis | null }> => {
+  getReportForMonth: async (
+    month: number,
+    year: number
+  ): Promise<{ ReportAnalysis: IReportAnalysis | null }> => {
     try {
-      const response = await axios.get(`${VITE_API_URL}/GetReportForMonth`, {
+      const response = await api.get(`/GetReportForMonth`, {
         params: { month, year },
       });
       return response.data;
@@ -87,7 +157,7 @@ export const apiClient = {
   },
   getTrendAnalysis: async (months = 12): Promise<{ reports: IReportAnalysis[] }> => {
     try {
-      const response = await axios.get(`${VITE_API_URL}/GetTrendAnalysis`, {
+      const response = await api.get(`/GetTrendAnalysis`, {
         params: { months },
       });
       return response.data;
@@ -96,9 +166,11 @@ export const apiClient = {
       throw error;
     }
   },
-  updateTransactionCategories: async (updates: Array<{ id: number; category: string }>): Promise<void> => {
+  updateTransactionCategories: async (
+    updates: Array<{ id: number; category: string }>
+  ): Promise<void> => {
     try {
-      await axios.put(`${VITE_API_URL}/UpdateTransactionCategories`, { updates });
+      await api.put(`/UpdateTransactionCategories`, { updates });
     } catch (error) {
       console.error('Error updating transaction categories:', error);
       throw error;

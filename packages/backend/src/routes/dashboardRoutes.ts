@@ -18,7 +18,7 @@ export function createDashboardRouter(dashboardService: IDashboardService): Rout
       }
       const id = request.id;
 
-      const response = await dashboardService.retrieveDashboardDetails(date, id);
+      const response = await dashboardService.retrieveDashboardDetails(req.userId, date, id);
 
       res.json(response);
     } catch (error) {
@@ -32,7 +32,7 @@ export function createDashboardRouter(dashboardService: IDashboardService): Rout
     try {
       const request = req.body as DashboardSaveInfoRequest;
 
-      await dashboardService.saveDashboardDetails(request.ReportAnalysis);
+      await dashboardService.saveDashboardDetails(req.userId, request.ReportAnalysis);
 
       res.status(200).send();
     } catch (error) {
@@ -49,7 +49,7 @@ export function createDashboardRouter(dashboardService: IDashboardService): Rout
       if (!month || !year) {
         return res.status(400).json({ error: 'month and year are required' });
       }
-      const response = await dashboardService.getReportForMonth(month, year);
+      const response = await dashboardService.getReportForMonth(req.userId, month, year);
       res.json(response);
     } catch (error) {
       console.error('Error fetching report for month:', error);
@@ -61,7 +61,7 @@ export function createDashboardRouter(dashboardService: IDashboardService): Rout
   router.get('/GetTrendAnalysis', async (req: Request, res: Response) => {
     try {
       const months = Math.min(parseInt(req.query.months as string) || 12, 12);
-      const response = await dashboardService.getTrendAnalysis(months);
+      const response = await dashboardService.getTrendAnalysis(req.userId, months);
       res.json(response);
     } catch (error) {
       console.error('Error fetching trend analysis:', error);
@@ -76,7 +76,7 @@ export function createDashboardRouter(dashboardService: IDashboardService): Rout
       if (!Array.isArray(updates) || updates.length === 0) {
         return res.status(400).json({ error: 'updates must be a non-empty array' });
       }
-      await dashboardService.updateTransactionCategories(updates);
+      await dashboardService.updateTransactionCategories(req.userId, updates);
       res.json({ success: true });
     } catch (error) {
       console.error('Error updating transaction categories:', error);
@@ -94,7 +94,7 @@ export function createDashboardRouter(dashboardService: IDashboardService): Rout
           return res.status(400).json({ error: 'No file uploaded' });
         }
 
-        const reportAnalysis = await dashboardService.processStatementFile(req.file.buffer);
+        const reportAnalysis = await dashboardService.processStatementFile(req.userId, req.file.buffer);
 
         res.json({ ReportAnalysis: reportAnalysis });
       } catch (error) {

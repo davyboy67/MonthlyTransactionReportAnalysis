@@ -13,6 +13,7 @@
   z-index: 10;
   display: flex;
   justify-content: center;
+  align-items: center;
   padding: 0.75rem 0;
   background: linear-gradient(
     to bottom,
@@ -20,6 +21,21 @@
     rgba(11, 18, 32, 0.85) 70%,
     transparent 100%
   );
+}
+
+.dashboard__logout {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+@media (max-width: 700px) {
+  .dashboard__logout {
+    position: static;
+    transform: none;
+    margin-left: 0.75rem;
+  }
 }
 
 .dashboard__month-nav {

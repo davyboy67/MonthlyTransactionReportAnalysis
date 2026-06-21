@@ -3,10 +3,13 @@ node_modules/
 dist/
 *.log
 *.env*
+*.session.sql
 .vscode/settings.json
+.claude
 
 # Backend build artifacts
 backend/dist/
+tsconfig.tsbuildinfo
 
 # .NET
 bin/

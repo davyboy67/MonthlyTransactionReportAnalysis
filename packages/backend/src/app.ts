@@ -11,6 +11,9 @@ import { BudgetService } from './services/BudgetService';
 import { createBudgetRouter } from './routes/budgetRoutes';
 import { ReportEmailService } from './services/ReportEmailService';
 import { createEmailRouter } from './routes/emailRoutes';
+import { AuthService } from './services/AuthService';
+import { createAuthRouter } from './routes/authRoutes';
+import { authenticate } from './middleware/authenticate';
 import {
   StatementExtractionService,
   TransactionInfoHandler,
@@ -60,12 +63,18 @@ export async function createApp(): Promise<Application> {
   const reportEmailService = new ReportEmailService(dashboardRepository, budgetRepository);
   const emailRouter = createEmailRouter(reportEmailService);
 
-  app.use('/api/v1', dashboardRouter);
-  app.use('/api/v1', budgetRouter);
+  const authService = new AuthService(AppDataSource);
+  const authRouter = createAuthRouter(authService);
+
+  app.use('/api/v1', authRouter);
   app.use('/api/v1', emailRouter);
-  app.use('/:stage/api/v1', dashboardRouter);
-  app.use('/:stage/api/v1', budgetRouter);
+  app.use('/:stage/api/v1', authRouter);
   app.use('/:stage/api/v1', emailRouter);
+
+  app.use('/api/v1', authenticate, dashboardRouter);
+  app.use('/api/v1', authenticate, budgetRouter);
+  app.use('/:stage/api/v1', authenticate, dashboardRouter);
+  app.use('/:stage/api/v1', authenticate, budgetRouter);
 
   app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
     console.error('Unhandled error:', err);

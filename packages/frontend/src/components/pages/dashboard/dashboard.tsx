@@ -298,6 +298,13 @@ export function Dashboard() {
           activeTab={activeTab}
           onTabChange={setActiveTab}
         />
+        <button
+          className="dashboard__logout tab-ghost-btn"
+          onClick={() => apiClient.logout()}
+          title="Log out and switch account"
+        >
+          Log out
+        </button>
       </div>
 
       {activeTab === "overview" ? renderOverviewTab() : null}
