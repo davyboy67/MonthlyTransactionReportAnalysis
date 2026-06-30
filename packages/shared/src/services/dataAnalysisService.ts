@@ -96,6 +96,12 @@ export class DataAnalysisService implements IDataAnalysisService {
   }
 
   async analyseTransactions(transactions: ITransaction[]): Promise<IReportAnalysis> {
+    // No transactions means nothing to analyse — return a zeroed report rather than
+    // letting dominantMonth() throw on an empty reduce.
+    if (transactions.length === 0) {
+      return this.createReportAnalysis([]);
+    }
+
     // Determine target month from the transactions themselves so historical uploads work correctly
     const { month: targetMonth, year: targetYear } = this.dominantMonth(transactions);
 

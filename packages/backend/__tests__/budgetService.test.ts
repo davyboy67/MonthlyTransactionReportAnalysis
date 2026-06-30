@@ -1,6 +1,7 @@
 import { BudgetService } from '../src/services/BudgetService';
 import { IBudgetRepository } from '../src/repositories/budgetRepository';
 import { IBudget } from '@transaction-report/shared';
+import categoryList from '../../shared/src/data/categoryList.json';
 
 describe('BudgetService', () => {
   let service: BudgetService;
@@ -19,6 +20,12 @@ describe('BudgetService', () => {
     ],
   };
 
+  // First day of the current month, in UTC, to match the service's UTC month maths.
+  const currentMonthUtc = (): Date => {
+    const now = new Date();
+    return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+  };
+
   beforeEach(() => {
     mockRepository = {
       findByUserAndMonth: jest.fn(),
@@ -30,7 +37,7 @@ describe('BudgetService', () => {
   });
 
   describe('getBudgetForMonth', () => {
-    it('should return existing budget when found', async () => {
+    it('should return the existing budget when one is found', async () => {
       mockRepository.findByUserAndMonth.mockResolvedValue(mockBudget);
 
       const result = await service.getBudgetForMonth(1, 1, 2024);
@@ -39,29 +46,41 @@ describe('BudgetService', () => {
       expect(mockRepository.findByUserAndMonth).toHaveBeenCalledWith(1, 1, 2024);
     });
 
-    it('should return a default budget with budget_id 0 when no budget exists', async () => {
+    it('should return a default budget (id 0, scoped to the user) when none exists', async () => {
       mockRepository.findByUserAndMonth.mockResolvedValue(null);
 
-      const result = await service.getBudgetForMonth(1, 3, 2024);
+      const result = await service.getBudgetForMonth(7, 3, 2024);
 
       expect(result.budget.budget_id).toBe(0);
-      expect(result.budget.user_id).toBe(1);
-      expect(mockRepository.findByUserAndMonth).toHaveBeenCalledWith(1, 3, 2024);
+      expect(result.budget.user_id).toBe(7);
+      expect(mockRepository.findByUserAndMonth).toHaveBeenCalledWith(7, 3, 2024);
     });
 
-    it('should return a default budget with all 12 categories at amount 0', async () => {
+    it('should seed the default budget with one zero-amount entry per known category', async () => {
       mockRepository.findByUserAndMonth.mockResolvedValue(null);
 
       const result = await service.getBudgetForMonth(1, 3, 2024);
 
-      expect(result.budget.categories).toHaveLength(12);
+      expect(result.budget.categories).toHaveLength(categoryList.length);
       expect(result.budget.categories.every(cat => cat.amount === 0)).toBe(true);
       expect(result.budget.categories.every(cat => cat.budget_id === 0)).toBe(true);
+      // names line up with the shared category list, in order
+      expect(result.budget.categories.map(c => c.category_name)).toEqual(
+        categoryList.map(c => c.name)
+      );
+    });
+
+    it('should build the default budget_month as the first of the month in UTC', async () => {
+      mockRepository.findByUserAndMonth.mockResolvedValue(null);
+
+      const result = await service.getBudgetForMonth(1, 3, 2024);
+
+      expect(result.budget.budget_month.toISOString()).toBe('2024-03-01T00:00:00.000Z');
     });
   });
 
   describe('getMostRecentBudget', () => {
-    it('should return budget when one exists', async () => {
+    it('should return the budget when one exists', async () => {
       mockRepository.findMostRecentBudget.mockResolvedValue(mockBudget);
 
       const result = await service.getMostRecentBudget(1);
@@ -81,7 +100,7 @@ describe('BudgetService', () => {
   });
 
   describe('saveOrUpdateBudget', () => {
-    it('should save a new budget without date validation when budget_id is 0', async () => {
+    it('should save a brand-new budget (budget_id 0) without date validation', async () => {
       const newBudget: IBudget = {
         ...mockBudget,
         budget_id: 0,
@@ -93,12 +112,11 @@ describe('BudgetService', () => {
       expect(mockRepository.saveOrUpdateBudget).toHaveBeenCalledWith(newBudget);
     });
 
-    it('should save successfully for an existing budget in the current month', async () => {
-      const now = new Date();
+    it('should allow updating an existing budget for the current month', async () => {
       const currentMonthBudget: IBudget = {
         ...mockBudget,
         budget_id: 5,
-        budget_month: new Date(now.getFullYear(), now.getMonth(), 1),
+        budget_month: currentMonthUtc(),
       };
       mockRepository.saveOrUpdateBudget.mockResolvedValue();
 
@@ -106,11 +124,24 @@ describe('BudgetService', () => {
       expect(mockRepository.saveOrUpdateBudget).toHaveBeenCalledWith(currentMonthBudget);
     });
 
-    it('should throw an error when updating an existing budget for a past month', async () => {
+    it('should allow updating an existing budget for a future month', async () => {
+      const now = new Date();
+      const futureBudget: IBudget = {
+        ...mockBudget,
+        budget_id: 6,
+        budget_month: new Date(Date.UTC(now.getUTCFullYear() + 1, now.getUTCMonth(), 1)),
+      };
+      mockRepository.saveOrUpdateBudget.mockResolvedValue();
+
+      await expect(service.saveOrUpdateBudget(futureBudget)).resolves.not.toThrow();
+      expect(mockRepository.saveOrUpdateBudget).toHaveBeenCalledWith(futureBudget);
+    });
+
+    it('should reject updating an existing budget whose month has already ended', async () => {
       const pastMonthBudget: IBudget = {
         ...mockBudget,
         budget_id: 3,
-        budget_month: new Date('2024-01-01'),
+        budget_month: new Date('2020-01-01'),
       };
 
       await expect(service.saveOrUpdateBudget(pastMonthBudget)).rejects.toThrow(
@@ -119,11 +150,11 @@ describe('BudgetService', () => {
       expect(mockRepository.saveOrUpdateBudget).not.toHaveBeenCalled();
     });
 
-    it('should not throw for a past budget_month when budget_id is 0', async () => {
+    it('should still allow a new budget (budget_id 0) for a past month', async () => {
       const newBudgetPastMonth: IBudget = {
         ...mockBudget,
         budget_id: 0,
-        budget_month: new Date('2024-01-01'),
+        budget_month: new Date('2020-01-01'),
       };
       mockRepository.saveOrUpdateBudget.mockResolvedValue();
 
