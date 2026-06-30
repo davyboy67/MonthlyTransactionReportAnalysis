@@ -16,8 +16,11 @@ export class Transaction {
   @Column({ type: "integer" })
   report_analysis_id!: number;
 
+  // Denormalised from the parent report so transaction-level queries (e.g. the
+  // per-user category-update guard) can scope by user without a join. Load-bearing
+  // for tenant isolation — do not remove.
   @Column({ type: "integer" })
-  user_id!: number; //TODO: redundant - remove
+  user_id!: number;
 
   @Column({ type: "date" })
   date!: Date;

@@ -1,24 +1,20 @@
 import { useEffect, useMemo, useState } from 'react';
-import { apiClient } from '@transaction-report/shared';
+import {
+  apiClient,
+  buildDefaultBudgetCategories,
+  formatZar,
+  formatMonthLabel,
+} from '@transaction-report/shared';
 import type { IBudget, IBudgetCategory, IReportAnalysis } from '@transaction-report/shared';
 import { BudgetTable } from '../budgetTable/BudgetTable';
 import { GlassPanel } from '../../atoms/glassPanel/GlassPanel';
-import { createDefaultCategories } from '../../../utils/categoryUtils';
 import './BudgetTab.css';
 
 interface BudgetTabProps {
   reportAnalysis?: IReportAnalysis;
 }
 
-const fmt = (n: number) =>
-  `R ${n.toLocaleString('en-ZA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-
-function formatMonthLabel(month: number, year: number): string {
-  return new Date(year, month - 1, 1).toLocaleString('default', {
-    month: 'long',
-    year: 'numeric',
-  });
-}
+const fmt = (n: number) => formatZar(n);
 
 function isPastMonth(month: number, year: number): boolean {
   const now = new Date();
@@ -29,7 +25,7 @@ export function BudgetTab({ reportAnalysis }: BudgetTabProps) {
   const now = new Date();
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(now.getFullYear());
-  const [categories, setCategories] = useState<IBudgetCategory[]>(createDefaultCategories);
+  const [categories, setCategories] = useState<IBudgetCategory[]>(buildDefaultBudgetCategories);
   const [budgetId, setBudgetId] = useState(0);
   const [usePreviousBudget, setUsePreviousBudget] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -57,7 +53,7 @@ export function BudgetTab({ reportAnalysis }: BudgetTabProps) {
       })
       .catch(() => {
         if (cancelled) return;
-        setCategories(createDefaultCategories());
+        setCategories(buildDefaultBudgetCategories());
         setBudgetId(0);
       })
       .finally(() => {
@@ -140,7 +136,7 @@ export function BudgetTab({ reportAnalysis }: BudgetTabProps) {
         setCategories(response.budget.categories);
         setBudgetId(response.budget.budget_id);
       } catch {
-        setCategories(createDefaultCategories());
+        setCategories(buildDefaultBudgetCategories());
       }
     }
   };
@@ -151,7 +147,9 @@ export function BudgetTab({ reportAnalysis }: BudgetTabProps) {
     try {
       const budget: IBudget = {
         budget_id: budgetId,
-        user_id: 1,
+        // Placeholder only — the server overwrites this with the authenticated
+        // user's id from the JWT. The client value is never trusted.
+        user_id: 0,
         budget_month: new Date(Date.UTC(selectedYear, selectedMonth - 1, 1)),
         notes: null,
         created_at: new Date(),

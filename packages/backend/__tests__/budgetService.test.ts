@@ -1,7 +1,6 @@
 import { BudgetService } from '../src/services/BudgetService';
 import { IBudgetRepository } from '../src/repositories/budgetRepository';
-import { IBudget } from '@transaction-report/shared';
-import categoryList from '../../shared/src/data/categoryList.json';
+import { IBudget, categoryDefinitions } from '@transaction-report/shared';
 
 describe('BudgetService', () => {
   let service: BudgetService;
@@ -61,12 +60,12 @@ describe('BudgetService', () => {
 
       const result = await service.getBudgetForMonth(1, 3, 2024);
 
-      expect(result.budget.categories).toHaveLength(categoryList.length);
+      expect(result.budget.categories).toHaveLength(categoryDefinitions.length);
       expect(result.budget.categories.every(cat => cat.amount === 0)).toBe(true);
       expect(result.budget.categories.every(cat => cat.budget_id === 0)).toBe(true);
       // names line up with the shared category list, in order
       expect(result.budget.categories.map(c => c.category_name)).toEqual(
-        categoryList.map(c => c.name)
+        categoryDefinitions.map(c => c.name)
       );
     });
 

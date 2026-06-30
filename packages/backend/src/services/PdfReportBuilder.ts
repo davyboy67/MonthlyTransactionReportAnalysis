@@ -2,6 +2,7 @@ import SVGtoPDF from 'svg-to-pdfkit';
 import PDFDocument from 'pdfkit';
 import type { IReportAnalysis } from '@transaction-report/shared';
 import type { IBudget } from '@transaction-report/shared';
+import { formatZar, formatMonthLabel } from '@transaction-report/shared';
 import { buildChartSvg, chartHeight } from './ChartBuilder';
 
 const MARGIN = 50;
@@ -17,11 +18,7 @@ const COLOR = {
 };
 
 function fmtCurrency(v: number): string {
-  return `R ${v.toLocaleString('en-ZA', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
-}
-
-function monthName(month: number, year: number): string {
-  return new Date(year, month - 1, 1).toLocaleString('default', { month: 'long', year: 'numeric' });
+  return formatZar(v, 0);
 }
 
 function rule(doc: PDFKit.PDFDocument, y: number): void {
@@ -63,7 +60,7 @@ function drawHeader(doc: PDFKit.PDFDocument, firstName: string, month: number, y
   doc.font('Helvetica').fontSize(9).fillColor(COLOR.muted)
     .text('MONTHLY FINANCIAL REPORT', MARGIN, MARGIN, { characterSpacing: 1.5 });
   doc.font('Helvetica-Bold').fontSize(24).fillColor(COLOR.dark)
-    .text(monthName(month, year), MARGIN, MARGIN + 18);
+    .text(formatMonthLabel(month, year), MARGIN, MARGIN + 18);
   doc.font('Helvetica').fontSize(11).fillColor(COLOR.muted)
     .text(`Prepared for: ${firstName}`, MARGIN, doc.y + 4);
   rule(doc, doc.y + 10);

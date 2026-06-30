@@ -1,6 +1,6 @@
 import type { IBudgetCategory } from "@transaction-report/shared";
+import { categoryDisplayNames, formatZar } from "@transaction-report/shared";
 import { BudgetCategoryRow } from "../../molecules/budgetCategoryRow/BudgetCategoryRow";
-import { categoryDisplayName } from "../../../utils/categoryUtils";
 import "./BudgetTable.css";
 
 interface BudgetTableProps {
@@ -38,7 +38,7 @@ export function BudgetTable({
           {categories.map((cat) => (
             <BudgetCategoryRow
               key={cat.category_id}
-              displayName={categoryDisplayName[cat.category_name] ?? cat.category_name}
+              displayName={categoryDisplayNames[cat.category_name] ?? cat.category_name}
               amount={cat.amount}
               actual={actuals?.[cat.category_name]}
               readOnly={readOnly}
@@ -51,12 +51,10 @@ export function BudgetTable({
           <tr className="budget-table__totals-row">
             <td className="budget-table__total-label">Total</td>
             <td className="budget-table__total-value">
-              R {totalBudgeted.toLocaleString("en-ZA", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              {formatZar(totalBudgeted)}
             </td>
             <td className="budget-table__total-value">
-              {totalActual !== undefined
-                ? `R ${totalActual.toLocaleString("en-ZA", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-                : "—"}
+              {totalActual !== undefined ? formatZar(totalActual) : "—"}
             </td>
             <td colSpan={2} />
           </tr>

@@ -1,6 +1,7 @@
 import { IReportAnalysis, ICategorySummary } from '../models/IReportAnalysis';
 import { ITransaction, TransactionType } from '../models/ITransaction';
 import { ITransactionInfoHandler } from '../utils/ITransactionInfoHandler';
+import { dominantMonth } from '../utils/dateUtils';
 import { IDataAnalysisService } from './IDataAnalysisService';
 import { apiClient } from './apiClient';
 
@@ -82,19 +83,6 @@ export class DataAnalysisService implements IDataAnalysisService {
     return reportAnalysis;
   }
 
-  private dominantMonth(transactions: ITransaction[]): { month: number; year: number } {
-    const counts = new Map<string, { month: number; year: number; count: number }>();
-    for (const t of transactions) {
-      const d = new Date(t.Date);
-      const m = d.getMonth() + 1;
-      const y = d.getFullYear();
-      const key = `${y}-${m}`;
-      const entry = counts.get(key) ?? { month: m, year: y, count: 0 };
-      counts.set(key, { ...entry, count: entry.count + 1 });
-    }
-    return [...counts.values()].reduce((a, b) => (b.count > a.count ? b : a));
-  }
-
   async analyseTransactions(transactions: ITransaction[]): Promise<IReportAnalysis> {
     // No transactions means nothing to analyse — return a zeroed report rather than
     // letting dominantMonth() throw on an empty reduce.
@@ -102,8 +90,9 @@ export class DataAnalysisService implements IDataAnalysisService {
       return this.createReportAnalysis([]);
     }
 
-    // Determine target month from the transactions themselves so historical uploads work correctly
-    const { month: targetMonth, year: targetYear } = this.dominantMonth(transactions);
+    // Determine target month from the transactions themselves so historical uploads work correctly.
+    // This pipeline works in local time, so read the dates in local time too.
+    const { month: targetMonth, year: targetYear } = dominantMonth(transactions);
 
     let startDate = new Date(targetYear, targetMonth - 2, 25);
     const endDate = new Date(targetYear, targetMonth - 1, 25, 23, 59, 59);

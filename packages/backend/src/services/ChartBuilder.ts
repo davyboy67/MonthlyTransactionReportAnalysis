@@ -1,3 +1,5 @@
+import { formatZar } from '@transaction-report/shared';
+
 const W = 495;
 
 const PALETTE = ['#166534', '#1e40af', '#92400e', '#991b1b', '#5b21b6'];
@@ -53,7 +55,7 @@ export function chartHeight(config: ChartConfig): number {
 }
 
 function fmt(v: number): string {
-  return `R ${v.toLocaleString('en-ZA', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+  return formatZar(v, 0);
 }
 
 function esc(s: string): string {

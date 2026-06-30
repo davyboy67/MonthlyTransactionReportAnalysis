@@ -8,6 +8,7 @@ import {
   TransactionType,
   ReportNotFoundError,
   ReportNotSavedError,
+  dominantMonth,
 } from '@transaction-report/shared';
 
 export interface IDashboardRepository {
@@ -125,19 +126,6 @@ export class DashboardRepository implements IDashboardRepository {
       .getOne();
   }
 
-  private dominantMonth(transactions: ITransaction[]): { month: number; year: number } {
-    const counts = new Map<string, { month: number; year: number; count: number }>();
-    for (const t of transactions) {
-      const d = new Date(t.Date);
-      const m = d.getUTCMonth() + 1;
-      const y = d.getUTCFullYear();
-      const key = `${y}-${m}`;
-      const entry = counts.get(key) ?? { month: m, year: y, count: 0 };
-      counts.set(key, { ...entry, count: entry.count + 1 });
-    }
-    return [...counts.values()].reduce((a, b) => (b.count > a.count ? b : a));
-  }
-
   private compileCategorySummary(transactionList: ITransaction[]): ICategorySummary[] {
     const categorySummaries: ICategorySummary[] = [];
     const uniqueCategories = [...new Set(transactionList.map(t => t.Category).filter(c => c))];
@@ -190,7 +178,8 @@ export class DashboardRepository implements IDashboardRepository {
 
       const transactions = reportAnalysis.CategorySummaries.flatMap(cs => cs.Transactions);
 
-      const { month, year } = this.dominantMonth(transactions);
+      // The persistence layer works in UTC (report dates are stored as UTC), so read dates in UTC.
+      const { month, year } = dominantMonth(transactions, true);
 
       const now = new Date();
       const isCurrentMonth = month === now.getUTCMonth() + 1 && year === now.getUTCFullYear();

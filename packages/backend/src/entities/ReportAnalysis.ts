@@ -28,7 +28,7 @@ export class ReportAnalysis {
   total_expenses!: number;
 
   @Column({ type: "decimal", precision: 10, scale: 2 })
-  total_savings!: number | null;
+  total_savings!: number;
 
   @Column({ type: "integer", nullable: true })
   budget_id!: number | null;

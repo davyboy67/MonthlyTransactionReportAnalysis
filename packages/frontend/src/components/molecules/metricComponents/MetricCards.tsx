@@ -1,3 +1,4 @@
+import { formatZar } from "@transaction-report/shared";
 import { GlassPanel } from "../../atoms/glassPanel/GlassPanel";
 import { SERIES_COLORS } from "../../../theme/theme";
 import "./MetricCards.css";
@@ -38,8 +39,7 @@ export function MetricCards({
       ? Math.round((Math.abs(netPosition) / totalIncome) * 100)
       : 0;
 
-  const fmt = (n: number) =>
-    `R ${n.toLocaleString("en-ZA", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const fmt = (n: number) => formatZar(n);
 
   const netPositive = netPosition >= 0;
 
