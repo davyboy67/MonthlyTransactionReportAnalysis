@@ -11,3 +11,10 @@ export class ReportNotSavedError extends Error {
     this.name = "ReportNotSavedError";
   }
 }
+
+export class UnsupportedStatementFormatError extends Error {
+  constructor(detail: string) {
+    super(`Unsupported statement format: ${detail}`);
+    this.name = "UnsupportedStatementFormatError";
+  }
+}

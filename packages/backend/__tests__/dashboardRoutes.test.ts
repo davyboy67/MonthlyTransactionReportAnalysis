@@ -2,7 +2,7 @@ import request from 'supertest';
 import express from 'express';
 import { createDashboardRouter } from '../src/routes/dashboardRoutes';
 import { IDashboardService } from '../src/services/DashboardService';
-import { IReportAnalysis } from '@transaction-report/shared';
+import { IReportAnalysis, UnsupportedStatementFormatError } from '@transaction-report/shared';
 
 const USER_ID = 42;
 
@@ -207,6 +207,19 @@ describe('Dashboard API Routes', () => {
 
       expect(response.status).toBe(500);
       expect(response.body.error).toBe('Internal server error');
+    });
+
+    it('should return 400 when the statement format is not recognised', async () => {
+      mockService.processStatementFile.mockRejectedValue(
+        new UnsupportedStatementFormatError('statement did not match any supported bank (FNB)')
+      );
+
+      const response = await request(app)
+        .post('/api/v1/ProcessStatementFile')
+        .attach('file', Buffer.from('bad,data'), 'statement.csv');
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toContain('Unsupported statement format');
     });
   });
 });

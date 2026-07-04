@@ -26,9 +26,7 @@ describe('DashboardService', () => {
     };
 
     mockStatementExtractionService = {
-      compileTransactionList: jest.fn(),
-      getStatementData: jest.fn(),
-      extractCsvContents: jest.fn(),
+      extractTransactions: jest.fn(),
     };
 
     mockDataAnalysisService = {
@@ -135,11 +133,7 @@ describe('DashboardService', () => {
   });
 
   describe('processStatementFile', () => {
-    it('should run the extract -> compile -> analyse -> save pipeline and return the report', async () => {
-      const csvData = [
-        ['Date', 'Description', 'Amount'],
-        ['2024-01-15', 'Groceries', '50'],
-      ];
+    it('should run the extract -> analyse -> save pipeline and return the report', async () => {
       const mockTransactions = [
         {
           Date: new Date('2024-01-15'),
@@ -166,8 +160,10 @@ describe('DashboardService', () => {
         ],
       };
 
-      mockStatementExtractionService.getStatementData.mockResolvedValue(csvData);
-      mockStatementExtractionService.compileTransactionList.mockResolvedValue(mockTransactions);
+      mockStatementExtractionService.extractTransactions.mockResolvedValue({
+        bankName: 'FNB',
+        transactions: mockTransactions,
+      });
       mockDataAnalysisService.analyseTransactions.mockResolvedValue(mockAnalysed);
       mockRepository.saveDashboardDetails.mockResolvedValue();
 
@@ -175,10 +171,9 @@ describe('DashboardService', () => {
 
       expect(result.TotalExpenses).toBe(50);
       expect(result.CategorySummaries[0].Transactions[0].Merchant).toBe('Supermarket');
-      expect(mockStatementExtractionService.getStatementData).toHaveBeenCalledWith(
+      expect(mockStatementExtractionService.extractTransactions).toHaveBeenCalledWith(
         expect.objectContaining({ fileBuffer: expect.any(Buffer) })
       );
-      expect(mockStatementExtractionService.compileTransactionList).toHaveBeenCalledWith(csvData);
       expect(mockDataAnalysisService.analyseTransactions).toHaveBeenCalledWith(mockTransactions);
       // the processed report is persisted, scoped to the user
       expect(mockRepository.saveDashboardDetails).toHaveBeenCalledWith(
@@ -188,7 +183,6 @@ describe('DashboardService', () => {
     });
 
     it('should default a missing merchant to an empty string when mapping transactions', async () => {
-      const csvData = [['Date', 'Description', 'Amount']];
       const mockTransactions = [
         {
           Date: new Date('2024-01-15'),
@@ -210,8 +204,10 @@ describe('DashboardService', () => {
         ],
       };
 
-      mockStatementExtractionService.getStatementData.mockResolvedValue(csvData);
-      mockStatementExtractionService.compileTransactionList.mockResolvedValue(mockTransactions);
+      mockStatementExtractionService.extractTransactions.mockResolvedValue({
+        bankName: 'FNB',
+        transactions: mockTransactions,
+      });
       mockDataAnalysisService.analyseTransactions.mockResolvedValue(mockAnalysed);
       mockRepository.saveDashboardDetails.mockResolvedValue();
 
@@ -221,7 +217,7 @@ describe('DashboardService', () => {
     });
 
     it('should propagate errors from the extraction service', async () => {
-      mockStatementExtractionService.getStatementData.mockRejectedValue(new Error('Parse failed'));
+      mockStatementExtractionService.extractTransactions.mockRejectedValue(new Error('Parse failed'));
 
       await expect(
         service.processStatementFile(USER_ID, Buffer.from('bad'))

@@ -1,42 +1,35 @@
 import { IStatementExtractionService } from "../src/services/IstatementExtractionService";
-import { StatementDataObject, StatementExtractionService } from "../src/services/statementExtractionService";
+import { StatementExtractionService } from "../src/services/statementExtractionService";
 import fs from "fs";
 
-describe("StatementExtractionService", () => {
+describe("StatementExtractionService (integration)", () => {
     let service: IStatementExtractionService;
-
 
     beforeEach(() => {
         service = new StatementExtractionService();
     });
 
     describe("CanExtractDataFromCSV", () => {
-        it("should extract correct data from CSV file using file path", async () => {
-            const statementDataObject = {} as StatementDataObject;
-            statementDataObject.filePath = "./inputs/DummyTestStatement.csv";
-            const result = await service.getStatementData(statementDataObject);
-            expect(result).toBeDefined();
-            expect(result.length).toBe(44);
+        it("should extract transactions from a CSV file using file path", async () => {
+            const result = await service.extractTransactions({
+                filePath: "./inputs/DummyTestStatement.csv",
+            });
 
-            //compile a list of transactions
-            const transactions = await service.compileTransactionList(result);
-            expect(transactions).toBeDefined();
-            expect(transactions.length).toBe(43); //Minus header row
+            expect(result.bankName).toBe("FNB");
+            expect(result.transactions).toHaveLength(43);
         });
 
-        it("should extract correct data from CSV file using file buffer", async () => {
+        it("should extract transactions from a CSV file using file buffer", async () => {
             const fileBuffer = fs.readFileSync("./inputs/DummyTestStatement.csv");
-            const statementDataObject = {} as StatementDataObject;
-            statementDataObject.fileBuffer = fileBuffer;
-            
-            const result = await service.getStatementData(statementDataObject);
-            expect(result).toBeDefined();
-            expect(result.length).toBe(44);
 
-            //compile a list of transactions
-            const transactions = await service.compileTransactionList(result);
-            expect(transactions).toBeDefined();
-            expect(transactions.length).toBe(43); //Minus header row
+            const result = await service.extractTransactions({
+                filePath: "",
+                fileBuffer,
+            });
+
+            expect(result.bankName).toBe("FNB");
+            expect(result.transactions).toHaveLength(43);
+            expect(result.transactions.every((t) => t.Date instanceof Date)).toBe(true);
         });
     });
 });

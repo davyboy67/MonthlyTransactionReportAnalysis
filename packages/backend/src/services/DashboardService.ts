@@ -5,7 +5,6 @@ import {
   StatementDataObject,
   IStatementExtractionService,
   IDataAnalysisService,
-  ITransaction,
 } from "@transaction-report/shared";
 
 export interface IDashboardService {
@@ -75,13 +74,9 @@ export class DashboardService implements IDashboardService {
       filePath: "",
       fileBuffer: fileBuffer,
     };
-    const csvData =
-      await this.statementExtractionService.getStatementData(statementObject);
-    console.log("csv content extracted");
-
-    const transactions: ITransaction[] =
-      await this.statementExtractionService.compileTransactionList(csvData);
-    console.log("transactions compiled");
+    const { bankName, transactions } =
+      await this.statementExtractionService.extractTransactions(statementObject);
+    console.log(`statement parsed as ${bankName}: ${transactions.length} transactions`);
 
     const analysedReportAnalysis =
       await this.dataAnalysisService.analyseTransactions(transactions);

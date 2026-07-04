@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import multer from 'multer';
 import { IDashboardService } from '../services/DashboardService';
 import { DashboardDetailsRequest, DashboardSaveInfoRequest } from '../models/types';
+import { UnsupportedStatementFormatError } from '@transaction-report/shared';
 
 const upload = multer({ storage: multer.memoryStorage() });
 
@@ -98,6 +99,9 @@ export function createDashboardRouter(dashboardService: IDashboardService): Rout
 
         res.json({ ReportAnalysis: reportAnalysis });
       } catch (error) {
+        if (error instanceof UnsupportedStatementFormatError) {
+          return res.status(400).json({ error: error.message });
+        }
         console.error('Error processing statement file:', error);
         res.status(500).json({ error: 'Internal server error' });
       }

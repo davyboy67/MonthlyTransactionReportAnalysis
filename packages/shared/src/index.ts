@@ -14,10 +14,15 @@ export * from './services/apiClient';
 export * from './services/dataAnalysisService';
 export * from './services/statementExtractionService';
 
+// Parsers
+export * from './parsers/IBankStatementParser';
+export * from './parsers/fnbStatementParser';
+export * from './parsers/statementParserRegistry';
+
 // Request/Response Models
 export * from './requestResponseModels/errorModels';
 
 // Utils
 export * from './utils/ITransactionInfoHandler';
 export * from './utils/TransactionInfoHandler';
-export * from './utils/utils';
+export * from './utils/csv';
