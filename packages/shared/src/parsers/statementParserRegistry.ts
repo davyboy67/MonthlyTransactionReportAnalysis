@@ -1,11 +1,19 @@
 import { UnsupportedStatementFormatError } from "../requestResponseModels/errorModels";
+import { AbsaStatementParser } from "./absaStatementParser";
 import { FnbStatementParser } from "./fnbStatementParser";
+import { GenericCsvStatementParser } from "./genericCsvStatementParser";
 import { IBankStatementParser } from "./IBankStatementParser";
 
 export class StatementParserRegistry {
   private readonly parsers: IBankStatementParser[];
 
-  constructor(parsers: IBankStatementParser[] = [new FnbStatementParser()]) {
+  constructor(
+    parsers: IBankStatementParser[] = [
+      new FnbStatementParser(),
+      new AbsaStatementParser(),
+      new GenericCsvStatementParser(),
+    ],
+  ) {
     this.parsers = [...parsers];
   }
 

@@ -17,6 +17,8 @@ export * from './services/statementExtractionService';
 // Parsers
 export * from './parsers/IBankStatementParser';
 export * from './parsers/fnbStatementParser';
+export * from './parsers/absaStatementParser';
+export * from './parsers/genericCsvStatementParser';
 export * from './parsers/statementParserRegistry';
 
 // Request/Response Models
@@ -26,3 +28,4 @@ export * from './requestResponseModels/errorModels';
 export * from './utils/ITransactionInfoHandler';
 export * from './utils/TransactionInfoHandler';
 export * from './utils/csv';
+export * from './utils/valueParsing';
