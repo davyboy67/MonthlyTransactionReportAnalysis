@@ -1,8 +1,12 @@
 import { useEffect, useState, useCallback } from 'react';
-import { apiClient } from '@transaction-report/shared';
+import {
+  apiClient,
+  categoryDefinitions,
+  formatZar,
+  formatMonthLabel,
+} from '@transaction-report/shared';
 import type { IReportAnalysis, ITransaction } from '@transaction-report/shared';
 import { GlassPanel } from '../../atoms/glassPanel/GlassPanel';
-import categoryList from '../../../../../shared/src/data/categoryList.json';
 import './TransactionsTab.css';
 
 interface TransactionsTabProps {
@@ -12,14 +16,6 @@ interface TransactionsTabProps {
 function formatDate(date: Date | string): string {
   const d = new Date(date);
   return d.toLocaleDateString('en-ZA', { day: '2-digit', month: '2-digit', year: 'numeric' });
-}
-
-function formatAmount(amount: number): string {
-  return `R ${amount.toLocaleString('en-ZA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-}
-
-function formatMonthLabel(month: number, year: number): string {
-  return new Date(year, month - 1, 1).toLocaleString('default', { month: 'long', year: 'numeric' });
 }
 
 export function TransactionsTab({ reportAnalysis: initialReport }: TransactionsTabProps) {
@@ -143,7 +139,7 @@ export function TransactionsTab({ reportAnalysis: initialReport }: TransactionsT
             <GlassPanel key={cs.CategoryName} className="transactions-tab__group">
               <div className="transactions-tab__group-header">
                 <span className="transactions-tab__group-name">{cs.CategoryName}</span>
-                <span className="transactions-tab__group-total">{formatAmount(cs.TotalAmount)}</span>
+                <span className="transactions-tab__group-total">{formatZar(cs.TotalAmount)}</span>
               </div>
               <table className="transactions-tab__table">
                 <thead>
@@ -163,14 +159,14 @@ export function TransactionsTab({ reportAnalysis: initialReport }: TransactionsT
                       <tr key={transactionId ?? idx} className={isPending ? 'transactions-tab__row--changed' : ''}>
                         <td className="transactions-tab__cell--date">{formatDate(t.Date)}</td>
                         <td className="transactions-tab__cell--desc">{t.Description}</td>
-                        <td className="transactions-tab__cell--amount">{formatAmount(t.Amount)}</td>
+                        <td className="transactions-tab__cell--amount">{formatZar(t.Amount)}</td>
                         <td className="transactions-tab__cell--category">
                           <select
                             className={`transactions-tab__select${isPending ? ' transactions-tab__select--changed' : ''}`}
                             value={currentCategory}
                             onChange={e => handleCategoryChange(t, e.target.value)}
                           >
-                            {categoryList.map(cat => (
+                            {categoryDefinitions.map(cat => (
                               <option key={cat.name} value={cat.name}>{cat.displayName}</option>
                             ))}
                           </select>

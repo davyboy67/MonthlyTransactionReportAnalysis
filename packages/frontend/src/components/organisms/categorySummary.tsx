@@ -1,4 +1,4 @@
-import type { ICategorySummary } from "../../types";
+import type { CategoryBreakdownItem } from "../../types";
 import {
   BarChart,
   Bar,
@@ -18,7 +18,7 @@ import {
 } from "../../theme/theme";
 
 interface CategorySummaryProps {
-  summaries: ICategorySummary[];
+  summaries: CategoryBreakdownItem[];
 }
 
 const fmt = (n: number) =>

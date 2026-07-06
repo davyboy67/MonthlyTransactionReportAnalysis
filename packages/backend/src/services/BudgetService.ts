@@ -1,7 +1,6 @@
-import { IBudget, IBudgetCategory } from '@transaction-report/shared';
+import { IBudget, buildDefaultBudgetCategories } from '@transaction-report/shared';
 import { IBudgetRepository } from '../repositories/budgetRepository';
 import { BudgetResponse } from '../models/types';
-import categoryList from '../../../shared/src/data/categoryList.json';
 
 export interface IBudgetService {
   getBudgetForMonth(userId: number, month: number, year: number): Promise<BudgetResponse>;
@@ -23,13 +22,6 @@ export class BudgetService implements IBudgetService {
       return { budget: existingBudget };
     }
 
-    const defaultCategories: IBudgetCategory[] = categoryList.map((cat, index) => ({
-      category_id: index + 1,
-      budget_id: 0,
-      category_name: cat.name,
-      amount: 0,
-    }));
-
     const defaultBudget: IBudget = {
       budget_id: 0,
       user_id: userId,
@@ -37,7 +29,7 @@ export class BudgetService implements IBudgetService {
       notes: null,
       created_at: new Date(),
       updated_at: null,
-      categories: defaultCategories,
+      categories: buildDefaultBudgetCategories(),
     };
 
     return { budget: defaultBudget };

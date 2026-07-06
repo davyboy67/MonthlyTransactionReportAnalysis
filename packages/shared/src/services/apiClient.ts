@@ -84,19 +84,6 @@ export const apiClient = {
       throw error;
     }
   },
-  RetrieveReportAnalysis: async (date?: Date, id?: number) => {
-    try {
-      const requestBody = {
-        Date: date,
-        id: id ? id : null,
-      };
-      const response = await api.post(`/RetrieveDashboardDetails`, requestBody);
-      return response.data;
-    } catch (error) {
-      console.error('Error retrieving report analysis:', error);
-      throw error;
-    }
-  },
   processStatementFile: async (file: File) => {
     try {
       const formData = new FormData();

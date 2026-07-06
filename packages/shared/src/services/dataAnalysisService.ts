@@ -1,8 +1,17 @@
 import { IReportAnalysis, ICategorySummary } from '../models/IReportAnalysis';
 import { ITransaction, TransactionType } from '../models/ITransaction';
 import { ITransactionInfoHandler } from '../utils/ITransactionInfoHandler';
+import { dominantMonth } from '../utils/dateUtils';
 import { IDataAnalysisService } from './IDataAnalysisService';
 import { apiClient } from './apiClient';
+
+// Bank statements run on a monthly cycle ending on the 25th, so a report for a given
+// month spans the 25th of the previous month to the 25th of the report month.
+const STATEMENT_CYCLE_END_DAY = 25;
+// December salaries are usually paid early, so widen a January report's window back to the 13th.
+const DECEMBER_PAYDAY_START_DAY = 13;
+// Date's month index for December (getMonth() is 0-based).
+const DECEMBER_MONTH_INDEX = 11;
 
 export class DataAnalysisService implements IDataAnalysisService {
   private readonly _transactionInfoHandler: ITransactionInfoHandler;
@@ -82,19 +91,6 @@ export class DataAnalysisService implements IDataAnalysisService {
     return reportAnalysis;
   }
 
-  private dominantMonth(transactions: ITransaction[]): { month: number; year: number } {
-    const counts = new Map<string, { month: number; year: number; count: number }>();
-    for (const t of transactions) {
-      const d = new Date(t.Date);
-      const m = d.getMonth() + 1;
-      const y = d.getFullYear();
-      const key = `${y}-${m}`;
-      const entry = counts.get(key) ?? { month: m, year: y, count: 0 };
-      counts.set(key, { ...entry, count: entry.count + 1 });
-    }
-    return [...counts.values()].reduce((a, b) => (b.count > a.count ? b : a));
-  }
-
   async analyseTransactions(transactions: ITransaction[]): Promise<IReportAnalysis> {
     // No transactions means nothing to analyse — return a zeroed report rather than
     // letting dominantMonth() throw on an empty reduce.
@@ -102,15 +98,16 @@ export class DataAnalysisService implements IDataAnalysisService {
       return this.createReportAnalysis([]);
     }
 
-    // Determine target month from the transactions themselves so historical uploads work correctly
-    const { month: targetMonth, year: targetYear } = this.dominantMonth(transactions);
+    // Determine target month from the transactions themselves so historical uploads work correctly.
+    // This pipeline works in local time, so read the dates in local time too.
+    const { month: targetMonth, year: targetYear } = dominantMonth(transactions);
 
-    let startDate = new Date(targetYear, targetMonth - 2, 25);
-    const endDate = new Date(targetYear, targetMonth - 1, 25, 23, 59, 59);
+    let startDate = new Date(targetYear, targetMonth - 2, STATEMENT_CYCLE_END_DAY);
+    const endDate = new Date(targetYear, targetMonth - 1, STATEMENT_CYCLE_END_DAY, 23, 59, 59);
 
     // People usually get paid early in December, so widen the start for January reports
-    if (startDate.getMonth() === 11) {
-      startDate = new Date(targetYear, targetMonth - 2, 13);
+    if (startDate.getMonth() === DECEMBER_MONTH_INDEX) {
+      startDate = new Date(targetYear, targetMonth - 2, DECEMBER_PAYDAY_START_DAY);
     }
 
     const transactionsInRange = transactions.filter(t => {

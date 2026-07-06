@@ -6,12 +6,11 @@ import {
   ICategorySummary,
   ITransaction,
   TransactionType,
-  ReportNotFoundError,
   ReportNotSavedError,
+  dominantMonth,
 } from '@transaction-report/shared';
 
 export interface IDashboardRepository {
-  getDashboardDetails(userId: number, date?: Date, id?: number | null): Promise<IReportAnalysis | null>;
   getReportForMonth(userId: number, month: number, year: number): Promise<IReportAnalysis | null>;
   getReportIdForMonth(userId: number, month: number, year: number): Promise<number | null>;
   getLastNMonthsReports(userId: number, n: number): Promise<IReportAnalysis[]>;
@@ -26,57 +25,6 @@ export class DashboardRepository implements IDashboardRepository {
   constructor(dataSource: DataSource) {
     this.reportAnalysisRepository = dataSource.getRepository(ReportAnalysisEntity);
     this.transactionRepository = dataSource.getRepository(TransactionEntity);
-  }
-
-  async getDashboardDetails(userId: number, date?: Date, id?: number | null): Promise<IReportAnalysis | null> {
-    try {
-      let report;
-
-      if (id != null) {
-        report = await this.reportAnalysisRepository.findOne({
-          where: { id, user_id: userId },
-          relations: ['transactions'],
-        });
-      } else if (date != null) {
-        const queryDate = new Date(date);
-        queryDate.setHours(0, 0, 0, 0);
-
-        const reports = await this.reportAnalysisRepository.find({
-          where: {
-            user_id: userId,
-            report_date: queryDate,
-          },
-          relations: ['transactions'],
-          order: {
-            id: 'ASC',
-          },
-          take: 1,
-        });
-
-        report = reports.length > 0 ? reports[0] : null;
-      } else {
-        const reports = await this.reportAnalysisRepository.find({
-          where: { user_id: userId },
-          relations: ['transactions'],
-          order: {
-            report_date: 'DESC',
-          },
-          take: 1,
-        });
-
-        report = reports.length > 0 ? reports[0] : null;
-      }
-
-      if (!report) {
-        throw new ReportNotFoundError(date || new Date());
-      }
-
-      console.log(`Retrieved report from db for date: ${report.report_date}`);
-      return this.convertReport(report);
-    } catch (error) {
-      console.error('Error getting dashboard details:', error);
-      throw error;
-    }
   }
 
   async getReportForMonth(
@@ -123,19 +71,6 @@ export class DashboardRepository implements IDashboardRepository {
       .andWhere('r.report_date >= :start', { start })
       .andWhere('r.report_date <= :end', { end })
       .getOne();
-  }
-
-  private dominantMonth(transactions: ITransaction[]): { month: number; year: number } {
-    const counts = new Map<string, { month: number; year: number; count: number }>();
-    for (const t of transactions) {
-      const d = new Date(t.Date);
-      const m = d.getUTCMonth() + 1;
-      const y = d.getUTCFullYear();
-      const key = `${y}-${m}`;
-      const entry = counts.get(key) ?? { month: m, year: y, count: 0 };
-      counts.set(key, { ...entry, count: entry.count + 1 });
-    }
-    return [...counts.values()].reduce((a, b) => (b.count > a.count ? b : a));
   }
 
   private compileCategorySummary(transactionList: ITransaction[]): ICategorySummary[] {
@@ -190,7 +125,8 @@ export class DashboardRepository implements IDashboardRepository {
 
       const transactions = reportAnalysis.CategorySummaries.flatMap(cs => cs.Transactions);
 
-      const { month, year } = this.dominantMonth(transactions);
+      // The persistence layer works in UTC (report dates are stored as UTC), so read dates in UTC.
+      const { month, year } = dominantMonth(transactions, true);
 
       const now = new Date();
       const isCurrentMonth = month === now.getUTCMonth() + 1 && year === now.getUTCFullYear();

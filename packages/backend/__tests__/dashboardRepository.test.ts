@@ -3,7 +3,6 @@ import { ReportAnalysis as ReportAnalysisEntity } from '../src/entities/ReportAn
 import { Transaction as TransactionEntity } from '../src/entities/Transaction';
 import {
   IReportAnalysis,
-  ReportNotFoundError,
   TransactionType,
 } from '@transaction-report/shared';
 
@@ -45,126 +44,6 @@ describe('DashboardRepository', () => {
     };
 
     repository = new DashboardRepository(mockDataSource);
-  });
-
-  describe('getDashboardDetails', () => {
-    it('should fetch by id scoped to the user', async () => {
-      mockReportAnalysisRepo.findOne.mockResolvedValue({
-        id: 1,
-        report_date: new Date('2024-01-01'),
-        total_income: 5000,
-        total_expenses: 3000,
-        total_savings: 2000,
-        transactions: [
-          {
-            id: 1,
-            date: new Date('2024-01-01'),
-            description: 'Test',
-            amount: '100',
-            category: 'Food',
-            merchant: 'Test Merchant',
-            type: 'Expense',
-          },
-        ],
-      });
-
-      const result = await repository.getDashboardDetails(USER_ID, undefined, 1);
-
-      expect(result?.TotalIncome).toBe(5000);
-      expect(result?.CategorySummaries).toHaveLength(1);
-      expect(result?.CategorySummaries[0].Merchants).toEqual(['Test Merchant']);
-      expect(mockReportAnalysisRepo.findOne).toHaveBeenCalledWith({
-        where: { id: 1, user_id: USER_ID },
-        relations: ['transactions'],
-      });
-    });
-
-    it('should coerce string numeric columns to numbers', async () => {
-      mockReportAnalysisRepo.findOne.mockResolvedValue({
-        id: 1,
-        report_date: new Date('2024-01-01'),
-        total_income: '6000.50',
-        total_expenses: '1234.25',
-        total_savings: '10.00',
-        transactions: [
-          {
-            id: 1,
-            date: new Date('2024-01-01'),
-            description: 'Test',
-            amount: '99.99',
-            category: 'Food',
-            merchant: '',
-            type: 'Expense',
-          },
-        ],
-      });
-
-      const result = await repository.getDashboardDetails(USER_ID, undefined, 1);
-
-      expect(result?.TotalIncome).toBe(6000.5);
-      expect(result?.TotalExpenses).toBe(1234.25);
-      expect(result?.CategorySummaries[0].TotalAmount).toBe(99.99);
-    });
-
-    it('should fetch by date scoped to the user', async () => {
-      mockReportAnalysisRepo.find.mockResolvedValue([
-        {
-          id: 1,
-          report_date: new Date('2024-01-01'),
-          total_income: 5000,
-          total_expenses: 3000,
-          total_savings: 2000,
-          transactions: [],
-        },
-      ]);
-
-      const result = await repository.getDashboardDetails(USER_ID, new Date('2024-01-01'));
-
-      expect(result?.CategorySummaries).toHaveLength(0);
-      const callArg = mockReportAnalysisRepo.find.mock.calls[0][0];
-      expect(callArg.where.user_id).toBe(USER_ID);
-      expect(callArg.take).toBe(1);
-    });
-
-    it('should fetch the most recent report when called with no date or id', async () => {
-      mockReportAnalysisRepo.find.mockResolvedValue([
-        {
-          id: 2,
-          report_date: new Date('2024-02-01'),
-          total_income: 6000,
-          total_expenses: 4000,
-          total_savings: 2000,
-          transactions: [],
-        },
-      ]);
-
-      const result = await repository.getDashboardDetails(USER_ID);
-
-      expect(result?.TotalIncome).toBe(6000);
-      expect(mockReportAnalysisRepo.find).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: { user_id: USER_ID },
-          order: { report_date: 'DESC' },
-          take: 1,
-        })
-      );
-    });
-
-    it('should throw ReportNotFoundError when no report is found by id', async () => {
-      mockReportAnalysisRepo.findOne.mockResolvedValue(null);
-
-      await expect(
-        repository.getDashboardDetails(USER_ID, undefined, 99)
-      ).rejects.toThrow(ReportNotFoundError);
-    });
-
-    it('should throw ReportNotFoundError when no report is found by date', async () => {
-      mockReportAnalysisRepo.find.mockResolvedValue([]);
-
-      await expect(
-        repository.getDashboardDetails(USER_ID, new Date('2024-01-01'))
-      ).rejects.toThrow(ReportNotFoundError);
-    });
   });
 
   describe('getReportForMonth / getReportIdForMonth', () => {

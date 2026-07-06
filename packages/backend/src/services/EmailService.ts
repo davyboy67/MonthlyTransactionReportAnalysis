@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import { formatMonthLabel } from '@transaction-report/shared';
 
 async function getSecret(envKey: string, account: string): Promise<string> {
   if (process.env[envKey]) return process.env[envKey]!;
@@ -6,7 +7,7 @@ async function getSecret(envKey: string, account: string): Promise<string> {
     const keytar = await import('keytar');
     const all = await keytar.findCredentials(envKey);
     const cred = all.find(c => c.account === account);
-    const value = cred?.password?.split('').join('');
+    const value = cred?.password;
     if (value) return value;
   } catch (err) {
     console.error('[keytar] error:', err);
@@ -28,10 +29,6 @@ async function createTransporter(): Promise<{ transport: nodemailer.Transporter;
   return { transport, user };
 }
 
-function monthLabel(month: number, year: number): string {
-  return new Date(year, month - 1, 1).toLocaleString('default', { month: 'long', year: 'numeric' });
-}
-
 export async function sendReportEmail(
   to: string,
   firstName: string,
@@ -39,7 +36,7 @@ export async function sendReportEmail(
   year: number,
   pdfBuffer: Buffer
 ): Promise<void> {
-  const label = monthLabel(month, year);
+  const label = formatMonthLabel(month, year);
   const filename = `${year}-${String(month).padStart(2, '0')}-Report.pdf`;
 
   const html = `

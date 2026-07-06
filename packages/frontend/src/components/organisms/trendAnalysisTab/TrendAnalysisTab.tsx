@@ -12,7 +12,7 @@ import {
   Legend,
   ReferenceLine,
 } from 'recharts';
-import { apiClient } from '@transaction-report/shared';
+import { apiClient, formatZar } from '@transaction-report/shared';
 import type { IReportAnalysis } from '@transaction-report/shared';
 import { GlassPanel } from '../../atoms/glassPanel/GlassPanel';
 import {
@@ -27,8 +27,7 @@ import {
 } from '../../../theme/theme';
 import './TrendAnalysisTab.css';
 
-const fmtCurrency = (v: number | undefined) =>
-  `R ${(v ?? 0).toLocaleString('en-ZA', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+const fmtCurrency = (v: number | undefined) => formatZar(v ?? 0, 0);
 
 const axisTick = { fontSize: 11, fill: CHART_AXIS };
 const legendStyle = { fontSize: 11, color: CHART_AXIS };

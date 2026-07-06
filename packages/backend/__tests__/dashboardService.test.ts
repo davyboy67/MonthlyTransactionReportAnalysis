@@ -17,7 +17,6 @@ describe('DashboardService', () => {
 
   beforeEach(() => {
     mockRepository = {
-      getDashboardDetails: jest.fn(),
       getReportForMonth: jest.fn(),
       getReportIdForMonth: jest.fn(),
       getLastNMonthsReports: jest.fn(),
@@ -40,37 +39,6 @@ describe('DashboardService', () => {
       mockStatementExtractionService,
       mockDataAnalysisService
     );
-  });
-
-  describe('retrieveDashboardDetails', () => {
-    it('should thread userId, date and id through to the repository', async () => {
-      const mockReport: IReportAnalysis = {
-        Date: new Date('2024-01-01'),
-        TotalIncome: 5000,
-        TotalExpenses: 3000,
-        TotalSavings: 2000,
-        CategorySummaries: [],
-      };
-      mockRepository.getDashboardDetails.mockResolvedValue(mockReport);
-
-      const result = await service.retrieveDashboardDetails(USER_ID, new Date('2024-01-01'), 9);
-
-      expect(result.ReportAnalysis).toEqual(mockReport);
-      expect(mockRepository.getDashboardDetails).toHaveBeenCalledWith(
-        USER_ID,
-        new Date('2024-01-01'),
-        9
-      );
-    });
-
-    it('should return a null ReportAnalysis when the repository has none', async () => {
-      mockRepository.getDashboardDetails.mockResolvedValue(null);
-
-      const result = await service.retrieveDashboardDetails(USER_ID);
-
-      expect(result.ReportAnalysis).toBeNull();
-      expect(mockRepository.getDashboardDetails).toHaveBeenCalledWith(USER_ID, undefined, undefined);
-    });
   });
 
   describe('getReportForMonth', () => {

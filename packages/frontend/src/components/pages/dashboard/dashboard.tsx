@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { apiClient } from "@transaction-report/shared";
+import { apiClient, formatZar, formatMonthLabel } from "@transaction-report/shared";
 import type { IReportAnalysis } from "@transaction-report/shared";
-import type { ICategorySummary, IMonthlySummary } from "../../../types";
+import type { CategoryBreakdownItem, IMonthlySummary } from "../../../types";
 import { CategorySummary } from "../../organisms/categorySummary";
 import { MonthlyOverview } from "../../organisms/monthlyOverview";
 import { TopCategories } from "../../organisms/topCategories/TopCategories";
@@ -24,13 +24,6 @@ const DASHBOARD_TABS: Array<{ id: ActiveTab; label: string }> = [
   { id: "trends", label: "Trend Analysis" },
   { id: "transactions", label: "Transactions" },
 ];
-
-function formatMonthLabel(month: number, year: number): string {
-  return new Date(year, month - 1, 1).toLocaleString("default", {
-    month: "long",
-    year: "numeric",
-  });
-}
 
 export function Dashboard() {
   const now = new Date();
@@ -160,21 +153,17 @@ export function Dashboard() {
       );
     }
 
+    const reportDate = new Date(reportAnalysis.Date);
     const monthlySummary: IMonthlySummary = {
-      month: new Date(reportAnalysis.Date).toLocaleString("default", {
-        month: "long",
-        year: "numeric",
-      }),
+      month: formatMonthLabel(reportDate.getMonth() + 1, reportDate.getFullYear()),
       totalIncome: reportAnalysis.TotalIncome,
       totalExpenses: reportAnalysis.TotalExpenses,
       totalSavings: reportAnalysis.TotalSavings,
     };
 
-    const categorySummaries: ICategorySummary[] =
+    const categorySummaries: CategoryBreakdownItem[] =
       reportAnalysis.CategorySummaries?.map((summary) => ({
         name: summary.CategoryName,
-        transactionCount: summary.Transactions?.length || 0,
-        budget: 0,
         expenditure: summary.TotalAmount,
       })) || [];
 
@@ -241,7 +230,7 @@ export function Dashboard() {
                   />
                   <span className="chart-insight__label">Income</span>
                   <span className="chart-insight__value">
-                    R {reportAnalysis.TotalIncome.toFixed(2)}
+                    {formatZar(reportAnalysis.TotalIncome)}
                   </span>
                 </div>
                 <div className="chart-insight">
@@ -251,7 +240,7 @@ export function Dashboard() {
                   />
                   <span className="chart-insight__label">Expenses</span>
                   <span className="chart-insight__value">
-                    R {reportAnalysis.TotalExpenses.toFixed(2)}
+                    {formatZar(reportAnalysis.TotalExpenses)}
                   </span>
                 </div>
                 <div className="chart-insight">
@@ -261,7 +250,7 @@ export function Dashboard() {
                   />
                   <span className="chart-insight__label">Savings</span>
                   <span className="chart-insight__value">
-                    R {reportAnalysis.TotalSavings.toFixed(2)}
+                    {formatZar(reportAnalysis.TotalSavings)}
                   </span>
                 </div>
               </div>

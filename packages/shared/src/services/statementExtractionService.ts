@@ -9,6 +9,10 @@ export type StatementDataObject = {
   filePath: string;
   fileBuffer: Buffer;
 };
+
+// Bank statements carry a fixed block of header/metadata rows before the transaction table.
+const STATEMENT_HEADER_ROWS = 6;
+
 export class StatementExtractionService implements IStatementExtractionService {
 
   statementObject?: StatementDataObject;
@@ -50,7 +54,7 @@ export class StatementExtractionService implements IStatementExtractionService {
     } else if (object?.fileBuffer) {
       csvData = await this.extractCsvContents("", object.fileBuffer);
     }
-    const filteredData = utils.filterCsvData(csvData, 6);
+    const filteredData = utils.filterCsvData(csvData, STATEMENT_HEADER_ROWS);
 
     return filteredData;
   }

@@ -5,9 +5,9 @@ export interface IMonthlySummary {
     totalSavings: number;
 }
 
-export interface ICategorySummary {
+// A single row in the dashboard's category-breakdown chart. Named distinctly from
+// the shared ICategorySummary (CategoryName/TotalAmount/Transactions) to avoid confusion.
+export interface CategoryBreakdownItem {
     name: string;
-    transactionCount: number;
-    budget: number;
     expenditure: number;
 }

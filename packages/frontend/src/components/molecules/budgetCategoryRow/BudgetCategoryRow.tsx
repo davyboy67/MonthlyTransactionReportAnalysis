@@ -1,3 +1,4 @@
+import { formatZar } from "@transaction-report/shared";
 import { ProgressBar } from "../../atoms/progressBar/ProgressBar";
 import "./BudgetCategoryRow.css";
 
@@ -39,12 +40,12 @@ export function BudgetCategoryRow({
       </td>
 
       <td className="budget-row__actual">
-        {hasActual ? `R ${actual!.toFixed(2)}` : "—"}
+        {hasActual ? formatZar(actual!) : "—"}
       </td>
 
       <td className={`budget-row__diff${isOver ? " budget-row__diff--over" : diff !== undefined ? " budget-row__diff--under" : ""}`}>
         {diff !== undefined
-          ? `${diff >= 0 ? "+" : ""}R ${diff.toFixed(2)}`
+          ? `${diff >= 0 ? "+" : "-"}${formatZar(Math.abs(diff))}`
           : "—"}
       </td>
 
