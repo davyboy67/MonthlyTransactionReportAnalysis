@@ -6,13 +6,11 @@ import {
   ICategorySummary,
   ITransaction,
   TransactionType,
-  ReportNotFoundError,
   ReportNotSavedError,
   dominantMonth,
 } from '@transaction-report/shared';
 
 export interface IDashboardRepository {
-  getDashboardDetails(userId: number, date?: Date, id?: number | null): Promise<IReportAnalysis | null>;
   getReportForMonth(userId: number, month: number, year: number): Promise<IReportAnalysis | null>;
   getReportIdForMonth(userId: number, month: number, year: number): Promise<number | null>;
   getLastNMonthsReports(userId: number, n: number): Promise<IReportAnalysis[]>;
@@ -27,57 +25,6 @@ export class DashboardRepository implements IDashboardRepository {
   constructor(dataSource: DataSource) {
     this.reportAnalysisRepository = dataSource.getRepository(ReportAnalysisEntity);
     this.transactionRepository = dataSource.getRepository(TransactionEntity);
-  }
-
-  async getDashboardDetails(userId: number, date?: Date, id?: number | null): Promise<IReportAnalysis | null> {
-    try {
-      let report;
-
-      if (id != null) {
-        report = await this.reportAnalysisRepository.findOne({
-          where: { id, user_id: userId },
-          relations: ['transactions'],
-        });
-      } else if (date != null) {
-        const queryDate = new Date(date);
-        queryDate.setHours(0, 0, 0, 0);
-
-        const reports = await this.reportAnalysisRepository.find({
-          where: {
-            user_id: userId,
-            report_date: queryDate,
-          },
-          relations: ['transactions'],
-          order: {
-            id: 'ASC',
-          },
-          take: 1,
-        });
-
-        report = reports.length > 0 ? reports[0] : null;
-      } else {
-        const reports = await this.reportAnalysisRepository.find({
-          where: { user_id: userId },
-          relations: ['transactions'],
-          order: {
-            report_date: 'DESC',
-          },
-          take: 1,
-        });
-
-        report = reports.length > 0 ? reports[0] : null;
-      }
-
-      if (!report) {
-        throw new ReportNotFoundError(date || new Date());
-      }
-
-      console.log(`Retrieved report from db for date: ${report.report_date}`);
-      return this.convertReport(report);
-    } catch (error) {
-      console.error('Error getting dashboard details:', error);
-      throw error;
-    }
   }
 
   async getReportForMonth(

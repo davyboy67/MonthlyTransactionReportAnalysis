@@ -12,7 +12,6 @@ describe('Dashboard API Routes', () => {
 
   beforeEach(() => {
     mockService = {
-      retrieveDashboardDetails: jest.fn(),
       getReportForMonth: jest.fn(),
       getTrendAnalysis: jest.fn(),
       saveDashboardDetails: jest.fn(),
@@ -37,45 +36,6 @@ describe('Dashboard API Routes', () => {
     TotalSavings: 2000,
     CategorySummaries: [],
   };
-
-  describe('POST /RetrieveDashboardDetails', () => {
-    it('should return the report and pass the authed userId to the service', async () => {
-      mockService.retrieveDashboardDetails.mockResolvedValue({ ReportAnalysis: sampleReport });
-
-      const response = await request(app)
-        .post('/api/v1/RetrieveDashboardDetails')
-        .send({ Date: '2024-01-01', id: null });
-
-      expect(response.status).toBe(200);
-      expect(response.body.ReportAnalysis).toBeDefined();
-      expect(mockService.retrieveDashboardDetails).toHaveBeenCalledWith(
-        USER_ID,
-        new Date('2024-01-01'),
-        null
-      );
-    });
-
-    it('should handle a missing date (undefined) gracefully', async () => {
-      mockService.retrieveDashboardDetails.mockResolvedValue({ ReportAnalysis: null });
-
-      const response = await request(app).post('/api/v1/RetrieveDashboardDetails').send({});
-
-      expect(response.status).toBe(200);
-      expect(response.body.ReportAnalysis).toBeNull();
-      expect(mockService.retrieveDashboardDetails).toHaveBeenCalledWith(USER_ID, undefined, undefined);
-    });
-
-    it('should return 500 on a service error', async () => {
-      mockService.retrieveDashboardDetails.mockRejectedValue(new Error('Database error'));
-
-      const response = await request(app)
-        .post('/api/v1/RetrieveDashboardDetails')
-        .send({ Date: '2024-01-01' });
-
-      expect(response.status).toBe(500);
-      expect(response.body.error).toBe('Internal server error');
-    });
-  });
 
   describe('POST /SaveReportInformation', () => {
     it('should save and return 200', async () => {

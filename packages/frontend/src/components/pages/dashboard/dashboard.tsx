@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { apiClient, formatZar, formatMonthLabel } from "@transaction-report/shared";
 import type { IReportAnalysis } from "@transaction-report/shared";
-import type { ICategorySummary, IMonthlySummary } from "../../../types";
+import type { CategoryBreakdownItem, IMonthlySummary } from "../../../types";
 import { CategorySummary } from "../../organisms/categorySummary";
 import { MonthlyOverview } from "../../organisms/monthlyOverview";
 import { TopCategories } from "../../organisms/topCategories/TopCategories";
@@ -161,11 +161,9 @@ export function Dashboard() {
       totalSavings: reportAnalysis.TotalSavings,
     };
 
-    const categorySummaries: ICategorySummary[] =
+    const categorySummaries: CategoryBreakdownItem[] =
       reportAnalysis.CategorySummaries?.map((summary) => ({
         name: summary.CategoryName,
-        transactionCount: summary.Transactions?.length || 0,
-        budget: 0,
         expenditure: summary.TotalAmount,
       })) || [];
 

@@ -9,11 +9,6 @@ import {
 } from "@transaction-report/shared";
 
 export interface IDashboardService {
-  retrieveDashboardDetails(
-    userId: number,
-    date?: Date,
-    id?: number | null,
-  ): Promise<DashboardDetailsResponse>;
   getReportForMonth(userId: number, month: number, year: number): Promise<DashboardDetailsResponse>;
   getTrendAnalysis(userId: number, months: number): Promise<{ reports: IReportAnalysis[] }>;
   saveDashboardDetails(userId: number, reportAnalysis: IReportAnalysis): Promise<void>;
@@ -34,22 +29,6 @@ export class DashboardService implements IDashboardService {
     this.dashboardRepository = dashboardRepository;
     this.statementExtractionService = statementExtractionService;
     this.dataAnalysisService = dataAnalysisService;
-  }
-
-  async retrieveDashboardDetails(
-    userId: number,
-    date?: Date,
-    id?: number | null,
-  ): Promise<DashboardDetailsResponse> {
-    const reportAnalysis = await this.dashboardRepository.getDashboardDetails(
-      userId,
-      date,
-      id,
-    );
-
-    return {
-      ReportAnalysis: reportAnalysis,
-    };
   }
 
   async getReportForMonth(userId: number, month: number, year: number): Promise<DashboardDetailsResponse> {

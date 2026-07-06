@@ -5,6 +5,14 @@ import { dominantMonth } from '../utils/dateUtils';
 import { IDataAnalysisService } from './IDataAnalysisService';
 import { apiClient } from './apiClient';
 
+// Bank statements run on a monthly cycle ending on the 25th, so a report for a given
+// month spans the 25th of the previous month to the 25th of the report month.
+const STATEMENT_CYCLE_END_DAY = 25;
+// December salaries are usually paid early, so widen a January report's window back to the 13th.
+const DECEMBER_PAYDAY_START_DAY = 13;
+// Date's month index for December (getMonth() is 0-based).
+const DECEMBER_MONTH_INDEX = 11;
+
 export class DataAnalysisService implements IDataAnalysisService {
   private readonly _transactionInfoHandler: ITransactionInfoHandler;
   private readonly _autoSave: boolean;
@@ -94,12 +102,12 @@ export class DataAnalysisService implements IDataAnalysisService {
     // This pipeline works in local time, so read the dates in local time too.
     const { month: targetMonth, year: targetYear } = dominantMonth(transactions);
 
-    let startDate = new Date(targetYear, targetMonth - 2, 25);
-    const endDate = new Date(targetYear, targetMonth - 1, 25, 23, 59, 59);
+    let startDate = new Date(targetYear, targetMonth - 2, STATEMENT_CYCLE_END_DAY);
+    const endDate = new Date(targetYear, targetMonth - 1, STATEMENT_CYCLE_END_DAY, 23, 59, 59);
 
     // People usually get paid early in December, so widen the start for January reports
-    if (startDate.getMonth() === 11) {
-      startDate = new Date(targetYear, targetMonth - 2, 13);
+    if (startDate.getMonth() === DECEMBER_MONTH_INDEX) {
+      startDate = new Date(targetYear, targetMonth - 2, DECEMBER_PAYDAY_START_DAY);
     }
 
     const transactionsInRange = transactions.filter(t => {
