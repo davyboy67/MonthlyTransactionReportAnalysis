@@ -27,6 +27,7 @@ export function BudgetTab({ reportAnalysis }: BudgetTabProps) {
   const [selectedYear, setSelectedYear] = useState(now.getFullYear());
   const [categories, setCategories] = useState<IBudgetCategory[]>(buildDefaultBudgetCategories);
   const [budgetId, setBudgetId] = useState(0);
+  const [report, setReport] = useState<IReportAnalysis | undefined>(reportAnalysis);
   const [usePreviousBudget, setUsePreviousBudget] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -60,6 +61,15 @@ export function BudgetTab({ reportAnalysis }: BudgetTabProps) {
         if (!cancelled) setIsLoading(false);
       });
 
+    apiClient
+      .getReportForMonth(selectedMonth, selectedYear)
+      .then(response => {
+        if (!cancelled) setReport(response.ReportAnalysis ?? undefined);
+      })
+      .catch(() => {
+        if (!cancelled) setReport(undefined);
+      });
+
     return () => {
       cancelled = true;
     };
@@ -67,16 +77,14 @@ export function BudgetTab({ reportAnalysis }: BudgetTabProps) {
 
   // Build actuals map — only when report month matches selected month
   const actuals = useMemo<Record<string, number> | undefined>(() => {
-    if (!reportAnalysis?.CategorySummaries) return undefined;
-    const reportDate = new Date(reportAnalysis.Date);
+    if (!report?.CategorySummaries) return undefined;
+    const reportDate = new Date(report.Date);
     if (reportDate.getMonth() + 1 !== selectedMonth || reportDate.getFullYear() !== selectedYear)
       return undefined;
-    return Object.fromEntries(
-      reportAnalysis.CategorySummaries.map(s => [s.CategoryName, s.TotalAmount])
-    );
-  }, [reportAnalysis, selectedMonth, selectedYear]);
+    return Object.fromEntries(report.CategorySummaries.map(s => [s.CategoryName, s.TotalAmount]));
+  }, [report, selectedMonth, selectedYear]);
 
-  const actualIncome = actuals ? (reportAnalysis!.TotalIncome ?? 0) : undefined;
+  const actualIncome = actuals ? (report!.TotalIncome ?? 0) : undefined;
 
   // Use actual income when report is loaded; otherwise fall back to anticipated for immediate feedback
   const effectiveIncome = actualIncome ?? (anticipatedIncome > 0 ? anticipatedIncome : undefined);
@@ -178,14 +186,8 @@ export function BudgetTab({ reportAnalysis }: BudgetTabProps) {
           >
             ←
           </button>
-          <span className="tab-month-label">
-            {formatMonthLabel(selectedMonth, selectedYear)}
-          </span>
-          <button
-            className="tab-nav-btn"
-            onClick={() => navigateMonth(1)}
-            aria-label="Next month"
-          >
+          <span className="tab-month-label">{formatMonthLabel(selectedMonth, selectedYear)}</span>
+          <button className="tab-nav-btn" onClick={() => navigateMonth(1)} aria-label="Next month">
             →
           </button>
         </div>
@@ -275,7 +277,9 @@ export function BudgetTab({ reportAnalysis }: BudgetTabProps) {
       </GlassPanel>
 
       {isLoading ? (
-        <GlassPanel><div className="tab-state-block">Loading…</div></GlassPanel>
+        <GlassPanel>
+          <div className="tab-state-block">Loading…</div>
+        </GlassPanel>
       ) : (
         <BudgetTable
           categories={expenseCategories}

@@ -1,8 +1,8 @@
 # CLAUDE.md
 
 Guidance for agents working in this repo. Kept concise because it loads every session.
-**For full context, architecture, and the decisions log, read [`.claude/PROJECT_CONTEXT.md`](.claude/PROJECT_CONTEXT.md)**
-(local-only, gitignored — richer detail lives there).
+**For full context, architecture, and the decisions log, read [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md)**
+(committed at the repo root — richer detail lives there).
 
 ## What this is
 A personal monthly **financial report** app: upload a bank statement (CSV) → parsed and
@@ -46,4 +46,4 @@ npm run dev   --workspace=@transaction-report/backend  # localhost:3001
 npm run dev   --workspace=@transaction-report/frontend # vite
 ```
 
-See `.claude/PROJECT_CONTEXT.md` §8 for outstanding/deferred work and §9 for the full decisions log.
+See `PROJECT_CONTEXT.md` §12 for outstanding/deferred work and §11 for the full decisions log.
