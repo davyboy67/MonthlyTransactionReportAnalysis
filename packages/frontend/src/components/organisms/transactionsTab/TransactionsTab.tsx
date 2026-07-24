@@ -7,10 +7,12 @@ import {
 } from '@transaction-report/shared';
 import type { IReportAnalysis, ITransaction } from '@transaction-report/shared';
 import { GlassPanel } from '../../atoms/glassPanel/GlassPanel';
+import { MonthNav } from '../../molecules/monthNav/MonthNav';
+import type { MonthSelection } from '../../../hooks/useMonthSelection';
 import './TransactionsTab.css';
 
 interface TransactionsTabProps {
-  reportAnalysis?: IReportAnalysis;
+  selection: MonthSelection;
 }
 
 function formatDate(date: Date | string): string {
@@ -18,12 +20,10 @@ function formatDate(date: Date | string): string {
   return d.toLocaleDateString('en-ZA', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
-export function TransactionsTab({ reportAnalysis: initialReport }: TransactionsTabProps) {
-  const now = new Date();
-  const [month, setMonth] = useState(now.getMonth() + 1);
-  const [year, setYear] = useState(now.getFullYear());
-  const [report, setReport] = useState<IReportAnalysis | null>(initialReport ?? null);
-  const [loading, setLoading] = useState(!initialReport);
+export function TransactionsTab({ selection }: TransactionsTabProps) {
+  const { month, year, isCurrentMonth } = selection;
+  const [report, setReport] = useState<IReportAnalysis | null>(null);
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pendingChanges, setPendingChanges] = useState<Map<number, string>>(new Map());
@@ -46,15 +46,6 @@ export function TransactionsTab({ reportAnalysis: initialReport }: TransactionsT
   useEffect(() => {
     fetchReport(month, year);
   }, [month, year, fetchReport]);
-
-  const navigateMonth = (delta: number) => {
-    let m = month + delta;
-    let y = year;
-    if (m > 12) { m = 1; y++; }
-    if (m < 1) { m = 12; y--; }
-    setMonth(m);
-    setYear(y);
-  };
 
   const handleCategoryChange = (transaction: ITransaction, newCategory: string) => {
     if (transaction.id == null) return;
@@ -89,7 +80,6 @@ export function TransactionsTab({ reportAnalysis: initialReport }: TransactionsT
     setPendingChanges(new Map());
   };
 
-  const isCurrentMonth = month === now.getMonth() + 1 && year === now.getFullYear();
   const hasPendingChanges = pendingChanges.size > 0;
 
   const allTransactions: ITransaction[] = report?.CategorySummaries.flatMap(cs => cs.Transactions) ?? [];
@@ -97,11 +87,12 @@ export function TransactionsTab({ reportAnalysis: initialReport }: TransactionsT
   return (
     <div className="transactions-tab">
       <GlassPanel className="tab-header">
-        <div className="tab-month-nav">
-          <button className="tab-nav-btn" onClick={() => navigateMonth(-1)} aria-label="Previous month">←</button>
-          <span className="tab-month-label">{formatMonthLabel(month, year)}</span>
-          <button className="tab-nav-btn" onClick={() => navigateMonth(1)} disabled={isCurrentMonth} aria-label="Next month">→</button>
-        </div>
+        <MonthNav
+          month={month}
+          year={year}
+          onNavigate={selection.navigate}
+          disableNext={isCurrentMonth}
+        />
 
         <div className="tab-actions">
           {hasPendingChanges && (

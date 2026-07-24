@@ -1,41 +1,40 @@
-import { useEffect, useState } from "react";
-import { apiClient, formatZar, formatMonthLabel } from "@transaction-report/shared";
-import type { IReportAnalysis } from "@transaction-report/shared";
-import type { CategoryBreakdownItem, IMonthlySummary } from "../../../types";
-import { CategorySummary } from "../../organisms/categorySummary";
-import { MonthlyOverview } from "../../organisms/monthlyOverview";
-import { TopCategories } from "../../organisms/topCategories/TopCategories";
-import { FileUpload } from "../../molecules/fileUpload/fileUpload";
-import { MetricCards } from "../../molecules/metricComponents/MetricCards";
-import { Tabs } from "../../atoms/tabs/Tabs";
-import { GlassPanel } from "../../atoms/glassPanel/GlassPanel";
-import { BudgetTab } from "../../organisms/budgetTab/BudgetTab";
-import { TrendAnalysisTab } from "../../organisms/trendAnalysisTab/TrendAnalysisTab";
-import { TransactionsTab } from "../../organisms/transactionsTab/TransactionsTab";
-import { getTopCategories } from "../../../utils/transactionAnalysis";
-import { SERIES_COLORS } from "../../../theme/theme";
-import "./dashboard.css";
+import { useEffect, useState } from 'react';
+import { apiClient, formatZar, formatMonthLabel } from '@transaction-report/shared';
+import type { IReportAnalysis } from '@transaction-report/shared';
+import type { CategoryBreakdownItem, IMonthlySummary } from '../../../types';
+import { CategorySummary } from '../../organisms/categorySummary';
+import { MonthlyOverview } from '../../organisms/monthlyOverview';
+import { TopCategories } from '../../organisms/topCategories/TopCategories';
+import { FileUpload } from '../../molecules/fileUpload/fileUpload';
+import { MetricCards } from '../../molecules/metricComponents/MetricCards';
+import { Tabs } from '../../atoms/tabs/Tabs';
+import { GlassPanel } from '../../atoms/glassPanel/GlassPanel';
+import { MonthNav } from '../../molecules/monthNav/MonthNav';
+import { useMonthSelection } from '../../../hooks/useMonthSelection';
+import { BudgetTab } from '../../organisms/budgetTab/BudgetTab';
+import { TrendAnalysisTab } from '../../organisms/trendAnalysisTab/TrendAnalysisTab';
+import { TransactionsTab } from '../../organisms/transactionsTab/TransactionsTab';
+import { getTopCategories } from '../../../utils/transactionAnalysis';
+import { SERIES_COLORS } from '../../../theme/theme';
+import './dashboard.css';
 
-type ActiveTab = "overview" | "budgets" | "trends" | "transactions";
+type ActiveTab = 'overview' | 'budgets' | 'trends' | 'transactions';
 
 const DASHBOARD_TABS: Array<{ id: ActiveTab; label: string }> = [
-  { id: "overview", label: "Report Overview" },
-  { id: "budgets", label: "Budgets" },
-  { id: "trends", label: "Trend Analysis" },
-  { id: "transactions", label: "Transactions" },
+  { id: 'overview', label: 'Report Overview' },
+  { id: 'budgets', label: 'Budgets' },
+  { id: 'trends', label: 'Trend Analysis' },
+  { id: 'transactions', label: 'Transactions' },
 ];
 
 export function Dashboard() {
-  const now = new Date();
-  const currentMonth = now.getMonth() + 1;
-  const currentYear = now.getFullYear();
+  const selection = useMonthSelection();
+  const { month: selectedMonth, year: selectedYear, isCurrentMonth: isOnCurrentMonth } = selection;
 
-  const [selectedMonth, setSelectedMonth] = useState(currentMonth);
-  const [selectedYear, setSelectedYear] = useState(currentYear);
   const [reportAnalysis, setReportAnalysis] = useState<IReportAnalysis | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<ActiveTab>("overview");
+  const [activeTab, setActiveTab] = useState<ActiveTab>('overview');
 
   useEffect(() => {
     let cancelled = false;
@@ -44,7 +43,7 @@ export function Dashboard() {
 
     apiClient
       .getReportForMonth(selectedMonth, selectedYear)
-      .then((response) => {
+      .then(response => {
         if (!cancelled) setReportAnalysis(response.ReportAnalysis);
       })
       .catch(() => {
@@ -62,18 +61,6 @@ export function Dashboard() {
     };
   }, [selectedMonth, selectedYear]);
 
-  const navigateMonth = (delta: number): void => {
-    let m = selectedMonth + delta;
-    let y = selectedYear;
-    if (m > 12) { m = 1; y++; }
-    if (m < 1) { m = 12; y--; }
-    setSelectedMonth(m);
-    setSelectedYear(y);
-  };
-
-  const isOnCurrentMonth =
-    selectedMonth === currentMonth && selectedYear === currentYear;
-
   const handleFileUploaded = async (file: File) => {
     try {
       setLoading(true);
@@ -82,19 +69,16 @@ export function Dashboard() {
       const response = await apiClient.processStatementFile(file);
 
       if (!response?.ReportAnalysis) {
-        throw new Error("Failed to process file");
+        throw new Error('Failed to process file');
       }
 
       // Navigate to the month the uploaded statement belongs to
       const reportDate = new Date(response.ReportAnalysis.Date);
-      const uploadedMonth = reportDate.getUTCMonth() + 1;
-      const uploadedYear = reportDate.getUTCFullYear();
-      setSelectedMonth(uploadedMonth);
-      setSelectedYear(uploadedYear);
+      selection.setMonthYear(reportDate.getUTCMonth() + 1, reportDate.getUTCFullYear());
       setReportAnalysis(response.ReportAnalysis);
     } catch (err) {
-      console.error("Error processing file:", err);
-      setError("Failed to process the uploaded file");
+      console.error('Error processing file:', err);
+      setError('Failed to process the uploaded file');
     } finally {
       setLoading(false);
     }
@@ -108,46 +92,27 @@ export function Dashboard() {
     }
 
     if (error) {
-      return (
-        <div className="dashboard-state dashboard-state--error">
-          Error: {error}
-        </div>
-      );
+      return <div className="dashboard-state dashboard-state--error">Error: {error}</div>;
     }
 
     if (!reportAnalysis) {
       return (
         <>
           <div className="dashboard__month-nav">
-            <button
-              className="tab-nav-btn"
-              onClick={() => navigateMonth(-1)}
-              aria-label="Previous month"
-            >
-              ←
-            </button>
-            <span className="tab-month-label">
-              {formatMonthLabel(selectedMonth, selectedYear)}
-            </span>
-            <button
-              className="tab-nav-btn"
-              onClick={() => navigateMonth(1)}
-              disabled={isOnCurrentMonth}
-              aria-label="Next month"
-            >
-              →
-            </button>
+            <MonthNav
+              month={selectedMonth}
+              year={selectedYear}
+              onNavigate={selection.navigate}
+              disableNext={isOnCurrentMonth}
+            />
           </div>
           <div className="dashboard__upload">
             <p className="dashboard__upload-title">
               {isOnCurrentMonth
-                ? "Upload your bank statement to get started"
+                ? 'Upload your bank statement to get started'
                 : `No report for ${formatMonthLabel(selectedMonth, selectedYear)}`}
             </p>
-            <FileUpload
-              onFileUploaded={handleFileUploaded}
-              acceptedFileTypes=".csv"
-            />
+            <FileUpload onFileUploaded={handleFileUploaded} acceptedFileTypes=".csv" />
           </div>
         </>
       );
@@ -162,45 +127,28 @@ export function Dashboard() {
     };
 
     const categorySummaries: CategoryBreakdownItem[] =
-      reportAnalysis.CategorySummaries?.map((summary) => ({
+      reportAnalysis.CategorySummaries?.map(summary => ({
         name: summary.CategoryName,
         expenditure: summary.TotalAmount,
       })) || [];
 
-    const topCategories = getTopCategories(
-      reportAnalysis.CategorySummaries ?? [],
-    );
+    const topCategories = getTopCategories(reportAnalysis.CategorySummaries ?? []);
 
     return (
       <>
         <div className="dashboard__month-nav">
-          <button
-            className="tab-nav-btn"
-            onClick={() => navigateMonth(-1)}
-            aria-label="Previous month"
-          >
-            ←
-          </button>
-          <span className="tab-month-label">
-            {formatMonthLabel(selectedMonth, selectedYear)}
-          </span>
-          <button
-            className="tab-nav-btn"
-            onClick={() => navigateMonth(1)}
-            disabled={isOnCurrentMonth}
-            aria-label="Next month"
-          >
-            →
-          </button>
+          <MonthNav
+            month={selectedMonth}
+            year={selectedYear}
+            onNavigate={selection.navigate}
+            disableNext={isOnCurrentMonth}
+          />
         </div>
 
         {showUpload && (
           <div className="dashboard__upload">
             <p className="dashboard__upload-title">Upload a new bank statement</p>
-            <FileUpload
-              onFileUploaded={handleFileUploaded}
-              acceptedFileTypes=".csv"
-            />
+            <FileUpload onFileUploaded={handleFileUploaded} acceptedFileTypes=".csv" />
           </div>
         )}
 
@@ -212,12 +160,8 @@ export function Dashboard() {
 
         <div className="dashboard__charts">
           <GlassPanel className="chart-card">
-            <h2 className="chart-card__title">
-              {monthlySummary.month} Overview
-            </h2>
-            <p className="chart-card__desc">
-              Income vs expenses vs savings breakdown
-            </p>
+            <h2 className="chart-card__title">{monthlySummary.month} Overview</h2>
+            <p className="chart-card__desc">Income vs expenses vs savings breakdown</p>
             <div className="chart-card__body">
               <div style={{ flex: 1 }}>
                 <MonthlyOverview summary={monthlySummary} />
@@ -270,23 +214,17 @@ export function Dashboard() {
   };
 
   const renderBudgetsTab = () => (
-    <BudgetTab reportAnalysis={reportAnalysis ?? undefined} />
+    <BudgetTab selection={selection} reportAnalysis={reportAnalysis ?? undefined} />
   );
 
   const renderTrendsTab = () => <TrendAnalysisTab />;
 
-  const renderTransactionsTab = () => (
-    <TransactionsTab reportAnalysis={reportAnalysis ?? undefined} />
-  );
+  const renderTransactionsTab = () => <TransactionsTab selection={selection} />;
 
   return (
     <main className="dashboard">
       <div className="dashboard__topbar">
-        <Tabs
-          tabs={DASHBOARD_TABS}
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-        />
+        <Tabs tabs={DASHBOARD_TABS} activeTab={activeTab} onTabChange={setActiveTab} />
         <button
           className="dashboard__logout tab-ghost-btn"
           onClick={() => apiClient.logout()}
@@ -296,10 +234,10 @@ export function Dashboard() {
         </button>
       </div>
 
-      {activeTab === "overview" ? renderOverviewTab() : null}
-      {activeTab === "budgets" ? renderBudgetsTab() : null}
-      {activeTab === "trends" ? renderTrendsTab() : null}
-      {activeTab === "transactions" ? renderTransactionsTab() : null}
+      {activeTab === 'overview' ? renderOverviewTab() : null}
+      {activeTab === 'budgets' ? renderBudgetsTab() : null}
+      {activeTab === 'trends' ? renderTrendsTab() : null}
+      {activeTab === 'transactions' ? renderTransactionsTab() : null}
     </main>
   );
 }

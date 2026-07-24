@@ -1,39 +1,27 @@
 import { useEffect, useMemo, useState } from 'react';
-import {
-  apiClient,
-  buildDefaultBudgetCategories,
-  formatZar,
-  formatMonthLabel,
-} from '@transaction-report/shared';
+import { apiClient, buildDefaultBudgetCategories, formatZar } from '@transaction-report/shared';
 import type { IBudget, IBudgetCategory, IReportAnalysis } from '@transaction-report/shared';
 import { BudgetTable } from '../budgetTable/BudgetTable';
 import { GlassPanel } from '../../atoms/glassPanel/GlassPanel';
+import { MonthNav } from '../../molecules/monthNav/MonthNav';
+import type { MonthSelection } from '../../../hooks/useMonthSelection';
 import './BudgetTab.css';
 
 interface BudgetTabProps {
+  selection: MonthSelection;
   reportAnalysis?: IReportAnalysis;
 }
 
 const fmt = (n: number) => formatZar(n);
 
-function isPastMonth(month: number, year: number): boolean {
-  const now = new Date();
-  return year < now.getFullYear() || (year === now.getFullYear() && month < now.getMonth() + 1);
-}
-
-export function BudgetTab({ reportAnalysis }: BudgetTabProps) {
-  const now = new Date();
-  const [selectedMonth, setSelectedMonth] = useState(now.getMonth() + 1);
-  const [selectedYear, setSelectedYear] = useState(now.getFullYear());
+export function BudgetTab({ selection, reportAnalysis }: BudgetTabProps) {
+  const { month: selectedMonth, year: selectedYear, isPastMonth: readOnly } = selection;
   const [categories, setCategories] = useState<IBudgetCategory[]>(buildDefaultBudgetCategories);
   const [budgetId, setBudgetId] = useState(0);
-  const [report, setReport] = useState<IReportAnalysis | undefined>(reportAnalysis);
   const [usePreviousBudget, setUsePreviousBudget] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
-
-  const readOnly = isPastMonth(selectedMonth, selectedYear);
 
   const incomeCategory = categories.find(c => c.category_name === 'Income');
   const expenseCategories = categories.filter(c => c.category_name !== 'Income');
@@ -61,30 +49,22 @@ export function BudgetTab({ reportAnalysis }: BudgetTabProps) {
         if (!cancelled) setIsLoading(false);
       });
 
-    apiClient
-      .getReportForMonth(selectedMonth, selectedYear)
-      .then(response => {
-        if (!cancelled) setReport(response.ReportAnalysis ?? undefined);
-      })
-      .catch(() => {
-        if (!cancelled) setReport(undefined);
-      });
-
     return () => {
       cancelled = true;
     };
   }, [selectedMonth, selectedYear]);
 
-  // Build actuals map — only when report month matches selected month
   const actuals = useMemo<Record<string, number> | undefined>(() => {
-    if (!report?.CategorySummaries) return undefined;
-    const reportDate = new Date(report.Date);
+    if (!reportAnalysis?.CategorySummaries) return undefined;
+    const reportDate = new Date(reportAnalysis.Date);
     if (reportDate.getMonth() + 1 !== selectedMonth || reportDate.getFullYear() !== selectedYear)
       return undefined;
-    return Object.fromEntries(report.CategorySummaries.map(s => [s.CategoryName, s.TotalAmount]));
-  }, [report, selectedMonth, selectedYear]);
+    return Object.fromEntries(
+      reportAnalysis.CategorySummaries.map(s => [s.CategoryName, s.TotalAmount])
+    );
+  }, [reportAnalysis, selectedMonth, selectedYear]);
 
-  const actualIncome = actuals ? (report!.TotalIncome ?? 0) : undefined;
+  const actualIncome = actuals ? (reportAnalysis!.TotalIncome ?? 0) : undefined;
 
   // Use actual income when report is loaded; otherwise fall back to anticipated for immediate feedback
   const effectiveIncome = actualIncome ?? (anticipatedIncome > 0 ? anticipatedIncome : undefined);
@@ -95,21 +75,6 @@ export function BudgetTab({ reportAnalysis }: BudgetTabProps) {
       ? Math.round((totalBudgeted / effectiveIncome) * 100)
       : undefined;
   const unallocated = effectiveIncome !== undefined ? effectiveIncome - totalBudgeted : undefined;
-
-  const navigateMonth = (delta: number) => {
-    let m = selectedMonth + delta;
-    let y = selectedYear;
-    if (m > 12) {
-      m = 1;
-      y++;
-    }
-    if (m < 1) {
-      m = 12;
-      y--;
-    }
-    setSelectedMonth(m);
-    setSelectedYear(y);
-  };
 
   const handleAmountChange = (categoryId: number, amount: number) => {
     setCategories(prev => prev.map(c => (c.category_id === categoryId ? { ...c, amount } : c)));
@@ -178,19 +143,8 @@ export function BudgetTab({ reportAnalysis }: BudgetTabProps) {
   return (
     <div className="budget-tab">
       <GlassPanel className="tab-header">
-        <div className="tab-month-nav">
-          <button
-            className="tab-nav-btn"
-            onClick={() => navigateMonth(-1)}
-            aria-label="Previous month"
-          >
-            ←
-          </button>
-          <span className="tab-month-label">{formatMonthLabel(selectedMonth, selectedYear)}</span>
-          <button className="tab-nav-btn" onClick={() => navigateMonth(1)} aria-label="Next month">
-            →
-          </button>
-        </div>
+        {/* No forward clamp — budgets can be planned for future months. */}
+        <MonthNav month={selectedMonth} year={selectedYear} onNavigate={selection.navigate} />
 
         <div className="budget-tab__income-field">
           <span className="budget-tab__income-label">Anticipated Income</span>
