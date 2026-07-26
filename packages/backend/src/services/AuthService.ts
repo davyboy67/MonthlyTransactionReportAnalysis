@@ -13,9 +13,22 @@ export class InvalidCredentialsError extends Error {
   }
 }
 
+export interface UserProfile {
+  userId: number;
+  firstName: string;
+  lastName: string;
+}
+
 export interface LoginResult {
   token: string;
-  user: { userId: number; firstName: string };
+  user: UserProfile;
+}
+
+export class UserNotFoundError extends Error {
+  constructor() {
+    super('User not found');
+    this.name = 'UserNotFoundError';
+  }
 }
 
 const TOKEN_EXPIRY = '7d';
@@ -52,7 +65,27 @@ export class AuthService {
 
     return {
       token,
-      user: { userId: user.user_id, firstName: user.first_name },
+      user: {
+        userId: user.user_id,
+        firstName: user.first_name,
+        lastName: user.last_name,
+      },
+    };
+  }
+
+  async getProfile(userId: number): Promise<UserProfile> {
+    const user = await this.usersRepository.findOne({
+      where: { user_id: userId },
+    });
+
+    if (!user) {
+      throw new UserNotFoundError();
+    }
+
+    return {
+      userId: user.user_id,
+      firstName: user.first_name.trim(),
+      lastName: user.last_name.trim(),
     };
   }
 }

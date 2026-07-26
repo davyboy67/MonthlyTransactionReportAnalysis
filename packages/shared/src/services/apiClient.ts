@@ -57,9 +57,15 @@ api.interceptors.response.use(
   }
 );
 
+export interface UserProfile {
+  userId: number;
+  firstName: string;
+  lastName: string;
+}
+
 export interface LoginResponse {
   token: string;
-  user: { userId: number; firstName: string };
+  user: UserProfile;
 }
 
 export const apiClient = {
@@ -67,6 +73,10 @@ export const apiClient = {
     const response = await api.post('/Login', { email, password });
     setToken(response.data.token);
     return response.data;
+  },
+  getProfile: async (): Promise<UserProfile> => {
+    const response = await api.get('/Me');
+    return response.data.user;
   },
   logout: (): void => {
     clearToken();

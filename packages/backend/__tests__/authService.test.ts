@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { AuthService, InvalidCredentialsError } from '../src/services/AuthService';
+import { AuthService, InvalidCredentialsError, UserNotFoundError } from '../src/services/AuthService';
 import { Users } from '../src/entities/Users';
 
 jest.mock('bcryptjs');
@@ -17,6 +17,7 @@ describe('AuthService', () => {
   const sampleUser: Partial<Users> = {
     user_id: 2,
     first_name: 'Demo',
+    last_name: 'User',
     email: 'admin',
     password_hash: 'hashed-admin',
   };
@@ -42,7 +43,7 @@ describe('AuthService', () => {
       const result = await service.login('admin', 'admin');
 
       expect(result.token).toBe('signed.jwt.token');
-      expect(result.user).toEqual({ userId: 2, firstName: 'Demo' });
+      expect(result.user).toEqual({ userId: 2, firstName: 'Demo', lastName: 'User' });
     });
 
     it('should look the user up by email', async () => {
@@ -120,6 +121,36 @@ describe('AuthService', () => {
       delete process.env.JWT_SECRET;
 
       await expect(service.login('admin', 'admin')).rejects.toThrow('JWT_SECRET is not configured');
+    });
+  });
+
+  describe('getProfile', () => {
+    it('should return the profile for an existing user', async () => {
+      mockUsersRepo.findOne.mockResolvedValue(sampleUser);
+
+      const profile = await service.getProfile(2);
+
+      expect(profile).toEqual({ userId: 2, firstName: 'Demo', lastName: 'User' });
+      expect(mockUsersRepo.findOne).toHaveBeenCalledWith({ where: { user_id: 2 } });
+    });
+
+    it('should trim surrounding whitespace from the names', async () => {
+      mockUsersRepo.findOne.mockResolvedValue({
+        ...sampleUser,
+        first_name: 'David\t',
+        last_name: ' Oduntan ',
+      });
+
+      const profile = await service.getProfile(1);
+
+      expect(profile.firstName).toBe('David');
+      expect(profile.lastName).toBe('Oduntan');
+    });
+
+    it('should throw UserNotFoundError when the user does not exist', async () => {
+      mockUsersRepo.findOne.mockResolvedValue(null);
+
+      await expect(service.getProfile(999)).rejects.toThrow(UserNotFoundError);
     });
   });
 });

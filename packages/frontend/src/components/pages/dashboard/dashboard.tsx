@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { apiClient, formatZar, formatMonthLabel } from '@transaction-report/shared';
-import type { IReportAnalysis } from '@transaction-report/shared';
+import type { IReportAnalysis, UserProfile } from '@transaction-report/shared';
 import type { CategoryBreakdownItem, IMonthlySummary } from '../../../types';
 import { CategorySummary } from '../../organisms/categorySummary';
 import { MonthlyOverview } from '../../organisms/monthlyOverview';
@@ -35,6 +35,21 @@ export function Dashboard() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<ActiveTab>('overview');
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+
+  // Load the current user's profile once so we can show who is logged in.
+  useEffect(() => {
+    let cancelled = false;
+    apiClient
+      .getProfile()
+      .then(user => {
+        if (!cancelled) setProfile(user);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -224,14 +239,28 @@ export function Dashboard() {
   return (
     <main className="dashboard">
       <div className="dashboard__topbar">
+        <span className="dashboard__topbar-spacer" aria-hidden="true" />
         <Tabs tabs={DASHBOARD_TABS} activeTab={activeTab} onTabChange={setActiveTab} />
-        <button
-          className="dashboard__logout tab-ghost-btn"
-          onClick={() => apiClient.logout()}
-          title="Log out and switch account"
-        >
-          Log out
-        </button>
+        <div className="dashboard__account">
+          {profile && (
+            <span
+              className="dashboard__user"
+              title={`Signed in as ${profile.firstName} ${profile.lastName}`}
+            >
+              <span className="dashboard__user-avatar">{profile.firstName.charAt(0)}</span>
+              <span className="dashboard__user-name">
+                {profile.firstName} {profile.lastName}
+              </span>
+            </span>
+          )}
+          <button
+            className="dashboard__logout tab-ghost-btn"
+            onClick={() => apiClient.logout()}
+            title="Log out and switch account"
+          >
+            Log out
+          </button>
+        </div>
       </div>
 
       {activeTab === 'overview' ? renderOverviewTab() : null}
