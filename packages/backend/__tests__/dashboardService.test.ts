@@ -139,7 +139,7 @@ describe('DashboardService', () => {
       mockDataAnalysisService.analyseTransactions.mockResolvedValue(mockAnalysed);
       mockRepository.saveDashboardDetails.mockResolvedValue();
 
-      const result = await service.processStatementFile(USER_ID, Buffer.from('csv content'));
+      const result = await service.processStatementFile(USER_ID, 1, 2024, Buffer.from('csv content'));
 
       expect(result.TotalExpenses).toBe(50);
       expect(result.CategorySummaries[0].Transactions[0].Merchant).toBe('Supermarket');
@@ -147,7 +147,7 @@ describe('DashboardService', () => {
         expect.objectContaining({ fileBuffer: expect.any(Buffer) })
       );
       expect(mockStatementExtractionService.compileTransactionList).toHaveBeenCalledWith(csvData);
-      expect(mockDataAnalysisService.analyseTransactions).toHaveBeenCalledWith(mockTransactions);
+      expect(mockDataAnalysisService.analyseTransactions).toHaveBeenCalledWith(1, 2024, mockTransactions);
       // the processed report is persisted, scoped to the user
       expect(mockRepository.saveDashboardDetails).toHaveBeenCalledWith(
         USER_ID,
@@ -183,7 +183,7 @@ describe('DashboardService', () => {
       mockDataAnalysisService.analyseTransactions.mockResolvedValue(mockAnalysed);
       mockRepository.saveDashboardDetails.mockResolvedValue();
 
-      const result = await service.processStatementFile(USER_ID, Buffer.from('x'));
+      const result = await service.processStatementFile(USER_ID, 1, 2024, Buffer.from('x'));
 
       expect(result.CategorySummaries[0].Transactions[0].Merchant).toBe('');
     });
@@ -192,7 +192,7 @@ describe('DashboardService', () => {
       mockStatementExtractionService.getStatementData.mockRejectedValue(new Error('Parse failed'));
 
       await expect(
-        service.processStatementFile(USER_ID, Buffer.from('bad'))
+        service.processStatementFile(USER_ID, 1, 2024, Buffer.from('bad'))
       ).rejects.toThrow('Parse failed');
     });
   });

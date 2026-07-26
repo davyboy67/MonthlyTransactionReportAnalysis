@@ -81,15 +81,12 @@ export function Dashboard() {
       setLoading(true);
       setError(null);
 
-      const response = await apiClient.processStatementFile(file);
+      const response = await apiClient.processStatementFile(file, selectedMonth, selectedYear);
 
       if (!response?.ReportAnalysis) {
         throw new Error('Failed to process file');
       }
 
-      // Navigate to the month the uploaded statement belongs to
-      const reportDate = new Date(response.ReportAnalysis.Date);
-      selection.setMonthYear(reportDate.getUTCMonth() + 1, reportDate.getUTCFullYear());
       setReportAnalysis(response.ReportAnalysis);
     } catch (err) {
       console.error('Error processing file:', err);

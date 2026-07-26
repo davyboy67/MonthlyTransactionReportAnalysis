@@ -75,7 +75,14 @@ export function createDashboardRouter(dashboardService: IDashboardService): Rout
           return res.status(400).json({ error: 'No file uploaded' });
         }
 
-        const reportAnalysis = await dashboardService.processStatementFile(req.userId, req.file.buffer);
+        // The month being viewed decides which cycle is pulled out of the file.
+        const month = parseInt(req.body?.month);
+        const year = parseInt(req.body?.year);
+        if (!month || month < 1 || month > 12 || !year) {
+          return res.status(400).json({ error: 'month (1-12) and year are required' });
+        }
+
+        const reportAnalysis = await dashboardService.processStatementFile(req.userId, month, year, req.file.buffer);
 
         res.json({ ReportAnalysis: reportAnalysis });
       } catch (error) {

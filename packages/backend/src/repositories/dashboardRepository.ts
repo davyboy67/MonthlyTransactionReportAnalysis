@@ -7,7 +7,6 @@ import {
   ITransaction,
   TransactionType,
   ReportNotSavedError,
-  dominantMonth,
 } from '@transaction-report/shared';
 
 export interface IDashboardRepository {
@@ -15,7 +14,10 @@ export interface IDashboardRepository {
   getReportIdForMonth(userId: number, month: number, year: number): Promise<number | null>;
   getLastNMonthsReports(userId: number, n: number): Promise<IReportAnalysis[]>;
   saveDashboardDetails(userId: number, reportAnalysis: IReportAnalysis): Promise<void>;
-  updateTransactionCategories(userId: number, updates: Array<{ id: number; category: string }>): Promise<void>;
+  updateTransactionCategories(
+    userId: number,
+    updates: Array<{ id: number; category: string }>
+  ): Promise<void>;
 }
 
 export class DashboardRepository implements IDashboardRepository {
@@ -37,11 +39,7 @@ export class DashboardRepository implements IDashboardRepository {
     return this.convertReport(entity);
   }
 
-  async getReportIdForMonth(
-    userId: number,
-    month: number,
-    year: number
-  ): Promise<number | null> {
+  async getReportIdForMonth(userId: number, month: number, year: number): Promise<number | null> {
     const entity = await this.findReportEntityForMonth(userId, month, year);
     return entity?.id ?? null;
   }
@@ -125,14 +123,10 @@ export class DashboardRepository implements IDashboardRepository {
 
       const transactions = reportAnalysis.CategorySummaries.flatMap(cs => cs.Transactions);
 
-      // The persistence layer works in UTC (report dates are stored as UTC), so read dates in UTC.
-      const { month, year } = dominantMonth(transactions, true);
-
-      const now = new Date();
-      const isCurrentMonth = month === now.getUTCMonth() + 1 && year === now.getUTCFullYear();
-      const reportDate = isCurrentMonth
-        ? new Date(reportAnalysis.Date)
-        : new Date(Date.UTC(year, month, 0)); // last day of month
+      // The report's own date says which month it covers
+      const reportDate = new Date(reportAnalysis.Date);
+      const month = reportDate.getUTCMonth() + 1;
+      const year = reportDate.getUTCFullYear();
 
       const existing = await this.findReportEntityForMonth(userId, month, year);
 
@@ -187,7 +181,10 @@ export class DashboardRepository implements IDashboardRepository {
     }
   }
 
-  async updateTransactionCategories(userId: number, updates: Array<{ id: number; category: string }>): Promise<void> {
+  async updateTransactionCategories(
+    userId: number,
+    updates: Array<{ id: number; category: string }>
+  ): Promise<void> {
     await Promise.all(
       updates.map(u =>
         this.transactionRepository.update({ id: u.id, user_id: userId }, { category: u.category })

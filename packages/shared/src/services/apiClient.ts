@@ -94,9 +94,11 @@ export const apiClient = {
       throw error;
     }
   },
-  processStatementFile: async (file: File) => {
+  processStatementFile: async (file: File, month: number, year: number) => {
     try {
       const formData = new FormData();
+      formData.append('month', String(month));
+      formData.append('year', String(year));
       formData.append('file', file);
 
       const response = await api.post(`/ProcessStatementFile`, formData, {

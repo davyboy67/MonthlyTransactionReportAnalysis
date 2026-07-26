@@ -144,11 +144,19 @@ describe('Dashboard API Routes', () => {
 
       const response = await request(app)
         .post('/api/v1/ProcessStatementFile')
+        .field('month', '3')
+        .field('year', '2024')
         .attach('file', Buffer.from('col1,col2\nval1,val2'), 'statement.csv');
 
       expect(response.status).toBe(200);
       expect(response.body.ReportAnalysis).toBeDefined();
-      expect(mockService.processStatementFile).toHaveBeenCalledWith(USER_ID, expect.any(Buffer));
+      // the viewed month is passed through so only that cycle is reported on
+      expect(mockService.processStatementFile).toHaveBeenCalledWith(
+        USER_ID,
+        3,
+        2024,
+        expect.any(Buffer)
+      );
     });
 
     it('should return 400 when no file is uploaded', async () => {
@@ -158,11 +166,24 @@ describe('Dashboard API Routes', () => {
       expect(response.body.error).toBe('No file uploaded');
     });
 
+    it('should return 400 when the month is missing or out of range', async () => {
+      const response = await request(app)
+        .post('/api/v1/ProcessStatementFile')
+        .field('month', '13')
+        .field('year', '2024')
+        .attach('file', Buffer.from('col1,col2'), 'statement.csv');
+
+      expect(response.status).toBe(400);
+      expect(mockService.processStatementFile).not.toHaveBeenCalled();
+    });
+
     it('should return 500 when processing fails', async () => {
       mockService.processStatementFile.mockRejectedValue(new Error('Parse error'));
 
       const response = await request(app)
         .post('/api/v1/ProcessStatementFile')
+        .field('month', '3')
+        .field('year', '2024')
         .attach('file', Buffer.from('bad,data'), 'statement.csv');
 
       expect(response.status).toBe(500);

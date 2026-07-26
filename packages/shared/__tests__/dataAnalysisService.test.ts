@@ -18,8 +18,8 @@ describe("DataAnalysisService", () => {
 
   // Dates are built with the local-time constructor (new Date(y, mIndex, d)) so they
   // line up with the service, which derives its date range with the same local
-  // constructor. The target month is inferred from the transactions themselves
-  // (dominantMonth), so no system-clock mocking is needed.
+  // constructor. The target month
+  // is passed in by the caller, so no system-clock mocking is needed.
   const makeTransaction = (
     overrides: Partial<ITransaction> = {},
   ): ITransaction => ({
@@ -47,7 +47,7 @@ describe("DataAnalysisService", () => {
       mockHandler.resolveCategory.mockReturnValue("Income");
       const tx = makeTransaction({ Amount: 5000 });
 
-      const result = await service.analyseTransactions([tx]);
+      const result = await service.analyseTransactions(2, 2026, [tx]);
 
       expect(result.TotalIncome).toBe(5000);
       expect(result.TotalExpenses).toBe(0);
@@ -57,7 +57,7 @@ describe("DataAnalysisService", () => {
       const service = new DataAnalysisService(mockHandler, false);
       const tx = makeTransaction({ Amount: -120.5 });
 
-      const result = await service.analyseTransactions([tx]);
+      const result = await service.analyseTransactions(2, 2026, [tx]);
 
       expect(result.TotalExpenses).toBe(120.5);
       expect(result.TotalIncome).toBe(0);
@@ -71,7 +71,7 @@ describe("DataAnalysisService", () => {
       });
       const tx = makeTransaction({ Amount: -200 });
 
-      const result = await service.analyseTransactions([tx]);
+      const result = await service.analyseTransactions(2, 2026, [tx]);
 
       expect(result.TotalSavings).toBe(200);
       expect(result.TotalExpenses).toBe(0);
@@ -82,7 +82,7 @@ describe("DataAnalysisService", () => {
       mockHandler.resolveCategory.mockReturnValue("Income");
       const tx = makeTransaction({ Amount: 0 });
 
-      const result = await service.analyseTransactions([tx]);
+      const result = await service.analyseTransactions(2, 2026, [tx]);
 
       expect(result.TotalIncome).toBe(0);
       expect(result.TotalExpenses).toBe(0);
@@ -94,7 +94,7 @@ describe("DataAnalysisService", () => {
       const service = new DataAnalysisService(mockHandler, false);
       const tx = makeTransaction({ Amount: -33.333 });
 
-      const result = await service.analyseTransactions([tx]);
+      const result = await service.analyseTransactions(2, 2026, [tx]);
 
       expect(result.TotalExpenses).toBe(33.33);
     });
@@ -107,7 +107,7 @@ describe("DataAnalysisService", () => {
         makeTransaction({ Amount: -0.2, Description: "b" }),
       ];
 
-      const result = await service.analyseTransactions(txs);
+      const result = await service.analyseTransactions(2, 2026, txs);
 
       expect(result.TotalExpenses).toBe(0.3);
     });
@@ -116,7 +116,7 @@ describe("DataAnalysisService", () => {
       const service = new DataAnalysisService(mockHandler, false);
       const tx = makeTransaction({ Amount: -10.005 });
 
-      const result = await service.analyseTransactions([tx]);
+      const result = await service.analyseTransactions(2, 2026, [tx]);
 
       // 10.005 * 100 rounds up to 1001 in IEEE754, giving 10.01 — the point is the
       // result is always a clean 2-decimal currency value, never a long float.
@@ -133,7 +133,7 @@ describe("DataAnalysisService", () => {
       const tx1 = makeTransaction({ Amount: -50, Description: "Grocery store" });
       const tx2 = makeTransaction({ Amount: -30, Description: "Uber" });
 
-      const result = await service.analyseTransactions([tx1, tx2]);
+      const result = await service.analyseTransactions(2, 2026, [tx1, tx2]);
 
       expect(result.CategorySummaries).toHaveLength(2);
       const names = result.CategorySummaries.map((s) => s.CategoryName);
@@ -146,7 +146,7 @@ describe("DataAnalysisService", () => {
       mockHandler.resolveCategory.mockReturnValue("Income");
       const tx = makeTransaction({ Amount: 5000 });
 
-      const result = await service.analyseTransactions([tx]);
+      const result = await service.analyseTransactions(2, 2026, [tx]);
 
       expect(result.CategorySummaries).toHaveLength(0);
       expect(result.TotalIncome).toBe(5000);
@@ -157,7 +157,7 @@ describe("DataAnalysisService", () => {
       const tx1 = makeTransaction({ Amount: -50, Description: "Shop A" });
       const tx2 = makeTransaction({ Amount: -30, Description: "Shop B" });
 
-      const result = await service.analyseTransactions([tx1, tx2]);
+      const result = await service.analyseTransactions(2, 2026, [tx1, tx2]);
 
       expect(result.CategorySummaries[0].TotalAmount).toBe(80);
       expect(result.CategorySummaries[0].Transactions).toHaveLength(2);
@@ -168,7 +168,7 @@ describe("DataAnalysisService", () => {
       mockHandler.resolveMerchant.mockReturnValue("Woolworths");
       const tx = makeTransaction({ Amount: -50, Description: "WOOLWORTHS FOOD" });
 
-      const result = await service.analyseTransactions([tx]);
+      const result = await service.analyseTransactions(2, 2026, [tx]);
 
       expect(result.CategorySummaries[0].Merchants).toContain("Woolworths");
     });
@@ -178,17 +178,73 @@ describe("DataAnalysisService", () => {
       const tx1 = makeTransaction({ Description: "PICK N PAY" });
       const tx2 = makeTransaction({ Description: "Shop B" });
 
-      await service.analyseTransactions([tx1, tx2]);
+      await service.analyseTransactions(2, 2026, [tx1, tx2]);
 
       expect(mockHandler.resolveMerchant).toHaveBeenCalledWith("PICK N PAY");
       expect(mockHandler.resolveCategory).toHaveBeenCalledTimes(2);
     });
   });
 
-  describe("date range (derived from the dominant month)", () => {
-    // A cluster of February transactions makes Feb 2026 the dominant month.
-    // Range for Feb is [25 Jan 2026 .. 25 Feb 2026]. Two -10 anchors total 20;
-    // a distinctive -1000 boundary transaction reveals inclusion/exclusion.
+  describe("multi-month statement", () => {
+    // Regression: a statement export covering several months used to have its month
+    // inferred from whichever month had the most rows, so the fullest month won and the
+    // month being viewed was never reported on.
+    const mayJunJul = (): ITransaction[] => [
+      ...Array.from({ length: 20 }, (_, i) =>
+        makeTransaction({ Date: new Date(2026, 4, i + 1), Amount: -5, Description: `may-${i}` }),
+      ),
+      makeTransaction({ Date: new Date(2026, 5, 20), Amount: -10, Description: "jun" }),
+      makeTransaction({ Date: new Date(2026, 6, 20), Amount: -100, Description: "jul" }),
+    ];
+
+    it("should report the requested month even when another month dominates the file", async () => {
+      const service = new DataAnalysisService(mockHandler, false);
+
+      const result = await service.analyseTransactions(7, 2026, mayJunJul());
+
+      expect(result.TotalExpenses).toBe(100);
+    });
+
+    it("should report an earlier month when that is the one being viewed", async () => {
+      const service = new DataAnalysisService(mockHandler, false);
+
+      const result = await service.analyseTransactions(6, 2026, mayJunJul());
+
+      expect(result.TotalExpenses).toBe(10);
+    });
+
+    it("should date the report by the requested month, not the time of processing", async () => {
+      const service = new DataAnalysisService(mockHandler, false);
+
+      const result = await service.analyseTransactions(7, 2026, mayJunJul());
+
+      expect(result.Date.toISOString()).toBe("2026-07-31T00:00:00.000Z");
+    });
+  });
+
+  describe("date range (driven by the requested month)", () => {
+    it("should exclude pay day itself, which closes the previous cycle", async () => {
+      const service = new DataAnalysisService(mockHandler, false);
+      const payDay = makeTransaction({ Date: new Date(2026, 0, 25), Amount: -1000 });
+
+      const result = await service.analyseTransactions(2, 2026, [payDay]);
+
+      expect(result.TotalExpenses).toBe(0);
+    });
+
+    it("should include the day after pay day, which opens the cycle", async () => {
+      const service = new DataAnalysisService(mockHandler, false);
+      const dayAfter = makeTransaction({ Date: new Date(2026, 0, 26), Amount: -1000 });
+
+      const result = await service.analyseTransactions(2, 2026, [dayAfter]);
+
+      expect(result.TotalExpenses).toBe(1000);
+    });
+  });
+
+  describe("date range (boundaries)", () => {
+    // Range for a Feb 2026 report is [26 Jan 2026 .. 25 Feb 2026]. Two -10 anchors
+    // total 20; a distinctive -1000 boundary transaction reveals inclusion/exclusion.
     const febAnchors = (): ITransaction[] => [
       makeTransaction({ Date: new Date(2026, 1, 10), Amount: -10, Description: "anchor1" }),
       makeTransaction({ Date: new Date(2026, 1, 11), Amount: -10, Description: "anchor2" }),
@@ -198,7 +254,7 @@ describe("DataAnalysisService", () => {
       const service = new DataAnalysisService(mockHandler, false);
       const boundary = makeTransaction({ Date: new Date(2026, 1, 15), Amount: -1000 });
 
-      const result = await service.analyseTransactions([...febAnchors(), boundary]);
+      const result = await service.analyseTransactions(2, 2026, [...febAnchors(), boundary]);
 
       expect(result.TotalExpenses).toBe(1020);
     });
@@ -207,7 +263,7 @@ describe("DataAnalysisService", () => {
       const service = new DataAnalysisService(mockHandler, false);
       const boundary = makeTransaction({ Date: new Date(2026, 0, 20), Amount: -1000 }); // 20 Jan
 
-      const result = await service.analyseTransactions([...febAnchors(), boundary]);
+      const result = await service.analyseTransactions(2, 2026, [...febAnchors(), boundary]);
 
       expect(result.TotalExpenses).toBe(20);
     });
@@ -216,7 +272,7 @@ describe("DataAnalysisService", () => {
       const service = new DataAnalysisService(mockHandler, false);
       const boundary = makeTransaction({ Date: new Date(2026, 2, 1), Amount: -1000 }); // 1 Mar
 
-      const result = await service.analyseTransactions([...febAnchors(), boundary]);
+      const result = await service.analyseTransactions(2, 2026, [...febAnchors(), boundary]);
 
       expect(result.TotalExpenses).toBe(20);
     });
@@ -235,7 +291,7 @@ describe("DataAnalysisService", () => {
       const service = new DataAnalysisService(mockHandler, false);
       const boundary = makeTransaction({ Date: new Date(2025, 11, 20), Amount: -1000 });
 
-      const result = await service.analyseTransactions([...janAnchors(), boundary]);
+      const result = await service.analyseTransactions(1, 2026, [...janAnchors(), boundary]);
 
       expect(result.TotalExpenses).toBe(1020);
     });
@@ -244,7 +300,7 @@ describe("DataAnalysisService", () => {
       const service = new DataAnalysisService(mockHandler, false);
       const boundary = makeTransaction({ Date: new Date(2025, 11, 10), Amount: -1000 });
 
-      const result = await service.analyseTransactions([...janAnchors(), boundary]);
+      const result = await service.analyseTransactions(1, 2026, [...janAnchors(), boundary]);
 
       expect(result.TotalExpenses).toBe(20);
     });
@@ -253,7 +309,7 @@ describe("DataAnalysisService", () => {
       const service = new DataAnalysisService(mockHandler, false);
       const boundary = makeTransaction({ Date: new Date(2026, 0, 20), Amount: -1000 });
 
-      const result = await service.analyseTransactions([...janAnchors(), boundary]);
+      const result = await service.analyseTransactions(1, 2026, [...janAnchors(), boundary]);
 
       expect(result.TotalExpenses).toBe(1020);
     });
@@ -262,7 +318,7 @@ describe("DataAnalysisService", () => {
       const service = new DataAnalysisService(mockHandler, false);
       const boundary = makeTransaction({ Date: new Date(2026, 0, 30), Amount: -1000 });
 
-      const result = await service.analyseTransactions([...janAnchors(), boundary]);
+      const result = await service.analyseTransactions(1, 2026, [...janAnchors(), boundary]);
 
       expect(result.TotalExpenses).toBe(20);
     });
@@ -272,7 +328,7 @@ describe("DataAnalysisService", () => {
     it("should return a zeroed report for an empty transaction list (no throw)", async () => {
       const service = new DataAnalysisService(mockHandler, false);
 
-      const result = await service.analyseTransactions([]);
+      const result = await service.analyseTransactions(2, 2026, []);
 
       expect(result.TotalIncome).toBe(0);
       expect(result.TotalExpenses).toBe(0);
@@ -283,7 +339,7 @@ describe("DataAnalysisService", () => {
     it("should not attempt to save an empty report even when autoSave is on", async () => {
       const service = new DataAnalysisService(mockHandler, true);
 
-      await service.analyseTransactions([]);
+      await service.analyseTransactions(2, 2026, []);
 
       expect(mockedSave).not.toHaveBeenCalled();
     });
@@ -293,7 +349,7 @@ describe("DataAnalysisService", () => {
     it("should call apiClient.saveReportAnalysis when autoSave is true", async () => {
       const service = new DataAnalysisService(mockHandler, true);
 
-      await service.analyseTransactions([makeTransaction()]);
+      await service.analyseTransactions(2, 2026, [makeTransaction()]);
 
       expect(mockedSave).toHaveBeenCalledTimes(1);
       expect(mockedSave).toHaveBeenCalledWith(
@@ -304,7 +360,7 @@ describe("DataAnalysisService", () => {
     it("should not call saveReportAnalysis when autoSave is false", async () => {
       const service = new DataAnalysisService(mockHandler, false);
 
-      await service.analyseTransactions([makeTransaction()]);
+      await service.analyseTransactions(2, 2026, [makeTransaction()]);
 
       expect(mockedSave).not.toHaveBeenCalled();
     });
@@ -312,7 +368,7 @@ describe("DataAnalysisService", () => {
     it("should default autoSave to true", async () => {
       const service = new DataAnalysisService(mockHandler); // no autoSave arg
 
-      await service.analyseTransactions([makeTransaction()]);
+      await service.analyseTransactions(2, 2026, [makeTransaction()]);
 
       expect(mockedSave).toHaveBeenCalledTimes(1);
     });

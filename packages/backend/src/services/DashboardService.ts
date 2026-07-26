@@ -12,7 +12,7 @@ export interface IDashboardService {
   getReportForMonth(userId: number, month: number, year: number): Promise<DashboardDetailsResponse>;
   getTrendAnalysis(userId: number, months: number): Promise<{ reports: IReportAnalysis[] }>;
   saveDashboardDetails(userId: number, reportAnalysis: IReportAnalysis): Promise<void>;
-  processStatementFile(userId: number, fileBuffer: Buffer): Promise<IReportAnalysis>;
+  processStatementFile(userId: number, month: number, year: number, fileBuffer: Buffer): Promise<IReportAnalysis>;
   updateTransactionCategories(userId: number, updates: Array<{ id: number; category: string }>): Promise<void>;
 }
 
@@ -49,7 +49,12 @@ export class DashboardService implements IDashboardService {
     await this.dashboardRepository.updateTransactionCategories(userId, updates);
   }
 
-  async processStatementFile(userId: number, fileBuffer: Buffer): Promise<IReportAnalysis> {
+  async processStatementFile(
+    userId: number,
+    month: number,
+    year: number,
+    fileBuffer: Buffer,
+  ): Promise<IReportAnalysis> {
     const statementObject: StatementDataObject = {
       filePath: "",
       fileBuffer: fileBuffer,
@@ -63,9 +68,9 @@ export class DashboardService implements IDashboardService {
     console.log("transactions compiled");
 
     const analysedReportAnalysis =
-      await this.dataAnalysisService.analyseTransactions(transactions);
+      await this.dataAnalysisService.analyseTransactions(month, year, transactions);
     console.log(
-      `report analysis object compiled for date: ${analysedReportAnalysis.Date}`,
+      `report analysis object compiled for ${year}-${month}`,
     );
 
     const reportAnalysis: IReportAnalysis = {
