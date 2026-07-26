@@ -20,8 +20,10 @@
     "build:all": "npm run shared:build && npm run backend:build && npm run frontend:build",
     "dev": "concurrently -k \"npm run shared:dev\" \"npm run backend:dev\" \"npm run frontend:dev\"",
     "backend:lambda": "npm run backend:build && node scripts/bundle-lambda.js",
+    "backend:deploy": "npm run shared:build && npm run backend:lambda && node scripts/deploy-lambda.js",
     "deploy:lambda-manual": "npm run backend:lambda && echo 'Upload packages/backend/dist/lambda-bundle/ to AWS Lambda Console'",
-    "deploy": "cd packages/frontend && npm run build && gh-pages -d dist -r https://github.com/davyboy67/MonthlyTransactionReportAnalysis.git"
+    "deploy": "cd packages/frontend && npm run build && gh-pages -d dist -r https://github.com/davyboy67/MonthlyTransactionReportAnalysis.git",
+    "deploy:all": "npm run backend:deploy && npm run deploy"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
