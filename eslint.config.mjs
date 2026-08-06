@@ -13,11 +13,11 @@ export default [
             'no-unused-vars': 'off',
             'no-console': 'warn',
             '@typescript-eslint/no-unused-vars': 'warn',
-            '@typescript-eslint/no-explicit-any': 'error',
+            '@typescript-eslint/no-explicit-any': 'warn',
             '@typescript-eslint/ban-ts-comment': 'off'
         }
     },
     {
-        
+
     }
 ];

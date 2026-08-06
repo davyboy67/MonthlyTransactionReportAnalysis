@@ -49,6 +49,7 @@ export async function buildReportPdf(
     drawSummaryRow(doc, report);
     drawNetPositionChart(doc, report);
     drawBudgetSection(doc, report, budget);
+    drawIncomeBreakdown(doc, report);
     drawTopCategories(doc, report);
     drawFooter(doc);
 
@@ -142,6 +143,34 @@ function drawBudgetSection(
     items: items.map(i => ({ label: i.name, budget: i.budget, actual: i.actual })),
   };
   if (doc.y + chartHeight(config) > 792 - MARGIN) { doc.addPage(); doc.y = MARGIN; }
+  embedSvg(doc, buildChartSvg(config), chartHeight(config));
+}
+
+function drawIncomeBreakdown(doc: PDFKit.PDFDocument, report: IReportAnalysis): void {
+  const incomeTransactions = report.CategorySummaries.filter(
+    cs => cs.CategoryName.toLowerCase() === 'income',
+  ).flatMap(cs => cs.Transactions ?? []);
+
+  if (incomeTransactions.length === 0) return;
+
+  const bySource = new Map<string, number>();
+  for (const t of incomeTransactions) {
+    const name = t.Merchant || t.Description;
+    bySource.set(name, (bySource.get(name) ?? 0) + t.Amount);
+  }
+
+  const sources = [...bySource.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([name, amount]) => ({ label: name, value: amount }));
+
+  const config = { type: 'horizontal-bar' as const, items: sources };
+  if (doc.y + chartHeight(config) + 40 > 792 - MARGIN) { doc.addPage(); doc.y = MARGIN; }
+
+  doc.font('Helvetica-Bold').fontSize(13).fillColor(COLOR.dark).text('Income Breakdown', MARGIN, doc.y);
+  rule(doc, doc.y + 6);
+  doc.y += 14;
+
   embedSvg(doc, buildChartSvg(config), chartHeight(config));
 }
 

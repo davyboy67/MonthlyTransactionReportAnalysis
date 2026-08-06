@@ -141,14 +141,16 @@ describe("DataAnalysisService", () => {
       expect(names).toContain("Transport");
     });
 
-    it("should exclude the Income category from CategorySummaries", async () => {
+    it("should keep the Income category so its transactions can be persisted and broken down", async () => {
       const service = new DataAnalysisService(mockHandler, false);
       mockHandler.resolveCategory.mockReturnValue("Income");
       const tx = makeTransaction({ Amount: 5000 });
 
       const result = await service.analyseTransactions(2, 2026, [tx]);
 
-      expect(result.CategorySummaries).toHaveLength(0);
+      const income = result.CategorySummaries.find(s => s.CategoryName === "Income");
+      expect(income?.TotalAmount).toBe(5000);
+      expect(income?.Transactions).toHaveLength(1);
       expect(result.TotalIncome).toBe(5000);
     });
 

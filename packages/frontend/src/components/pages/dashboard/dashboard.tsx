@@ -5,6 +5,7 @@ import type { CategoryBreakdownItem, IMonthlySummary } from '../../../types';
 import { CategorySummary } from '../../organisms/categorySummary';
 import { MonthlyOverview } from '../../organisms/monthlyOverview';
 import { TopCategories } from '../../organisms/topCategories/TopCategories';
+import { IncomeBreakdown } from '../../organisms/incomeBreakdown/IncomeBreakdown';
 import { FileUpload } from '../../molecules/fileUpload/fileUpload';
 import { MetricCards } from '../../molecules/metricComponents/MetricCards';
 import { Tabs } from '../../atoms/tabs/Tabs';
@@ -14,7 +15,7 @@ import { useMonthSelection } from '../../../hooks/useMonthSelection';
 import { BudgetTab } from '../../organisms/budgetTab/BudgetTab';
 import { TrendAnalysisTab } from '../../organisms/trendAnalysisTab/TrendAnalysisTab';
 import { TransactionsTab } from '../../organisms/transactionsTab/TransactionsTab';
-import { getTopCategories } from '../../../utils/transactionAnalysis';
+import { getTopCategories, getIncomeSources } from '../../../utils/transactionAnalysis';
 import { SERIES_COLORS } from '../../../theme/theme';
 import './dashboard.css';
 
@@ -139,12 +140,15 @@ export function Dashboard() {
     };
 
     const categorySummaries: CategoryBreakdownItem[] =
-      reportAnalysis.CategorySummaries?.map(summary => ({
+      reportAnalysis.CategorySummaries?.filter(
+        summary => summary.CategoryName !== 'Income'
+      ).map(summary => ({
         name: summary.CategoryName,
         expenditure: summary.TotalAmount,
       })) || [];
 
     const topCategories = getTopCategories(reportAnalysis.CategorySummaries ?? []);
+    const incomeSources = getIncomeSources(reportAnalysis.CategorySummaries ?? []);
 
     return (
       <>
@@ -219,6 +223,8 @@ export function Dashboard() {
             <CategorySummary summaries={categorySummaries} />
           </GlassPanel>
         </div>
+
+        <IncomeBreakdown sources={incomeSources} />
 
         <TopCategories categories={topCategories} />
       </>

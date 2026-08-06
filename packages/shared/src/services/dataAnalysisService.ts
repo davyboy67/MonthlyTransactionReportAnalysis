@@ -71,11 +71,10 @@ export class DataAnalysisService implements IDataAnalysisService {
 
     const ReportCategoryList = [...new Set(transactions.map(t => t.Category))];
 
+    // Income is summarised alongside the spending categories so its transactions are
+    // persisted and can be broken down in the report. Consumers that only care about
+    // spending filter it out by name.
     for (const category of ReportCategoryList) {
-      if (category === 'Income') {
-        continue;
-      }
-
       const categoryTransactions = transactions.filter(t => t.Category === category);
       const categoryMerchants = categoryTransactions
         .map(t => t.Merchant)

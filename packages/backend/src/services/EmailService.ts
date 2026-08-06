@@ -45,7 +45,7 @@ export async function sendReportEmail(
 <body style="font-family:Arial,sans-serif;color:#2d2d2d;max-width:560px;margin:0 auto;padding:24px">
   <h2 style="color:#1a1a2e;margin-bottom:8px">Hi ${firstName},</h2>
   <p style="color:#6b7280;margin-top:0">Your <strong>${label}</strong> financial report is attached.</p>
-  <p style="color:#6b7280">It includes a summary of your income, expenses, savings, and how your spending compared to your budget this month.</p>
+  <p style="color:#6b7280">It includes a summary of your income, expenses, savings, a breakdown of where your income came from, and how your spending compared to your budget this month.</p>
   <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0">
   <p style="font-size:12px;color:#9ca3af">This report was generated automatically by Transaction Report.</p>
 </body>
