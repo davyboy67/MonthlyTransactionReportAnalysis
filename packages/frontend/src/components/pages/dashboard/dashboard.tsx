@@ -13,6 +13,7 @@ import { GlassPanel } from '../../atoms/glassPanel/GlassPanel';
 import { MonthNav } from '../../molecules/monthNav/MonthNav';
 import { PayDayDialog } from '../../molecules/payDayDialog/PayDayDialog';
 import { SettingsDialog } from '../../molecules/settingsDialog/SettingsDialog';
+import { InviteDialog } from '../../molecules/inviteDialog/InviteDialog';
 import { useMonthSelection } from '../../../hooks/useMonthSelection';
 import { BudgetTab } from '../../organisms/budgetTab/BudgetTab';
 import { TrendAnalysisTab } from '../../organisms/trendAnalysisTab/TrendAnalysisTab';
@@ -41,6 +42,7 @@ export function Dashboard() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showInvite, setShowInvite] = useState(false);
   const [pending, setPending] = useState<{ file: File; payDays: CyclePayDays } | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const accountRef = useRef<HTMLDivElement>(null);
@@ -306,6 +308,16 @@ export function Dashboard() {
           )}
           {menuOpen && (
             <div className="dashboard__menu">
+              {profile?.isOwner && (
+                <button
+                  onClick={() => {
+                    setMenuOpen(false);
+                    setShowInvite(true);
+                  }}
+                >
+                  Invite someone
+                </button>
+              )}
               <button
                 onClick={() => {
                   setMenuOpen(false);
@@ -343,6 +355,8 @@ export function Dashboard() {
           onClose={() => setShowSettings(false)}
         />
       )}
+
+      {showInvite && <InviteDialog onClose={() => setShowInvite(false)} />}
     </main>
   );
 }

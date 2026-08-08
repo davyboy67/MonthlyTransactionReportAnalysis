@@ -63,11 +63,17 @@ export interface UserProfile {
   firstName: string;
   lastName: string;
   payDay: number;
+  isOwner: boolean;
 }
 
 export interface LoginResponse {
   token: string;
   user: UserProfile;
+}
+
+export interface InvitePreview {
+  email: string;
+  firstName: string;
 }
 
 export const apiClient = {
@@ -85,6 +91,23 @@ export const apiClient = {
     emitLogout();
   },
   isAuthenticated: (): boolean => authToken != null,
+  createInvite: async (
+    email: string,
+    firstName: string,
+    lastName: string
+  ): Promise<{ token: string; expiresAt: string }> => {
+    const response = await api.post('/CreateInvite', { email, firstName, lastName });
+    return response.data;
+  },
+  validateInvite: async (token: string): Promise<InvitePreview> => {
+    const response = await api.post('/ValidateInvite', { token });
+    return response.data;
+  },
+  redeemInvite: async (token: string, password: string): Promise<LoginResponse> => {
+    const response = await api.post('/RedeemInvite', { token, password });
+    setToken(response.data.token);
+    return response.data;
+  },
   saveReportAnalysis: async (reportAnalysis: IReportAnalysis) => {
     try {
       const requestBody = {} as SaveReportAnalysisRequest;

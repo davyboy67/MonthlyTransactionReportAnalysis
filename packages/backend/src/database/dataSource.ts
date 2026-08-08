@@ -6,6 +6,7 @@ import { Users } from "../entities/Users";
 import { Budget } from "../entities/Budget";
 import { BudgetCategory } from "../entities/BudgetCategory";
 import { ReportLog } from "../entities/ReportLog";
+import { UserInvite } from "../entities/UserInvite";
 import dotenv from "dotenv";
 import path from "path";
 
@@ -18,7 +19,7 @@ export const AppDataSource = new DataSource({
   url: process.env.DATABASE_URL,
   synchronize: false,
   logging: false,
-  entities: [Users, ReportAnalysis, Transaction, Budget, BudgetCategory, ReportLog],
+  entities: [Users, ReportAnalysis, Transaction, Budget, BudgetCategory, ReportLog, UserInvite],
   migrations: [],
   subscribers: [],
   ssl: process.env.DATABASE_URL?.includes("sslmode=require")
