@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { apiClient, formatZar, formatMonthLabel } from '@transaction-report/shared';
-import type { IReportAnalysis, UserProfile } from '@transaction-report/shared';
+import type { CyclePayDays, IReportAnalysis, UserProfile } from '@transaction-report/shared';
 import type { CategoryBreakdownItem, IMonthlySummary } from '../../../types';
 import { CategorySummary } from '../../organisms/categorySummary';
 import { MonthlyOverview } from '../../organisms/monthlyOverview';
@@ -11,6 +11,8 @@ import { MetricCards } from '../../molecules/metricComponents/MetricCards';
 import { Tabs } from '../../atoms/tabs/Tabs';
 import { GlassPanel } from '../../atoms/glassPanel/GlassPanel';
 import { MonthNav } from '../../molecules/monthNav/MonthNav';
+import { PayDayDialog } from '../../molecules/payDayDialog/PayDayDialog';
+import { SettingsDialog } from '../../molecules/settingsDialog/SettingsDialog';
 import { useMonthSelection } from '../../../hooks/useMonthSelection';
 import { BudgetTab } from '../../organisms/budgetTab/BudgetTab';
 import { TrendAnalysisTab } from '../../organisms/trendAnalysisTab/TrendAnalysisTab';
@@ -37,6 +39,27 @@ export function Dashboard() {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<ActiveTab>('overview');
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [pending, setPending] = useState<{ file: File; payDays: CyclePayDays } | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const accountRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onMouseDown = (event: globalThis.MouseEvent) => {
+      if (!accountRef.current?.contains(event.target as Node)) setMenuOpen(false);
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMenuOpen(false);
+    };
+    document.addEventListener('mousedown', onMouseDown);
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', onMouseDown);
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [menuOpen]);
 
   // Load the current user's profile once so we can show who is logged in.
   useEffect(() => {
@@ -56,6 +79,7 @@ export function Dashboard() {
     let cancelled = false;
     setLoading(true);
     setError(null);
+    setUploadError(null);
 
     apiClient
       .getReportForMonth(selectedMonth, selectedYear)
@@ -77,12 +101,31 @@ export function Dashboard() {
     };
   }, [selectedMonth, selectedYear]);
 
-  const handleFileUploaded = async (file: File) => {
+  const handleFileSelected = async (file: File) => {
+    setUploadError(null);
+    try {
+      const payDays = await apiClient.getPayDays(selectedMonth, selectedYear);
+      setPending({ file, payDays });
+    } catch {
+      setUploadError('Could not load your pay day settings');
+    }
+  };
+
+  const handleConfirmUpload = async (payDays: CyclePayDays) => {
+    const file = pending?.file;
+    setPending(null);
+    if (!file) return;
+
     try {
       setLoading(true);
-      setError(null);
+      setUploadError(null);
 
-      const response = await apiClient.processStatementFile(file, selectedMonth, selectedYear);
+      const response = await apiClient.processStatementFile(
+        file,
+        selectedMonth,
+        selectedYear,
+        payDays
+      );
 
       if (!response?.ReportAnalysis) {
         throw new Error('Failed to process file');
@@ -91,15 +134,14 @@ export function Dashboard() {
       setReportAnalysis(response.ReportAnalysis);
     } catch (err) {
       console.error('Error processing file:', err);
-      setError('Failed to process the uploaded file');
+      const message = (err as { response?: { data?: { error?: string } } })?.response?.data?.error;
+      setUploadError(message ?? 'Failed to process the uploaded file');
     } finally {
       setLoading(false);
     }
   };
 
   const renderOverviewTab = () => {
-    const showUpload = !reportAnalysis || isOnCurrentMonth;
-
     if (loading) {
       return <div className="dashboard-state">Loading...</div>;
     }
@@ -125,7 +167,8 @@ export function Dashboard() {
                 ? 'Upload your bank statement to get started'
                 : `No report for ${formatMonthLabel(selectedMonth, selectedYear)}`}
             </p>
-            <FileUpload onFileUploaded={handleFileUploaded} acceptedFileTypes=".csv" />
+            <FileUpload onFileUploaded={handleFileSelected} acceptedFileTypes=".csv" />
+            {uploadError && <p className="tab-error-text">{uploadError}</p>}
           </div>
         </>
       );
@@ -161,12 +204,13 @@ export function Dashboard() {
           />
         </div>
 
-        {showUpload && (
-          <div className="dashboard__upload">
-            <p className="dashboard__upload-title">Upload a new bank statement</p>
-            <FileUpload onFileUploaded={handleFileUploaded} acceptedFileTypes=".csv" />
-          </div>
-        )}
+        <div className="dashboard__upload">
+          <p className="dashboard__upload-title">
+            Overwrite this month&apos;s report with another statement
+          </p>
+          <FileUpload onFileUploaded={handleFileSelected} acceptedFileTypes=".csv" />
+          {uploadError && <p className="tab-error-text">{uploadError}</p>}
+        </div>
 
         <MetricCards
           totalIncome={reportAnalysis.TotalIncome}
@@ -244,25 +288,35 @@ export function Dashboard() {
       <div className="dashboard__topbar">
         <span className="dashboard__topbar-spacer" aria-hidden="true" />
         <Tabs tabs={DASHBOARD_TABS} activeTab={activeTab} onTabChange={setActiveTab} />
-        <div className="dashboard__account">
+        <div className="dashboard__account" ref={accountRef}>
           {profile && (
-            <span
+            <button
               className="dashboard__user"
+              onClick={() => setMenuOpen(open => !open)}
               title={`Signed in as ${profile.firstName} ${profile.lastName}`}
             >
               <span className="dashboard__user-avatar">{profile.firstName.charAt(0)}</span>
               <span className="dashboard__user-name">
                 {profile.firstName} {profile.lastName}
               </span>
-            </span>
+              <span className="dashboard__user-caret" aria-hidden="true">
+                ▾
+              </span>
+            </button>
           )}
-          <button
-            className="dashboard__logout tab-ghost-btn"
-            onClick={() => apiClient.logout()}
-            title="Log out and switch account"
-          >
-            Log out
-          </button>
+          {menuOpen && (
+            <div className="dashboard__menu">
+              <button
+                onClick={() => {
+                  setMenuOpen(false);
+                  setShowSettings(true);
+                }}
+              >
+                Settings
+              </button>
+              <button onClick={() => apiClient.logout()}>Log out</button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -270,6 +324,25 @@ export function Dashboard() {
       {activeTab === 'budgets' ? renderBudgetsTab() : null}
       {activeTab === 'trends' ? renderTrendsTab() : null}
       {activeTab === 'transactions' ? renderTransactionsTab() : null}
+
+      {pending && (
+        <PayDayDialog
+          month={selectedMonth}
+          year={selectedYear}
+          fileName={pending.file.name}
+          initial={pending.payDays}
+          onConfirm={handleConfirmUpload}
+          onCancel={() => setPending(null)}
+        />
+      )}
+
+      {showSettings && profile && (
+        <SettingsDialog
+          payDay={profile.payDay}
+          onSaved={payDay => setProfile({ ...profile, payDay })}
+          onClose={() => setShowSettings(false)}
+        />
+      )}
     </main>
   );
 }

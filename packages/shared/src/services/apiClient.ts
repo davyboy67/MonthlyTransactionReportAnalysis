@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { IReportAnalysis, SaveReportAnalysisRequest } from '../models/IReportAnalysis';
 import type { IBudget } from '../models/IBudget';
+import type { CyclePayDays } from './IDataAnalysisService';
 
 declare const __API_URL__: string;
 const VITE_API_URL =
@@ -61,6 +62,7 @@ export interface UserProfile {
   userId: number;
   firstName: string;
   lastName: string;
+  payDay: number;
 }
 
 export interface LoginResponse {
@@ -94,11 +96,26 @@ export const apiClient = {
       throw error;
     }
   },
-  processStatementFile: async (file: File, month: number, year: number) => {
+  updateSettings: async (payDay: number): Promise<UserProfile> => {
+    const response = await api.put('/Settings', { payDay });
+    return response.data.user;
+  },
+  getPayDays: async (month: number, year: number): Promise<CyclePayDays> => {
+    const response = await api.get('/GetPayDays', { params: { month, year } });
+    return response.data;
+  },
+  processStatementFile: async (
+    file: File,
+    month: number,
+    year: number,
+    payDays: CyclePayDays
+  ) => {
     try {
       const formData = new FormData();
       formData.append('month', String(month));
       formData.append('year', String(year));
+      formData.append('payDayPrevious', String(payDays.previousMonth));
+      formData.append('payDayTarget', String(payDays.targetMonth));
       formData.append('file', file);
 
       const response = await api.post(`/ProcessStatementFile`, formData, {

@@ -22,7 +22,7 @@
     "backend:lambda": "npm run backend:build && node scripts/bundle-lambda.js",
     "backend:deploy": "npm run shared:build && npm run backend:lambda && node scripts/deploy-lambda.js",
     "deploy:lambda-manual": "npm run backend:lambda && echo 'Upload packages/backend/dist/lambda-bundle/ to AWS Lambda Console'",
-    "deploy": "cd packages/frontend && npm run build && gh-pages -d dist -r https://github.com/davyboy67/MonthlyTransactionReportAnalysis.git",
+    "deploy": "npm run shared:build && npm run frontend:build && gh-pages -d packages/frontend/dist -r https://github.com/davyboy67/MonthlyTransactionReportAnalysis.git",
     "deploy:all": "npm run backend:deploy && npm run deploy"
   },
   "devDependencies": {

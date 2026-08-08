@@ -5,6 +5,7 @@ import {
   IStatementExtractionService,
   IDataAnalysisService,
   TransactionType,
+  EmptyStatementError,
 } from '@transaction-report/shared';
 
 describe('DashboardService', () => {
@@ -14,6 +15,7 @@ describe('DashboardService', () => {
   let mockDataAnalysisService: jest.Mocked<IDataAnalysisService>;
 
   const USER_ID = 42;
+  const PAY_DAYS = { previousMonth: 26, targetMonth: 26 };
 
   beforeEach(() => {
     mockRepository = {
@@ -22,6 +24,8 @@ describe('DashboardService', () => {
       getLastNMonthsReports: jest.fn(),
       saveDashboardDetails: jest.fn(),
       updateTransactionCategories: jest.fn(),
+      resolvePayDays: jest.fn(),
+      savePayDays: jest.fn(),
     };
 
     mockStatementExtractionService = {
@@ -139,7 +143,7 @@ describe('DashboardService', () => {
       mockDataAnalysisService.analyseTransactions.mockResolvedValue(mockAnalysed);
       mockRepository.saveDashboardDetails.mockResolvedValue();
 
-      const result = await service.processStatementFile(USER_ID, 1, 2024, Buffer.from('csv content'));
+      const result = await service.processStatementFile(USER_ID, 1, 2024, Buffer.from('csv content'), PAY_DAYS);
 
       expect(result.TotalExpenses).toBe(50);
       expect(result.CategorySummaries[0].Transactions[0].Merchant).toBe('Supermarket');
@@ -147,7 +151,8 @@ describe('DashboardService', () => {
         expect.objectContaining({ fileBuffer: expect.any(Buffer) })
       );
       expect(mockStatementExtractionService.compileTransactionList).toHaveBeenCalledWith(csvData);
-      expect(mockDataAnalysisService.analyseTransactions).toHaveBeenCalledWith(1, 2024, mockTransactions);
+      expect(mockDataAnalysisService.analyseTransactions).toHaveBeenCalledWith(1, 2024, mockTransactions, PAY_DAYS);
+      expect(mockRepository.savePayDays).toHaveBeenCalledWith(USER_ID, 1, 2024, PAY_DAYS);
       // the processed report is persisted, scoped to the user
       expect(mockRepository.saveDashboardDetails).toHaveBeenCalledWith(
         USER_ID,
@@ -183,7 +188,7 @@ describe('DashboardService', () => {
       mockDataAnalysisService.analyseTransactions.mockResolvedValue(mockAnalysed);
       mockRepository.saveDashboardDetails.mockResolvedValue();
 
-      const result = await service.processStatementFile(USER_ID, 1, 2024, Buffer.from('x'));
+      const result = await service.processStatementFile(USER_ID, 1, 2024, Buffer.from('x'), PAY_DAYS);
 
       expect(result.CategorySummaries[0].Transactions[0].Merchant).toBe('');
     });
@@ -192,8 +197,31 @@ describe('DashboardService', () => {
       mockStatementExtractionService.getStatementData.mockRejectedValue(new Error('Parse failed'));
 
       await expect(
-        service.processStatementFile(USER_ID, 1, 2024, Buffer.from('bad'))
+        service.processStatementFile(USER_ID, 1, 2024, Buffer.from('bad'), PAY_DAYS)
       ).rejects.toThrow('Parse failed');
+    });
+
+    it('should reject a file that yields no transactions instead of overwriting the month', async () => {
+      mockStatementExtractionService.getStatementData.mockResolvedValue([['Date', 'Amount']]);
+      mockStatementExtractionService.compileTransactionList.mockResolvedValue([]);
+
+      await expect(
+        service.processStatementFile(USER_ID, 1, 2024, Buffer.from('headers only'), PAY_DAYS)
+      ).rejects.toThrow(EmptyStatementError);
+
+      expect(mockDataAnalysisService.analyseTransactions).not.toHaveBeenCalled();
+      expect(mockRepository.saveDashboardDetails).not.toHaveBeenCalled();
+    });
+
+    it('should not remember pay days when the upload is rejected', async () => {
+      mockStatementExtractionService.getStatementData.mockResolvedValue([['Date', 'Amount']]);
+      mockStatementExtractionService.compileTransactionList.mockResolvedValue([]);
+
+      await expect(
+        service.processStatementFile(USER_ID, 1, 2024, Buffer.from('x'), PAY_DAYS)
+      ).rejects.toThrow();
+
+      expect(mockRepository.savePayDays).not.toHaveBeenCalled();
     });
   });
 });

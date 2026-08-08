@@ -17,6 +17,7 @@ export interface UserProfile {
   userId: number;
   firstName: string;
   lastName: string;
+  payDay: number;
 }
 
 export interface LoginResult {
@@ -69,6 +70,7 @@ export class AuthService {
         userId: user.user_id,
         firstName: user.first_name,
         lastName: user.last_name,
+        payDay: user.pay_day,
       },
     };
   }
@@ -86,6 +88,15 @@ export class AuthService {
       userId: user.user_id,
       firstName: user.first_name.trim(),
       lastName: user.last_name.trim(),
+      payDay: user.pay_day,
     };
+  }
+
+  async updatePayDay(userId: number, payDay: number): Promise<UserProfile> {
+    const result = await this.usersRepository.update({ user_id: userId }, { pay_day: payDay });
+    if (result.affected === 0) {
+      throw new UserNotFoundError();
+    }
+    return this.getProfile(userId);
   }
 }

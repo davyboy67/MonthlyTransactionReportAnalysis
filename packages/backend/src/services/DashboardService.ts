@@ -1,19 +1,31 @@
-import { IDashboardRepository } from "../repositories/dashboardRepository";
-import { DashboardDetailsResponse } from "../models/types";
-import { IReportAnalysis } from "@transaction-report/shared";
+import { IDashboardRepository } from '../repositories/dashboardRepository';
+import { DashboardDetailsResponse } from '../models/types';
+import { IReportAnalysis } from '@transaction-report/shared';
 import {
   StatementDataObject,
   IStatementExtractionService,
   IDataAnalysisService,
   ITransaction,
-} from "@transaction-report/shared";
+  CyclePayDays,
+  EmptyStatementError,
+} from '@transaction-report/shared';
 
 export interface IDashboardService {
   getReportForMonth(userId: number, month: number, year: number): Promise<DashboardDetailsResponse>;
   getTrendAnalysis(userId: number, months: number): Promise<{ reports: IReportAnalysis[] }>;
   saveDashboardDetails(userId: number, reportAnalysis: IReportAnalysis): Promise<void>;
-  processStatementFile(userId: number, month: number, year: number, fileBuffer: Buffer): Promise<IReportAnalysis>;
-  updateTransactionCategories(userId: number, updates: Array<{ id: number; category: string }>): Promise<void>;
+  processStatementFile(
+    userId: number,
+    month: number,
+    year: number,
+    fileBuffer: Buffer,
+    payDays: CyclePayDays
+  ): Promise<IReportAnalysis>;
+  updateTransactionCategories(
+    userId: number,
+    updates: Array<{ id: number; category: string }>
+  ): Promise<void>;
+  getPayDays(userId: number, month: number, year: number): Promise<CyclePayDays>;
 }
 
 export class DashboardService implements IDashboardService {
@@ -24,14 +36,18 @@ export class DashboardService implements IDashboardService {
   constructor(
     dashboardRepository: IDashboardRepository,
     statementExtractionService: IStatementExtractionService,
-    dataAnalysisService: IDataAnalysisService,
+    dataAnalysisService: IDataAnalysisService
   ) {
     this.dashboardRepository = dashboardRepository;
     this.statementExtractionService = statementExtractionService;
     this.dataAnalysisService = dataAnalysisService;
   }
 
-  async getReportForMonth(userId: number, month: number, year: number): Promise<DashboardDetailsResponse> {
+  async getReportForMonth(
+    userId: number,
+    month: number,
+    year: number
+  ): Promise<DashboardDetailsResponse> {
     const reportAnalysis = await this.dashboardRepository.getReportForMonth(userId, month, year);
     return { ReportAnalysis: reportAnalysis };
   }
@@ -45,8 +61,15 @@ export class DashboardService implements IDashboardService {
     await this.dashboardRepository.saveDashboardDetails(userId, reportAnalysis);
   }
 
-  async updateTransactionCategories(userId: number, updates: Array<{ id: number; category: string }>): Promise<void> {
+  async updateTransactionCategories(
+    userId: number,
+    updates: Array<{ id: number; category: string }>
+  ): Promise<void> {
     await this.dashboardRepository.updateTransactionCategories(userId, updates);
+  }
+
+  async getPayDays(userId: number, month: number, year: number): Promise<CyclePayDays> {
+    return this.dashboardRepository.resolvePayDays(userId, month, year);
   }
 
   async processStatementFile(
@@ -54,50 +77,56 @@ export class DashboardService implements IDashboardService {
     month: number,
     year: number,
     fileBuffer: Buffer,
+    payDays: CyclePayDays
   ): Promise<IReportAnalysis> {
     const statementObject: StatementDataObject = {
-      filePath: "",
+      filePath: '',
       fileBuffer: fileBuffer,
     };
-    const csvData =
-      await this.statementExtractionService.getStatementData(statementObject);
-    console.log("csv content extracted");
+    const csvData = await this.statementExtractionService.getStatementData(statementObject);
+    console.log('csv content extracted');
 
     const transactions: ITransaction[] =
       await this.statementExtractionService.compileTransactionList(csvData);
-    console.log("transactions compiled");
+    console.log('transactions compiled');
 
-    const analysedReportAnalysis =
-      await this.dataAnalysisService.analyseTransactions(month, year, transactions);
-    console.log(
-      `report analysis object compiled for ${year}-${month}`,
+    if (transactions.length === 0) {
+      throw new EmptyStatementError();
+    }
+
+    const analysedReportAnalysis = await this.dataAnalysisService.analyseTransactions(
+      month,
+      year,
+      transactions,
+      payDays
     );
+    console.log(`report analysis object compiled for ${year}-${month}`);
+
+    await this.dashboardRepository.savePayDays(userId, month, year, payDays);
 
     const reportAnalysis: IReportAnalysis = {
       Date: analysedReportAnalysis.Date,
       TotalIncome: analysedReportAnalysis.TotalIncome,
       TotalExpenses: analysedReportAnalysis.TotalExpenses,
       TotalSavings: analysedReportAnalysis.TotalSavings,
-      CategorySummaries: analysedReportAnalysis.CategorySummaries.map(
-        (summary) => ({
-          CategoryName: summary.CategoryName,
-          Merchants: summary.Merchants,
-          TotalAmount: summary.TotalAmount,
-          Transactions: summary.Transactions.map((t) => ({
-            Date: t.Date,
-            Description: t.Description,
-            Amount: t.Amount,
-            Category: t.Category,
-            Merchant: t.Merchant || "",
-            Month: t.Month,
-            Type: t.Type,
-          })),
-        }),
-      ),
+      CategorySummaries: analysedReportAnalysis.CategorySummaries.map(summary => ({
+        CategoryName: summary.CategoryName,
+        Merchants: summary.Merchants,
+        TotalAmount: summary.TotalAmount,
+        Transactions: summary.Transactions.map(t => ({
+          Date: t.Date,
+          Description: t.Description,
+          Amount: t.Amount,
+          Category: t.Category,
+          Merchant: t.Merchant || '',
+          Month: t.Month,
+          Type: t.Type,
+        })),
+      })),
     };
 
     await this.dashboardRepository.saveDashboardDetails(userId, reportAnalysis);
-    console.log("report analysis persisted to db");
+    console.log('report analysis persisted to db');
 
     return reportAnalysis;
   }

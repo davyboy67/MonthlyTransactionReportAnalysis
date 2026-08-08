@@ -1,17 +1,50 @@
 import { IReportAnalysis, ICategorySummary } from '../models/IReportAnalysis';
 import { ITransaction, TransactionType } from '../models/ITransaction';
 import { ITransactionInfoHandler } from '../utils/ITransactionInfoHandler';
-import { IDataAnalysisService } from './IDataAnalysisService';
+import { CyclePayDays, IDataAnalysisService } from './IDataAnalysisService';
+import { NoTransactionsInPeriodError } from '../requestResponseModels/errorModels';
 import { apiClient } from './apiClient';
 
-// Bank statements run on a monthly cycle ending on the 25th (pay day), so a report for
-// a given month spans the 26th of the previous month to the 25th of the report month.
-const STATEMENT_CYCLE_START_DAY = 26;
-const STATEMENT_CYCLE_END_DAY = 25;
-// December salaries are usually paid early, so widen a January report's window back to the 13th.
-const DECEMBER_PAYDAY_START_DAY = 13;
-// Date's month index for December (getMonth() is 0-based).
-const DECEMBER_MONTH_INDEX = 11;
+export const DEFAULT_PAY_DAY = 26;
+const PAY_DAY_TOLERANCE_DAYS = 2;
+
+function daysInMonth(year: number, monthIndex: number): number {
+  return new Date(year, monthIndex + 1, 0).getDate();
+}
+
+/** Must run before `enhanceTransactionInfo`, which rewrites amounts as absolute values. */
+function resolvePayDate(
+  transactions: ITransaction[],
+  year: number,
+  monthIndex: number,
+  payDay: number
+): Date {
+  const day = Math.min(payDay, daysInMonth(year, monthIndex));
+  const expected = new Date(year, monthIndex, day);
+  const from = new Date(year, monthIndex, day - PAY_DAY_TOLERANCE_DAYS);
+  const to = new Date(year, monthIndex, day + PAY_DAY_TOLERANCE_DAYS, 23, 59, 59, 999);
+
+  let best: { date: Date; amount: number; distance: number } | null = null;
+  for (const transaction of transactions) {
+    if (transaction.Amount <= 0) continue;
+
+    const date = new Date(transaction.Date);
+    if (date < from || date > to) continue;
+
+    const distance = Math.abs(date.getTime() - expected.getTime());
+    const better =
+      !best ||
+      transaction.Amount > best.amount ||
+      (transaction.Amount === best.amount && distance < best.distance);
+    if (better) {
+      best = { date, amount: transaction.Amount, distance };
+    }
+  }
+
+  const resolved = best ? best.date : expected;
+  resolved.setHours(0, 0, 0, 0);
+  return resolved;
+}
 
 export class DataAnalysisService implements IDataAnalysisService {
   private readonly _transactionInfoHandler: ITransactionInfoHandler;
@@ -97,24 +130,41 @@ export class DataAnalysisService implements IDataAnalysisService {
   async analyseTransactions(
     targetMonth: number,
     targetYear: number,
-    transactions: ITransaction[]
+    transactions: ITransaction[],
+    payDays: CyclePayDays
   ): Promise<IReportAnalysis> {
     if (transactions.length === 0) {
       return this.createReportAnalysis([], targetMonth, targetYear);
     }
 
-    let startDate = new Date(targetYear, targetMonth - 2, STATEMENT_CYCLE_START_DAY);
-    const endDate = new Date(targetYear, targetMonth - 1, STATEMENT_CYCLE_END_DAY, 23, 59, 59);
+    const previousMonth = new Date(targetYear, targetMonth - 2, 1);
+    const reportMonth = new Date(targetYear, targetMonth - 1, 1);
 
-    // People usually get paid early in December, so widen the start for January reports
-    if (startDate.getMonth() === DECEMBER_MONTH_INDEX) {
-      startDate = new Date(targetYear, targetMonth - 2, DECEMBER_PAYDAY_START_DAY);
-    }
+    const startDate = resolvePayDate(
+      transactions,
+      previousMonth.getFullYear(),
+      previousMonth.getMonth(),
+      payDays.previousMonth
+    );
+    const nextPayDate = resolvePayDate(
+      transactions,
+      reportMonth.getFullYear(),
+      reportMonth.getMonth(),
+      payDays.targetMonth
+    );
+    const endDate = new Date(nextPayDate.getTime() - 1);
 
     const transactionsInRange = transactions.filter(t => {
       const d = new Date(t.Date);
       return d >= startDate && d <= endDate;
     });
+
+    if (transactionsInRange.length === 0) {
+      const dates = transactions
+        .map(t => new Date(t.Date))
+        .sort((a, b) => a.getTime() - b.getTime());
+      throw new NoTransactionsInPeriodError(startDate, endDate, dates[0], dates[dates.length - 1]);
+    }
 
     const enhancedTransactions = this.enhanceTransactionInfo(transactionsInRange);
     const reportAnalysis = this.createReportAnalysis(enhancedTransactions, targetMonth, targetYear);

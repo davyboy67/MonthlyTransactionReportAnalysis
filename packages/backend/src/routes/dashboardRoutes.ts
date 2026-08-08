@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import multer from 'multer';
+import { EmptyStatementError, NoTransactionsInPeriodError } from '@transaction-report/shared';
 import { IDashboardService } from '../services/DashboardService';
 import { DashboardSaveInfoRequest } from '../models/types';
 
@@ -50,6 +51,22 @@ export function createDashboardRouter(dashboardService: IDashboardService): Rout
     }
   });
 
+  // GET /api/v1/GetPayDays?month=X&year=Y
+  router.get('/GetPayDays', async (req: Request, res: Response) => {
+    try {
+      const month = parseInt(req.query.month as string);
+      const year = parseInt(req.query.year as string);
+      if (!month || month < 1 || month > 12 || !year) {
+        return res.status(400).json({ error: 'month (1-12) and year are required' });
+      }
+      const payDays = await dashboardService.getPayDays(req.userId, month, year);
+      res.json(payDays);
+    } catch (error) {
+      console.error('Error fetching pay days:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
   // PUT /api/v1/UpdateTransactionCategories
   router.put('/UpdateTransactionCategories', async (req: Request, res: Response) => {
     try {
@@ -82,10 +99,30 @@ export function createDashboardRouter(dashboardService: IDashboardService): Rout
           return res.status(400).json({ error: 'month (1-12) and year are required' });
         }
 
-        const reportAnalysis = await dashboardService.processStatementFile(req.userId, month, year, req.file.buffer);
+        const previousMonth = parseInt(req.body?.payDayPrevious);
+        const targetMonth = parseInt(req.body?.payDayTarget);
+        if (
+          !previousMonth || previousMonth < 1 || previousMonth > 31 ||
+          !targetMonth || targetMonth < 1 || targetMonth > 31
+        ) {
+          return res
+            .status(400)
+            .json({ error: 'payDayPrevious and payDayTarget must be between 1 and 31' });
+        }
+
+        const reportAnalysis = await dashboardService.processStatementFile(
+          req.userId,
+          month,
+          year,
+          req.file.buffer,
+          { previousMonth, targetMonth }
+        );
 
         res.json({ ReportAnalysis: reportAnalysis });
       } catch (error) {
+        if (error instanceof NoTransactionsInPeriodError || error instanceof EmptyStatementError) {
+          return res.status(400).json({ error: error.message });
+        }
         console.error('Error processing statement file:', error);
         res.status(500).json({ error: 'Internal server error' });
       }

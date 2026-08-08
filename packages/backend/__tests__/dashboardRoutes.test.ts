@@ -2,7 +2,7 @@ import request from 'supertest';
 import express from 'express';
 import { createDashboardRouter } from '../src/routes/dashboardRoutes';
 import { IDashboardService } from '../src/services/DashboardService';
-import { IReportAnalysis } from '@transaction-report/shared';
+import { IReportAnalysis, NoTransactionsInPeriodError } from '@transaction-report/shared';
 
 const USER_ID = 42;
 
@@ -17,6 +17,7 @@ describe('Dashboard API Routes', () => {
       saveDashboardDetails: jest.fn(),
       processStatementFile: jest.fn(),
       updateTransactionCategories: jest.fn(),
+      getPayDays: jest.fn(),
     };
 
     app = express();
@@ -138,6 +139,25 @@ describe('Dashboard API Routes', () => {
     });
   });
 
+  describe('GET /GetPayDays', () => {
+    it('should return the resolved pay days for the requested month', async () => {
+      mockService.getPayDays.mockResolvedValue({ previousMonth: 13, targetMonth: 26 });
+
+      const response = await request(app).get('/api/v1/GetPayDays?month=1&year=2026');
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({ previousMonth: 13, targetMonth: 26 });
+      expect(mockService.getPayDays).toHaveBeenCalledWith(USER_ID, 1, 2026);
+    });
+
+    it('should return 400 when the month is out of range', async () => {
+      const response = await request(app).get('/api/v1/GetPayDays?month=13&year=2026');
+
+      expect(response.status).toBe(400);
+      expect(mockService.getPayDays).not.toHaveBeenCalled();
+    });
+  });
+
   describe('POST /ProcessStatementFile', () => {
     it('should process an uploaded file and return the report analysis', async () => {
       mockService.processStatementFile.mockResolvedValue(sampleReport);
@@ -146,17 +166,55 @@ describe('Dashboard API Routes', () => {
         .post('/api/v1/ProcessStatementFile')
         .field('month', '3')
         .field('year', '2024')
+        .field('payDayPrevious', '26')
+        .field('payDayTarget', '26')
         .attach('file', Buffer.from('col1,col2\nval1,val2'), 'statement.csv');
 
       expect(response.status).toBe(200);
       expect(response.body.ReportAnalysis).toBeDefined();
-      // the viewed month is passed through so only that cycle is reported on
+      // the viewed month and its pay days are passed through so only that cycle is reported on
       expect(mockService.processStatementFile).toHaveBeenCalledWith(
         USER_ID,
         3,
         2024,
-        expect.any(Buffer)
+        expect.any(Buffer),
+        { previousMonth: 26, targetMonth: 26 }
       );
+    });
+
+    it('should return 400 when a pay day is out of range', async () => {
+      const response = await request(app)
+        .post('/api/v1/ProcessStatementFile')
+        .field('month', '3')
+        .field('year', '2024')
+        .field('payDayPrevious', '32')
+        .field('payDayTarget', '26')
+        .attach('file', Buffer.from('col1,col2'), 'statement.csv');
+
+      expect(response.status).toBe(400);
+      expect(mockService.processStatementFile).not.toHaveBeenCalled();
+    });
+
+    it('should return 400 with the period message when the file covers the wrong months', async () => {
+      mockService.processStatementFile.mockRejectedValue(
+        new NoTransactionsInPeriodError(
+          new Date(2024, 1, 26),
+          new Date(2024, 2, 25),
+          new Date(2024, 0, 1),
+          new Date(2024, 0, 31)
+        )
+      );
+
+      const response = await request(app)
+        .post('/api/v1/ProcessStatementFile')
+        .field('month', '3')
+        .field('year', '2024')
+        .field('payDayPrevious', '26')
+        .field('payDayTarget', '26')
+        .attach('file', Buffer.from('col1,col2'), 'statement.csv');
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toMatch(/No transactions between/);
     });
 
     it('should return 400 when no file is uploaded', async () => {
@@ -171,6 +229,8 @@ describe('Dashboard API Routes', () => {
         .post('/api/v1/ProcessStatementFile')
         .field('month', '13')
         .field('year', '2024')
+        .field('payDayPrevious', '26')
+        .field('payDayTarget', '26')
         .attach('file', Buffer.from('col1,col2'), 'statement.csv');
 
       expect(response.status).toBe(400);
@@ -184,6 +244,8 @@ describe('Dashboard API Routes', () => {
         .post('/api/v1/ProcessStatementFile')
         .field('month', '3')
         .field('year', '2024')
+        .field('payDayPrevious', '26')
+        .field('payDayTarget', '26')
         .attach('file', Buffer.from('bad,data'), 'statement.csv');
 
       expect(response.status).toBe(500);

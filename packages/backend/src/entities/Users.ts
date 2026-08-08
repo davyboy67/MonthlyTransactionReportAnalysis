@@ -20,6 +20,9 @@ export class Users {
   @Column({ type: "varchar", length: 255, nullable: true })
   password_hash!: string | null;
 
+  @Column({ type: "smallint", default: 26 })
+  pay_day!: number;
+
   @OneToMany(() => ReportAnalysis, (reportAnalysis) => reportAnalysis.user)
   reportAnalyses!: ReportAnalysis[];
 
