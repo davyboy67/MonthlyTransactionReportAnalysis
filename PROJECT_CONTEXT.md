@@ -284,10 +284,10 @@ link would sign the owner out mid-flow. They use `403` (not owner), `404` (unkno
 
 ## 12. Outstanding / deferred
 
-- [ ] **Migration 004's `CREATE UNIQUE INDEX idx_users_email` has NOT been applied.** The
-      `user_invites` table and its indexes are live; the users-email index was held back because a
-      second branch was working against the same Neon database. Re-run `004_create_user_invites.sql`
-      (idempotent) at merge time. Login resolves users by email alone, so it needs this.
+- [x] **Migration 004 fully applied to Neon** — `user_invites` plus its indexes, and
+      `idx_users_email` (held back initially while a second branch shared the database, applied once
+      that branch finished). Login resolves users by email alone, so the unique index is what keeps
+      that lookup deterministic.
 - [ ] **API Gateway route throttling on `/ValidateInvite` and `/RedeemInvite`** (5 req/s, burst 10).
       Deliberately not done in app code — an in-memory limiter only covers one warm Lambda container.
 - [ ] **Email/cron route (`/TriggerMonthlyReport`) is public + owner-pinned** (always `user_id=1`).
