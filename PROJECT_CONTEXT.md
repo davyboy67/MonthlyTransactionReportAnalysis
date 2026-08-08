@@ -124,6 +124,7 @@ packages/shared/src/
 | `budget` | `budget_id` (PK), `user_id` (FK), `budget_month`, `notes`, `created_at`, `updated_at` | `budget_month` = first of month |
 | `budget_category` | `category_id` (PK), `budget_id` (FK), `category_name`, `amount` | per-category targets |
 | `report_log` | `id` (PK), `report_analysis_id` (FK, nullable), `generated_at`, `email_sent`, `email_sent_at`, `pdf_data` | audit of report generation; PDF stored as BYTEA |
+| `user_invites` | `id` (PK), `token_hash` (unique), `email`, `first_name`, `last_name`, `created_by` (FK), `created_at`, `expires_at`, `redeemed_at` (nullable) | added in migration 004; the only signup path. Stores the SHA-256 of the token, never the token |
 
 Relationships: a user has many reports / transactions / budgets; a report has many transactions
 and optionally one budget; a budget has many budget_categories.
@@ -151,10 +152,24 @@ and optionally one budget; a budget has many budget_categories.
 |---|---|---|
 | 1 | owner's email + password (set manually via bcrypt hash) | real financial data |
 | 2 | `admin` / `admin` | SQL-seeded fake data (Jan–May 2026), via `demo_data.sql` |
+| 3+ | created by redeeming an invite link; the user sets their own password | their own uploads |
 
-### Two distinct "gates" (don't conflate)
+### Invites (the only signup path)
+There is no public registration. The owner creates a link from the dashboard account menu
+("Invite someone"), which returns a 32-byte `base64url` token shown **once**; only its SHA-256 is
+stored. The link is `<origin><BASE_URL>?invite=<token>` — a query string, because there is no
+router and GitHub Pages cannot rewrite deep paths. `App.tsx` checks for `?invite=` *before* the
+auth branch, and strips it with `history.replaceState` once redeemed.
+
+Invites are bound to one email, single-use, and expire after 72h. Re-inviting an address expires
+its outstanding links. Redemption burns the invite and creates the user in one data-modifying CTE,
+so concurrent redeems cannot produce two accounts.
+
+### Three distinct "gates" (don't conflate)
 1. **Frontend gate** (`App.tsx`, `isAuthenticated()`) — chooses which *screen* renders. UX only; bypassable.
 2. **Backend gate** (`authenticate` middleware) — protects the actual *data*. The real security.
+3. **Owner gate** (`requireOwner` middleware, `OWNER_USER_ID`) — restricts invite creation.
+   `profile.isOwner` only hides the menu item; the middleware is what enforces it.
 
 ---
 
@@ -228,7 +243,8 @@ Requires **Node 20.19+** (Vite 7). Tests: `npm test`. Lint: `npm run lint`.
 
 Mounted under `/api/v1` and `/:stage/api/v1`.
 
-**Public:** `GET /health` · `POST /Login` · `POST /TriggerMonthlyReport` (cron, owner-pinned to user 1)
+**Public:** `GET /health` · `POST /Login` · `POST /TriggerMonthlyReport` (cron, owner-pinned to user 1) ·
+`POST /ValidateInvite` · `POST /RedeemInvite`
 
 **Protected** (require `Authorization: Bearer`):
 `GET /GetReportForMonth` · `GET /GetTrendAnalysis` · `POST /RetrieveDashboardDetails` ·
@@ -236,12 +252,23 @@ Mounted under `/api/v1` and `/:stage/api/v1`.
 `PUT /UpdateTransactionCategories` · `GET /GetBudgetForMonth` · `POST /SaveBudget` ·
 `GET /GetLatestBudget`
 
+**Owner-only** (`authenticate` + `requireOwner`): `POST /CreateInvite`
+
+The invite routes never return `401` — `apiClient` clears the session on any 401, so an invalid
+link would sign the owner out mid-flow. They use `403` (not owner), `404` (unknown token) and
+`410` (expired / already used) instead.
+
 ---
 
 ## 11. Decisions log (with rationale)
 
 - **Real login over a shared-secret "demo gate"** — cleaner; the demo is a legitimate user account, not a hack.
-- **Login only, no public signup, no account-creation helper** — only the owner provisions accounts; richer account mgmt deferred.
+- **Invite links, not public signup** — the owner mints a link; the recipient sets their own password, so the owner never knows it. Open registration would additionally require email verification, password reset, bot protection, real transactional email (not personal Gmail SMTP) and a parser that handles more than one bank's CSV — all deferred.
+- **Only the SHA-256 of an invite token is stored, unsalted** — 32 random bytes have full entropy, so there is nothing for a work factor to slow down; a DB leak yields inert hashes, and lookup stays an index probe.
+- **Redemption is one data-modifying CTE, not a transaction** — burning the invite and inserting the user in a single statement is atomic by definition, so a concurrent redeem loses cleanly and a failed insert rolls the burn back for retry. Avoids introducing the codebase's first `dataSource.transaction`.
+- **`OWNER_USER_ID` constant over an `is_admin` column** — there is exactly one owner; a role column buys only a hypothetical second admin and is a 10-minute migration if that ever changes.
+- **No pending-invite list UI** — the raw token is unrecoverable, so a list could only say "an invite is outstanding". Re-inviting supersedes instead, which self-heals the one real case (lost message).
+- **Invite link is a query string, not a path** — there is no router, and GitHub Pages cannot rewrite deep paths; `?invite=` survives static hosting untouched.
 - **Demo = normal `user_id=2` with SQL-seeded fake data (Jan–May 2026)** — exercises the real API (incl. live category edit + save), fully isolated.
 - **JWT (stateless) over server sessions** — no session store; fits SPA + Lambda. Trade-off: no easy pre-expiry revocation (rotating `JWT_SECRET` logs everyone out).
 - **Token in `localStorage`** — simple, survives reload. Known trade-off: readable by JS (XSS exposure); a hardened setup would use httpOnly cookies + refresh tokens. Acceptable for a personal demo.
@@ -257,9 +284,18 @@ Mounted under `/api/v1` and `/:stage/api/v1`.
 
 ## 12. Outstanding / deferred
 
+- [ ] **Migration 004's `CREATE UNIQUE INDEX idx_users_email` has NOT been applied.** The
+      `user_invites` table and its indexes are live; the users-email index was held back because a
+      second branch was working against the same Neon database. Re-run `004_create_user_invites.sql`
+      (idempotent) at merge time. Login resolves users by email alone, so it needs this.
+- [ ] **API Gateway route throttling on `/ValidateInvite` and `/RedeemInvite`** (5 req/s, burst 10).
+      Deliberately not done in app code — an in-memory limiter only covers one warm Lambda container.
 - [ ] **Email/cron route (`/TriggerMonthlyReport`) is public + owner-pinned** (always `user_id=1`).
       Deliberately left unsecured for now — owner still deciding how to protect the trigger. Only
-      emails the owner their own report (low risk), but it's the one open endpoint.
+      emails the owner their own report (low risk), but it's the one open endpoint. **Moved up the
+      list:** invited users now exist, so any of them can trigger it.
+- [ ] From the same security review, still open: `cors({ origin: '*' })`, no rate limit on `/Login`,
+      and no `fileSize` limit on the multer upload (`memoryStorage` + untrusted users).
 - [ ] **Auth feature end-to-end runtime verification** across environments (login both accounts,
       logout/switch, 401 → login). Builds pass; prod login works after the API Gateway CORS fix.
 - [ ] Active branch for the auth work: `feature/auth-demo-account` (off `main`) — merge when validated.
