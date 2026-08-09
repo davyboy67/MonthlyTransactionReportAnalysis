@@ -35,7 +35,7 @@ export function PayDayDialog({
   const previousDate = new Date(year, month - 2, 1);
   const start = clampToMonth(previousDate.getFullYear(), previousDate.getMonth(), previousMonth);
   const nextPay = clampToMonth(year, month - 1, targetMonth);
-  const end = new Date(nextPay.getTime() - 86400000);
+  const end = new Date(nextPay.getFullYear(), nextPay.getMonth(), nextPay.getDate() - 1);
 
   const valid = (day: number) => day >= 1 && day <= 31;
   const canConfirm = valid(previousMonth) && valid(targetMonth);
