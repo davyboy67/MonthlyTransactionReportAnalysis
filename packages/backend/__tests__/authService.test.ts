@@ -20,6 +20,7 @@ describe('AuthService', () => {
     last_name: 'User',
     email: 'admin',
     password_hash: 'hashed-admin',
+    pay_day: 26,
   };
 
   beforeEach(() => {
@@ -43,7 +44,7 @@ describe('AuthService', () => {
       const result = await service.login('admin', 'admin');
 
       expect(result.token).toBe('signed.jwt.token');
-      expect(result.user).toEqual({ userId: 2, firstName: 'Demo', lastName: 'User' });
+      expect(result.user).toEqual({ userId: 2, firstName: 'Demo', lastName: 'User', payDay: 26 });
     });
 
     it('should look the user up by email', async () => {
@@ -130,7 +131,7 @@ describe('AuthService', () => {
 
       const profile = await service.getProfile(2);
 
-      expect(profile).toEqual({ userId: 2, firstName: 'Demo', lastName: 'User' });
+      expect(profile).toEqual({ userId: 2, firstName: 'Demo', lastName: 'User', payDay: 26 });
       expect(mockUsersRepo.findOne).toHaveBeenCalledWith({ where: { user_id: 2 } });
     });
 

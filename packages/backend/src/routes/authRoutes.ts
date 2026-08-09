@@ -42,5 +42,24 @@ export function createAuthRouter(authService: AuthService): Router {
     }
   });
 
+  // PUT /api/v1/Settings
+  router.put("/Settings", authenticate, async (req: Request, res: Response) => {
+    try {
+      const payDay = parseInt(req.body?.payDay);
+      if (!payDay || payDay < 1 || payDay > 31) {
+        return res.status(400).json({ error: "payDay must be between 1 and 31" });
+      }
+
+      const profile = await authService.updatePayDay(req.userId, payDay);
+      res.json({ user: profile });
+    } catch (error) {
+      if (error instanceof UserNotFoundError) {
+        return res.status(404).json({ error: error.message });
+      }
+      console.error("Failed to update settings:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   return router;
 }

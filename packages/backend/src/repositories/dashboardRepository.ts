@@ -1,13 +1,30 @@
 import { Repository, DataSource } from 'typeorm';
 import { ReportAnalysis as ReportAnalysisEntity } from '../entities/ReportAnalysis';
 import { Transaction as TransactionEntity } from '../entities/Transaction';
+import { Users } from '../entities/Users';
 import {
   IReportAnalysis,
   ICategorySummary,
   ITransaction,
   TransactionType,
   ReportNotSavedError,
+  CyclePayDays,
+  DEFAULT_PAY_DAY,
 } from '@transaction-report/shared';
+
+function toUtcDateString(date: Date): string {
+  return date.toISOString().slice(0, 10);
+}
+
+function toLocalDateString(date: Date): string {
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
+function monthKey(year: number, month: number): string {
+  const date = new Date(Date.UTC(year, month - 1, 1));
+  return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}-01`;
+}
 
 export interface IDashboardRepository {
   getReportForMonth(userId: number, month: number, year: number): Promise<IReportAnalysis | null>;
@@ -18,15 +35,67 @@ export interface IDashboardRepository {
     userId: number,
     updates: Array<{ id: number; category: string }>
   ): Promise<void>;
+  resolvePayDays(userId: number, month: number, year: number): Promise<CyclePayDays>;
+  savePayDays(
+    userId: number,
+    month: number,
+    year: number,
+    payDays: CyclePayDays
+  ): Promise<void>;
 }
 
 export class DashboardRepository implements IDashboardRepository {
+  private dataSource: DataSource;
   private reportAnalysisRepository: Repository<ReportAnalysisEntity>;
   private transactionRepository: Repository<TransactionEntity>;
+  private usersRepository: Repository<Users>;
 
   constructor(dataSource: DataSource) {
+    this.dataSource = dataSource;
     this.reportAnalysisRepository = dataSource.getRepository(ReportAnalysisEntity);
     this.transactionRepository = dataSource.getRepository(TransactionEntity);
+    this.usersRepository = dataSource.getRepository(Users);
+  }
+
+  async resolvePayDays(userId: number, month: number, year: number): Promise<CyclePayDays> {
+    const previous = monthKey(year, month - 1);
+    const target = monthKey(year, month);
+
+    const user = await this.usersRepository.findOne({ where: { user_id: userId } });
+    const fallback = user?.pay_day ?? DEFAULT_PAY_DAY;
+
+    const rows: Array<{ pay_month: string; pay_day: number }> = await this.dataSource.query(
+      `SELECT to_char(pay_month, 'YYYY-MM-DD') AS pay_month, pay_day
+         FROM user_pay_day
+        WHERE user_id = $1 AND pay_month = ANY($2::date[])`,
+      [userId, [previous, target]]
+    );
+
+    const byMonth = new Map(rows.map(r => [r.pay_month, Number(r.pay_day)]));
+    return {
+      previousMonth: byMonth.get(previous) ?? fallback,
+      targetMonth: byMonth.get(target) ?? fallback,
+    };
+  }
+
+  async savePayDays(
+    userId: number,
+    month: number,
+    year: number,
+    payDays: CyclePayDays
+  ): Promise<void> {
+    await this.dataSource.query(
+      `INSERT INTO user_pay_day (user_id, pay_month, pay_day)
+       VALUES ($1, $2, $3), ($1, $4, $5)
+       ON CONFLICT (user_id, pay_month) DO UPDATE SET pay_day = EXCLUDED.pay_day`,
+      [
+        userId,
+        monthKey(year, month - 1),
+        payDays.previousMonth,
+        monthKey(year, month),
+        payDays.targetMonth,
+      ]
+    );
   }
 
   async getReportForMonth(
@@ -59,8 +128,8 @@ export class DashboardRepository implements IDashboardRepository {
     month: number,
     year: number
   ): Promise<ReportAnalysisEntity | null> {
-    const start = new Date(Date.UTC(year, month - 1, 1));
-    const end = new Date(Date.UTC(year, month, 0)); // last day of month
+    const start = toUtcDateString(new Date(Date.UTC(year, month - 1, 1)));
+    const end = toUtcDateString(new Date(Date.UTC(year, month, 0))); // last day of month
 
     return this.reportAnalysisRepository
       .createQueryBuilder('r')
@@ -129,6 +198,7 @@ export class DashboardRepository implements IDashboardRepository {
       const year = reportDate.getUTCFullYear();
 
       const existing = await this.findReportEntityForMonth(userId, month, year);
+      const reportDateValue = toUtcDateString(reportDate) as unknown as Date;
 
       let reportId: number;
       if (existing) {
@@ -136,7 +206,7 @@ export class DashboardRepository implements IDashboardRepository {
         await this.transactionRepository.delete({ report_analysis_id: reportId });
         await this.reportAnalysisRepository.save({
           id: reportId,
-          report_date: reportDate,
+          report_date: reportDateValue,
           total_income: reportAnalysis.TotalIncome,
           total_expenses: reportAnalysis.TotalExpenses,
           total_savings: reportAnalysis.TotalSavings,
@@ -145,7 +215,7 @@ export class DashboardRepository implements IDashboardRepository {
       } else {
         const report = await this.reportAnalysisRepository.save({
           user_id: userId,
-          report_date: reportDate,
+          report_date: reportDateValue,
           total_income: reportAnalysis.TotalIncome,
           total_expenses: reportAnalysis.TotalExpenses,
           total_savings: reportAnalysis.TotalSavings,
@@ -160,7 +230,7 @@ export class DashboardRepository implements IDashboardRepository {
         return {
           report_analysis_id: reportId,
           user_id: userId,
-          date: transactionDate,
+          date: toLocalDateString(transactionDate) as unknown as Date,
           description: transaction.Description || '',
           amount: transaction.Amount,
           category: transaction.Category || '',
