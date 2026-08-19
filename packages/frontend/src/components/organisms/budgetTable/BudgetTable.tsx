@@ -1,10 +1,11 @@
-import type { IBudgetCategory } from "@transaction-report/shared";
-import { categoryDisplayNames, formatZar } from "@transaction-report/shared";
+import type { CategoryDefinition, IBudgetCategory } from "@transaction-report/shared";
+import { categoryDisplayName, formatZar } from "@transaction-report/shared";
 import { BudgetCategoryRow } from "../../molecules/budgetCategoryRow/BudgetCategoryRow";
 import "./BudgetTable.css";
 
 interface BudgetTableProps {
   categories: IBudgetCategory[];
+  categoryDefinitions: CategoryDefinition[];
   actuals?: Record<string, number>;
   readOnly?: boolean;
   onChange: (categoryId: number, amount: number) => void;
@@ -12,6 +13,7 @@ interface BudgetTableProps {
 
 export function BudgetTable({
   categories,
+  categoryDefinitions,
   actuals,
   readOnly,
   onChange,
@@ -38,7 +40,7 @@ export function BudgetTable({
           {categories.map((cat) => (
             <BudgetCategoryRow
               key={cat.category_id}
-              displayName={categoryDisplayNames[cat.category_name] ?? cat.category_name}
+              displayName={categoryDisplayName(categoryDefinitions, cat.category_name)}
               amount={cat.amount}
               actual={actuals?.[cat.category_name]}
               readOnly={readOnly}

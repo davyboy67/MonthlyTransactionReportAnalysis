@@ -1,8 +1,6 @@
 // Models
 export * from './models/IBudgetCategory';
 export * from './models/IBudget';
-export * from './models/ICategory';
-export * from './models/IMerchant';
 export * from './models/IReportAnalysis';
 export * from './models/IStatement';
 export * from './models/ITransaction';

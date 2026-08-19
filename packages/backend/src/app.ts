@@ -4,6 +4,7 @@ import express, { Application, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import { AppDataSource } from './database/dataSource';
 import { DashboardRepository } from './repositories/dashboardRepository';
+import { ReferenceDataRepository } from './repositories/referenceDataRepository';
 import { DashboardService } from './services/DashboardService';
 import { createDashboardRouter } from './routes/dashboardRoutes';
 import { BudgetRepository } from './repositories/budgetRepository';
@@ -46,18 +47,22 @@ export async function createApp(): Promise<Application> {
   });
 
   const dashboardRepository = new DashboardRepository(AppDataSource);
+  const referenceDataRepository = new ReferenceDataRepository(AppDataSource);
   const statementExtractionService = new StatementExtractionService();
-  const transactionInfoHandler = new TransactionInfoHandler();
+  const transactionInfoHandler = new TransactionInfoHandler(
+    await referenceDataRepository.getMerchantRules()
+  );
   const dataAnalysisService = new DataAnalysisService(transactionInfoHandler, false);
   const dashboardService = new DashboardService(
     dashboardRepository,
     statementExtractionService,
-    dataAnalysisService
+    dataAnalysisService,
+    referenceDataRepository
   );
   const dashboardRouter = createDashboardRouter(dashboardService);
 
   const budgetRepository = new BudgetRepository(AppDataSource);
-  const budgetService = new BudgetService(budgetRepository);
+  const budgetService = new BudgetService(budgetRepository, referenceDataRepository);
   const budgetRouter = createBudgetRouter(budgetService);
 
   const reportEmailService = new ReportEmailService(dashboardRepository, budgetRepository);

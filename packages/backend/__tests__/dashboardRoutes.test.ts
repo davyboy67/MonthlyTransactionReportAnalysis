@@ -18,6 +18,10 @@ describe('Dashboard API Routes', () => {
       processStatementFile: jest.fn(),
       updateTransactionCategories: jest.fn(),
       getPayDays: jest.fn(),
+      getCategories: jest.fn().mockResolvedValue([
+        { name: 'Groceries', displayName: 'Groceries & Supermarkets' },
+        { name: 'Transport', displayName: 'Transport & Travel' },
+      ]),
     };
 
     app = express();
@@ -133,6 +137,15 @@ describe('Dashboard API Routes', () => {
       const response = await request(app)
         .put('/api/v1/UpdateTransactionCategories')
         .send({ updates: [] });
+
+      expect(response.status).toBe(400);
+      expect(mockService.updateTransactionCategories).not.toHaveBeenCalled();
+    });
+
+    it('should return 400 for a category outside the known list', async () => {
+      const response = await request(app)
+        .put('/api/v1/UpdateTransactionCategories')
+        .send({ updates: [{ id: 1, category: 'Parking' }] });
 
       expect(response.status).toBe(400);
       expect(mockService.updateTransactionCategories).not.toHaveBeenCalled();

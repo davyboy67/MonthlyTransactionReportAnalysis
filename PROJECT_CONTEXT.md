@@ -90,7 +90,8 @@ packages/backend/src/
   types/express.d.ts            # augments Express Request with userId
   database/
     dataSource.ts               # TypeORM config (synchronize:false, reads root .env)
-    migrations/                 # manual SQL: 001_create_report_log.sql, 002_add_user_password.sql
+    migrations/                 # manual SQL: 001_create_report_log, 002_add_user_password,
+                                #   003_add_pay_day, 004_create_reference_tables
     seeds/demo_data.sql         # demo account (user_id=2) data
 
 packages/frontend/src/
@@ -108,7 +109,7 @@ packages/shared/src/
   models/                       # interfaces: IReportAnalysis, ITransaction, IBudget, ...
   services/                     # apiClient, dataAnalysisService, statementExtractionService
   utils/                        # format, dateUtils, TransactionInfoHandler
-  data/                         # categoryList.json, merchantCategoryMapping.json
+  data/                         # CategoryDefinition type + budget/display helpers
   index.ts                      # public exports
 ```
 
@@ -124,6 +125,9 @@ packages/shared/src/
 | `budget` | `budget_id` (PK), `user_id` (FK), `budget_month`, `notes`, `created_at`, `updated_at` | `budget_month` = first of month |
 | `budget_category` | `category_id` (PK), `budget_id` (FK), `category_name`, `amount` | per-category targets |
 | `report_log` | `id` (PK), `report_analysis_id` (FK, nullable), `generated_at`, `email_sent`, `email_sent_at`, `pdf_data` | audit of report generation; PDF stored as BYTEA |
+| `category` | `name` (PK), `display_name`, `sort_order` | the app vocabulary; `sort_order` drives the dropdown and default budget rows |
+| `merchant` | `name` (PK), `default_category` (FK → `category`, nullable) | global classification defaults; null means the merchant does not determine the category |
+| `merchant_pattern` | `pattern` (PK), `merchant_name` (FK → `merchant`) | substring rules; `TransactionInfoHandler` sorts them longest-first |
 
 Relationships: a user has many reports / transactions / budgets; a report has many transactions
 and optionally one budget; a budget has many budget_categories.
@@ -233,8 +237,8 @@ Mounted under `/api/v1` and `/:stage/api/v1`.
 **Protected** (require `Authorization: Bearer`):
 `GET /GetReportForMonth` · `GET /GetTrendAnalysis` · `POST /RetrieveDashboardDetails` ·
 `POST /SaveReportInformation` · `POST /ProcessStatementFile` (multipart CSV) ·
-`PUT /UpdateTransactionCategories` · `GET /GetBudgetForMonth` · `POST /SaveBudget` ·
-`GET /GetLatestBudget`
+`PUT /UpdateTransactionCategories` · `GET /GetCategories` · `GET /GetBudgetForMonth` ·
+`POST /SaveBudget` · `GET /GetLatestBudget`
 
 ---
 
@@ -252,6 +256,11 @@ Mounted under `/api/v1` and `/:stage/api/v1`.
 - **CORS origin left permissive** — the gate is the token, not the origin.
 - **`report_log` links to `reportanalysis` (not users directly)** with `ON DELETE SET NULL` — user is derivable; preserves audit history if the source report is deleted. PDF stored as BYTEA.
 - **Atomic-design frontend + centralised `tab-shared.css`** — reduce per-feature CSS duplication; new tabs reuse the shell classes.
+- **Classification reference data lives in the database, not JSON** (`category`, `merchant`, `merchant_pattern`) — merchant rules have to grow as users arrive, and a bundled JSON file meant a rebuild and redeploy to add one row. Global by design: these are the app's best-effort defaults, and a user corrects what they disagree with in the transactions tab.
+- **`merchant_pattern` is read `ORDER BY LENGTH(pattern) DESC`** — matching is first-hit, and `Uber Eats` only ever beat `Uber` because it sat earlier in the JSON array. A table has no inherent order, so the length sort is what preserves that precedence. Pinned by a test.
+- **`merchant.default_category` is nullable** — FNB is recognised as a merchant but has no category, and that is correct for a bank: the merchant does not determine what the transaction was for. Such merchants resolve a name and then fall through the ladder.
+- **Merchant rules are loaded once at boot**, not per request — they are global and change rarely, so a rule edit needs a restart. Still strictly better than the rebuild-and-redeploy it replaced.
+- **AI-assisted categorisation was built and then removed** — it was never able to make a successful call (no credits), so its quality was unknown, while it carried batching, a timeout budget, a consent flag, a demo-account block and an SDK dependency. Revisit once the DB-backed rules show how big the remaining gap actually is.
 
 ---
 
@@ -264,6 +273,20 @@ Mounted under `/api/v1` and `/:stage/api/v1`.
       logout/switch, 401 → login). Builds pass; prod login works after the API Gateway CORS fix.
 - [ ] Active branch for the auth work: `feature/auth-demo-account` (off `main`) — merge when validated.
 - [ ] Consider httpOnly-cookie token storage + short-lived tokens + refresh if this ever grows beyond personal use.
+- [ ] **Transactions already stored under `Standard Bank -> Income` are still wrong.** The rule
+      itself is fixed (migration `004` now seeds `NULL`, like `FNB`, and carries an `UPDATE` for
+      databases that already ran the earlier version), but rows written before that keep
+      `Category: Income` with `Type: Expense`. They correct themselves on re-upload of the month,
+      or via the Transactions tab, which now moves the `type` with the category.
+- [ ] **`Sandton City Parking` has no default category.** It previously mapped to `Parking`, which
+      is not one of the 14, so it rendered as a blank dropdown; the new foreign key made that
+      unrepresentable and it was seeded `NULL` rather than inventing a value. `Transport` is the
+      obvious answer if you want one.
+- [ ] **Corrections are still wiped when a month is re-uploaded** — `saveDashboardDetails` deletes
+      and re-inserts every transaction row. Only bites on re-upload of the same month; a per-user
+      override store was built for this and deliberately cut as over-engineered for the user count.
+- [ ] **No UI for editing merchants, patterns or categories** — they are maintained by SQL. Worth a
+      management screen if a second user starts needing their own rules.
 
 ---
 
@@ -272,7 +295,11 @@ Mounted under `/api/v1` and `/:stage/api/v1`.
 - **Transactions tab** (`organisms/transactionsTab`) — lists a month's transactions grouped by
   category with per-row category dropdowns; tracks pending edits in a `Map<transactionId, category>`;
   Save bulk-updates via `PUT /UpdateTransactionCategories`, Reset clears pending. Needs the
-  transaction `id`, which flows through `ITransaction.id` and `convertReport()`.
+  transaction `id`, which flows through `ITransaction.id` and `convertReport()`. The dropdown
+  options come from `GET /GetCategories`. A correction also rewrites the row's `type` (Income /
+  Savings / Expense, derived from the new category) and recomputes the stored report totals, because
+  the KPI tiles sum by `type` while the breakdown groups by `category`. A correction is written to
+  that transaction row only — it is not remembered, so re-uploading the month discards it.
 - **Budgets** (`organisms/budgetTab`) — per-category targets per month; "use previous budget" option;
   summary metrics. Persisted via `budget` + `budget_category`.
 - **PDF reports** (`PdfReportBuilder` + `ChartBuilder`) — build SVG charts via a generic

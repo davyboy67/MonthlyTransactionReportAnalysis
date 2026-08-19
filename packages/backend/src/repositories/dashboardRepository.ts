@@ -1,4 +1,4 @@
-import { Repository, DataSource } from 'typeorm';
+import { Repository, DataSource, In } from 'typeorm';
 import { ReportAnalysis as ReportAnalysisEntity } from '../entities/ReportAnalysis';
 import { Transaction as TransactionEntity } from '../entities/Transaction';
 import { Users } from '../entities/Users';
@@ -11,6 +11,12 @@ import {
   CyclePayDays,
   DEFAULT_PAY_DAY,
 } from '@transaction-report/shared';
+
+export interface TransactionRow {
+  id: number;
+  type: string;
+  report_analysis_id: number;
+}
 
 function toUtcDateString(date: Date): string {
   return date.toISOString().slice(0, 10);
@@ -33,8 +39,10 @@ export interface IDashboardRepository {
   saveDashboardDetails(userId: number, reportAnalysis: IReportAnalysis): Promise<void>;
   updateTransactionCategories(
     userId: number,
-    updates: Array<{ id: number; category: string }>
+    updates: Array<{ id: number; category: string; type?: string }>,
+    reportIds?: number[]
   ): Promise<void>;
+  getTransactionsByIds(userId: number, ids: number[]): Promise<TransactionRow[]>;
   resolvePayDays(userId: number, month: number, year: number): Promise<CyclePayDays>;
   savePayDays(
     userId: number,
@@ -253,12 +261,58 @@ export class DashboardRepository implements IDashboardRepository {
 
   async updateTransactionCategories(
     userId: number,
-    updates: Array<{ id: number; category: string }>
+    updates: Array<{ id: number; category: string; type?: string }>,
+    reportIds?: number[]
   ): Promise<void> {
     await Promise.all(
       updates.map(u =>
-        this.transactionRepository.update({ id: u.id, user_id: userId }, { category: u.category })
+        this.transactionRepository.update(
+          { id: u.id, user_id: userId },
+          u.type ? { category: u.category, type: u.type } : { category: u.category }
+        )
       )
     );
+
+    // Stored totals are read by the KPI tiles, trends, PDF and email, so a type change has to reach them.
+    if (reportIds && reportIds.length > 0) {
+      await this.recalculateReportTotals(userId, reportIds);
+    }
+  }
+
+  private async recalculateReportTotals(userId: number, reportIds: number[]): Promise<void> {
+    await this.dataSource.query(
+      `UPDATE reportanalysis r
+          SET total_income   = t.income,
+              total_expenses = t.expenses,
+              total_savings  = t.savings
+         FROM (
+           SELECT report_analysis_id,
+                  COALESCE(SUM(amount) FILTER (WHERE type = 'Income'),  0) AS income,
+                  COALESCE(SUM(amount) FILTER (WHERE type = 'Expense'), 0) AS expenses,
+                  COALESCE(SUM(amount) FILTER (WHERE type = 'Savings'), 0) AS savings
+             FROM transaction
+            WHERE report_analysis_id = ANY($2::int[])
+            GROUP BY report_analysis_id
+         ) t
+        WHERE r.id = t.report_analysis_id AND r.user_id = $1`,
+      [userId, reportIds]
+    );
+  }
+
+  async getTransactionsByIds(userId: number, ids: number[]): Promise<TransactionRow[]> {
+    if (ids.length === 0) {
+      return [];
+    }
+
+    const rows = await this.transactionRepository.find({
+      where: { user_id: userId, id: In(ids) },
+      select: ['id', 'type', 'report_analysis_id'],
+    });
+
+    return rows.map(r => ({
+      id: r.id,
+      type: r.type,
+      report_analysis_id: r.report_analysis_id,
+    }));
   }
 }

@@ -2,6 +2,7 @@ import axios from 'axios';
 import { IReportAnalysis, SaveReportAnalysisRequest } from '../models/IReportAnalysis';
 import type { IBudget } from '../models/IBudget';
 import type { CyclePayDays } from './IDataAnalysisService';
+import type { CategoryDefinition } from '../data/categories';
 
 declare const __API_URL__: string;
 const VITE_API_URL =
@@ -70,7 +71,19 @@ export interface LoginResponse {
   user: UserProfile;
 }
 
+let categoriesPromise: Promise<CategoryDefinition[]> | null = null;
+
 export const apiClient = {
+  getCategories: async (): Promise<CategoryDefinition[]> => {
+    categoriesPromise ??= api
+      .get('/GetCategories')
+      .then(response => response.data.categories as CategoryDefinition[])
+      .catch(error => {
+        categoriesPromise = null; // let the next caller retry
+        throw error;
+      });
+    return categoriesPromise;
+  },
   login: async (email: string, password: string): Promise<LoginResponse> => {
     const response = await api.post('/Login', { email, password });
     setToken(response.data.token);

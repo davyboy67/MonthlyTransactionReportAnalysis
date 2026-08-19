@@ -34,6 +34,7 @@ describe('DashboardRepository', () => {
       save: jest.fn(),
       delete: jest.fn(),
       update: jest.fn(),
+      find: jest.fn().mockResolvedValue([]),
     };
 
     mockDataSource = {
@@ -41,6 +42,7 @@ describe('DashboardRepository', () => {
         if (entity === ReportAnalysisEntity) return mockReportAnalysisRepo;
         if (entity === TransactionEntity) return mockTransactionRepo;
       }),
+      query: jest.fn().mockResolvedValue([]),
     };
 
     repository = new DashboardRepository(mockDataSource);
@@ -205,5 +207,61 @@ describe('DashboardRepository', () => {
         { category: 'Transport' }
       );
     });
+
+    it('should also write the type when the caller supplies one', async () => {
+      mockTransactionRepo.update.mockResolvedValue({});
+
+      await repository.updateTransactionCategories(USER_ID, [
+        { id: 1, category: 'Savings', type: 'Savings' },
+      ]);
+
+      expect(mockTransactionRepo.update).toHaveBeenCalledWith(
+        { id: 1, user_id: USER_ID },
+        { category: 'Savings', type: 'Savings' }
+      );
+    });
+
+    it('should recompute the stored report totals for the affected reports', async () => {
+      mockTransactionRepo.update.mockResolvedValue({});
+
+      await repository.updateTransactionCategories(
+        USER_ID,
+        [{ id: 1, category: 'Savings', type: 'Savings' }],
+        [7]
+      );
+
+      const [sql, params] = mockDataSource.query.mock.calls[0];
+      expect(sql).toContain('UPDATE reportanalysis');
+      expect(params).toEqual([USER_ID, [7]]);
+    });
+
+    it('should not touch report totals when no report ids are given', async () => {
+      mockTransactionRepo.update.mockResolvedValue({});
+
+      await repository.updateTransactionCategories(USER_ID, [{ id: 1, category: 'Groceries' }]);
+
+      expect(mockDataSource.query).not.toHaveBeenCalled();
+    });
   });
+
+  describe('getTransactionsByIds', () => {
+    it('should scope the lookup to the user', async () => {
+      mockTransactionRepo.find.mockResolvedValue([
+        { id: 1, type: 'Expense', report_analysis_id: 7 },
+      ]);
+
+      const rows = await repository.getTransactionsByIds(USER_ID, [1]);
+
+      expect(mockTransactionRepo.find).toHaveBeenCalledWith(
+        expect.objectContaining({ where: expect.objectContaining({ user_id: USER_ID }) })
+      );
+      expect(rows).toEqual([{ id: 1, type: 'Expense', report_analysis_id: 7 }]);
+    });
+
+    it('should not query at all for an empty id list', async () => {
+      expect(await repository.getTransactionsByIds(USER_ID, [])).toEqual([]);
+      expect(mockTransactionRepo.find).not.toHaveBeenCalled();
+    });
+  });
+
 });

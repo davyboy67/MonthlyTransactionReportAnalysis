@@ -1,4 +1,5 @@
 import { IDashboardRepository } from '../repositories/dashboardRepository';
+import { IReferenceDataRepository } from '../repositories/referenceDataRepository';
 import { DashboardDetailsResponse } from '../models/types';
 import { IReportAnalysis } from '@transaction-report/shared';
 import {
@@ -8,7 +9,21 @@ import {
   ITransaction,
   CyclePayDays,
   EmptyStatementError,
+  TransactionType,
+  CategoryDefinition,
 } from '@transaction-report/shared';
+
+// Type is derived from category, never carried over: the KPI tiles sum by type while the
+// breakdown groups by category, so leaving the old type behind makes the two disagree.
+function resolveTypeForCategory(newCategory: string): string {
+  if (newCategory === 'Income') {
+    return TransactionType.Income;
+  }
+  if (newCategory === 'Savings') {
+    return TransactionType.Savings;
+  }
+  return TransactionType.Expense;
+}
 
 export interface IDashboardService {
   getReportForMonth(userId: number, month: number, year: number): Promise<DashboardDetailsResponse>;
@@ -26,21 +41,29 @@ export interface IDashboardService {
     updates: Array<{ id: number; category: string }>
   ): Promise<void>;
   getPayDays(userId: number, month: number, year: number): Promise<CyclePayDays>;
+  getCategories(): Promise<CategoryDefinition[]>;
 }
 
 export class DashboardService implements IDashboardService {
   private dashboardRepository: IDashboardRepository;
   private statementExtractionService: IStatementExtractionService;
   private dataAnalysisService: IDataAnalysisService;
+  private referenceDataRepository: IReferenceDataRepository;
 
   constructor(
     dashboardRepository: IDashboardRepository,
     statementExtractionService: IStatementExtractionService,
-    dataAnalysisService: IDataAnalysisService
+    dataAnalysisService: IDataAnalysisService,
+    referenceDataRepository: IReferenceDataRepository
   ) {
     this.dashboardRepository = dashboardRepository;
     this.statementExtractionService = statementExtractionService;
     this.dataAnalysisService = dataAnalysisService;
+    this.referenceDataRepository = referenceDataRepository;
+  }
+
+  async getCategories(): Promise<CategoryDefinition[]> {
+    return this.referenceDataRepository.getCategories();
   }
 
   async getReportForMonth(
@@ -65,7 +88,34 @@ export class DashboardService implements IDashboardService {
     userId: number,
     updates: Array<{ id: number; category: string }>
   ): Promise<void> {
-    await this.dashboardRepository.updateTransactionCategories(userId, updates);
+    const rows = await this.dashboardRepository.getTransactionsByIds(
+      userId,
+      updates.map(u => u.id)
+    );
+    const rowsById = new Map(rows.map(r => [r.id, r]));
+
+    const applied: Array<{ id: number; category: string; type?: string }> = [];
+    const reportIds = new Set<number>();
+
+    for (const update of updates) {
+      const row = rowsById.get(update.id);
+      if (!row) {
+        continue;
+      }
+
+      applied.push({
+        id: update.id,
+        category: update.category,
+        type: resolveTypeForCategory(update.category),
+      });
+      reportIds.add(row.report_analysis_id);
+    }
+
+    if (applied.length === 0) {
+      return;
+    }
+
+    await this.dashboardRepository.updateTransactionCategories(userId, applied, [...reportIds]);
   }
 
   async getPayDays(userId: number, month: number, year: number): Promise<CyclePayDays> {

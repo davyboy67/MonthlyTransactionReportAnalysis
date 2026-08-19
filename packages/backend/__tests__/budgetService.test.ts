@@ -1,10 +1,18 @@
 import { BudgetService } from '../src/services/BudgetService';
 import { IBudgetRepository } from '../src/repositories/budgetRepository';
-import { IBudget, categoryDefinitions } from '@transaction-report/shared';
+import { IBudget } from '@transaction-report/shared';
+import { IReferenceDataRepository } from '../src/repositories/referenceDataRepository';
+
+const CATEGORIES = [
+  { name: 'Groceries', displayName: 'Groceries & Supermarkets' },
+  { name: 'Transport', displayName: 'Transport & Travel' },
+  { name: 'Savings', displayName: 'Savings & Investments' },
+];
 
 describe('BudgetService', () => {
   let service: BudgetService;
   let mockRepository: jest.Mocked<IBudgetRepository>;
+  let mockReferenceDataRepository: jest.Mocked<IReferenceDataRepository>;
 
   const mockBudget: IBudget = {
     budget_id: 1,
@@ -32,7 +40,11 @@ describe('BudgetService', () => {
       findMostRecentBudget: jest.fn(),
       saveOrUpdateBudget: jest.fn(),
     };
-    service = new BudgetService(mockRepository);
+    mockReferenceDataRepository = {
+      getCategories: jest.fn().mockResolvedValue(CATEGORIES),
+      getMerchantRules: jest.fn(),
+    };
+    service = new BudgetService(mockRepository, mockReferenceDataRepository);
   });
 
   describe('getBudgetForMonth', () => {
@@ -60,12 +72,11 @@ describe('BudgetService', () => {
 
       const result = await service.getBudgetForMonth(1, 3, 2024);
 
-      expect(result.budget.categories).toHaveLength(categoryDefinitions.length);
+      expect(result.budget.categories).toHaveLength(CATEGORIES.length);
       expect(result.budget.categories.every(cat => cat.amount === 0)).toBe(true);
       expect(result.budget.categories.every(cat => cat.budget_id === 0)).toBe(true);
-      // names line up with the shared category list, in order
       expect(result.budget.categories.map(c => c.category_name)).toEqual(
-        categoryDefinitions.map(c => c.name)
+        CATEGORIES.map(c => c.name)
       );
     });
 

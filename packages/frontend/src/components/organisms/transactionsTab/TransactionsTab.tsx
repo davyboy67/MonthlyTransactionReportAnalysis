@@ -1,11 +1,10 @@
 import { useEffect, useState, useCallback } from 'react';
-import {
-  apiClient,
-  categoryDefinitions,
-  formatZar,
-  formatMonthLabel,
+import { apiClient, formatZar, formatMonthLabel } from '@transaction-report/shared';
+import type {
+  CategoryDefinition,
+  IReportAnalysis,
+  ITransaction,
 } from '@transaction-report/shared';
-import type { IReportAnalysis, ITransaction } from '@transaction-report/shared';
 import { GlassPanel } from '../../atoms/glassPanel/GlassPanel';
 import { MonthNav } from '../../molecules/monthNav/MonthNav';
 import type { MonthSelection } from '../../../hooks/useMonthSelection';
@@ -27,6 +26,7 @@ export function TransactionsTab({ selection }: TransactionsTabProps) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pendingChanges, setPendingChanges] = useState<Map<number, string>>(new Map());
+  const [categories, setCategories] = useState<CategoryDefinition[]>([]);
 
   const fetchReport = useCallback(async (m: number, y: number) => {
     setLoading(true);
@@ -46,6 +46,13 @@ export function TransactionsTab({ selection }: TransactionsTabProps) {
   useEffect(() => {
     fetchReport(month, year);
   }, [month, year, fetchReport]);
+
+  useEffect(() => {
+    apiClient
+      .getCategories()
+      .then(setCategories)
+      .catch(() => setError('Failed to load categories'));
+  }, []);
 
   const handleCategoryChange = (transaction: ITransaction, newCategory: string) => {
     if (transaction.id == null) return;
@@ -157,7 +164,7 @@ export function TransactionsTab({ selection }: TransactionsTabProps) {
                             value={currentCategory}
                             onChange={e => handleCategoryChange(t, e.target.value)}
                           >
-                            {categoryDefinitions.map(cat => (
+                            {categories.map(cat => (
                               <option key={cat.name} value={cat.name}>{cat.displayName}</option>
                             ))}
                           </select>

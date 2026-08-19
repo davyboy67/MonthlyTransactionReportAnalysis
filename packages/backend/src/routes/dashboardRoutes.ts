@@ -23,6 +23,16 @@ export function createDashboardRouter(dashboardService: IDashboardService): Rout
     }
   });
 
+  // GET /api/v1/GetCategories
+  router.get('/GetCategories', async (_req: Request, res: Response) => {
+    try {
+      res.json({ categories: await dashboardService.getCategories() });
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
   // GET /api/v1/GetReportForMonth?month=X&year=Y
   router.get('/GetReportForMonth', async (req: Request, res: Response) => {
     try {
@@ -73,6 +83,10 @@ export function createDashboardRouter(dashboardService: IDashboardService): Rout
       const { updates } = req.body as { updates: Array<{ id: number; category: string }> };
       if (!Array.isArray(updates) || updates.length === 0) {
         return res.status(400).json({ error: 'updates must be a non-empty array' });
+      }
+      const validCategories = new Set((await dashboardService.getCategories()).map(c => c.name));
+      if (updates.some(u => !validCategories.has(u.category))) {
+        return res.status(400).json({ error: 'unknown category' });
       }
       await dashboardService.updateTransactionCategories(req.userId, updates);
       res.json({ success: true });

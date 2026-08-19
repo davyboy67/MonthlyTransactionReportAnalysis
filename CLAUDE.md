@@ -44,11 +44,29 @@ When your changes create orphans:
 
 - Remove imports/variables/functions that YOUR changes made unused.
 - Don't remove pre-existing dead code unless asked.
-- Do not needlessly make comments, only create comments when there is a pressing need to do so
 
 The test: every changed line should trace directly to the user's request.
 
-### 4. Goal-driven execution
+### 4. Comments earn their place
+
+**Explain why, never what. The code says what it does.**
+
+Assume a competent developer is reading. They can follow the code; what they cannot recover is
+the reasoning that is no longer on the page.
+
+- Never restate what the code does. If a comment paraphrases the line below it, delete it.
+- Only write a comment when a competent developer would ask "why is this here?" and not be able
+  to answer it from the code, the types, or the test names.
+- Good reasons to comment: a non-obvious constraint, a decision that looks wrong but is not, a
+  behaviour inherited from somewhere the reader cannot see, an ordering that matters.
+- Prefer making the code explain itself — a better name, a smaller function, a named constant —
+  over adding a comment.
+- Delete comments that have gone stale rather than updating them into vagueness.
+
+Before keeping a comment, ask: "would a competent developer be confused without this?" If no,
+delete it.
+
+### 5. Goal-driven execution
 
 **Define success criteria. Loop until verified.**
 

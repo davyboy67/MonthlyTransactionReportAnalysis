@@ -1,5 +1,6 @@
 import { IBudget, buildDefaultBudgetCategories } from '@transaction-report/shared';
 import { IBudgetRepository } from '../repositories/budgetRepository';
+import { IReferenceDataRepository } from '../repositories/referenceDataRepository';
 import { BudgetResponse } from '../models/types';
 
 export interface IBudgetService {
@@ -10,9 +11,14 @@ export interface IBudgetService {
 
 export class BudgetService implements IBudgetService {
   private budgetRepository: IBudgetRepository;
+  private referenceDataRepository: IReferenceDataRepository;
 
-  constructor(budgetRepository: IBudgetRepository) {
+  constructor(
+    budgetRepository: IBudgetRepository,
+    referenceDataRepository: IReferenceDataRepository
+  ) {
     this.budgetRepository = budgetRepository;
+    this.referenceDataRepository = referenceDataRepository;
   }
 
   async getBudgetForMonth(userId: number, month: number, year: number): Promise<BudgetResponse> {
@@ -29,7 +35,7 @@ export class BudgetService implements IBudgetService {
       notes: null,
       created_at: new Date(),
       updated_at: null,
-      categories: buildDefaultBudgetCategories(),
+      categories: buildDefaultBudgetCategories(await this.referenceDataRepository.getCategories()),
     };
 
     return { budget: defaultBudget };

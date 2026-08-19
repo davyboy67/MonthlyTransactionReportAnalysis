@@ -1,10 +1,7 @@
 import { formatZar, formatMonthLabel } from "../src/utils/format";
 import { dominantMonth } from "../src/utils/dateUtils";
-import {
-  buildDefaultBudgetCategories,
-  categoryDefinitions,
-  categoryDisplayNames,
-} from "../src/data/categories";
+import { buildDefaultBudgetCategories, categoryDisplayName } from "../src/data/categories";
+import type { CategoryDefinition } from "../src/data/categories";
 import { ITransaction, TransactionType } from "../src/models/ITransaction";
 
 describe("formatZar", () => {
@@ -70,17 +67,25 @@ describe("dominantMonth", () => {
 });
 
 describe("category data", () => {
-  it("builds one zero-amount budget category per definition", () => {
-    const cats = buildDefaultBudgetCategories();
+  const definitions: CategoryDefinition[] = [
+    { name: "Groceries", displayName: "Groceries & Supermarkets" },
+    { name: "Savings", displayName: "Savings & Investments" },
+  ];
 
-    expect(cats).toHaveLength(categoryDefinitions.length);
+  it("builds one zero-amount budget category per definition", () => {
+    const cats = buildDefaultBudgetCategories(definitions);
+
+    expect(cats).toHaveLength(definitions.length);
     expect(cats.every(c => c.amount === 0 && c.budget_id === 0)).toBe(true);
-    expect(cats.map(c => c.category_name)).toEqual(categoryDefinitions.map(d => d.name));
+    expect(cats.map(c => c.category_name)).toEqual(definitions.map(d => d.name));
   });
 
-  it("exposes a name -> display-name lookup covering every category", () => {
-    for (const def of categoryDefinitions) {
-      expect(categoryDisplayNames[def.name]).toBe(def.displayName);
-    }
+  it("resolves a display name, falling back to the raw name", () => {
+    expect(categoryDisplayName(definitions, "Savings")).toBe("Savings & Investments");
+    expect(categoryDisplayName(definitions, "Unmapped")).toBe("Unmapped");
+  });
+
+  it("produces no rows before the category list has loaded", () => {
+    expect(buildDefaultBudgetCategories([])).toEqual([]);
   });
 });

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { apiClient, buildDefaultBudgetCategories, formatZar } from '@transaction-report/shared';
+import type { CategoryDefinition } from '@transaction-report/shared';
 import type { IBudget, IBudgetCategory, IReportAnalysis } from '@transaction-report/shared';
 import { BudgetTable } from '../budgetTable/BudgetTable';
 import { GlassPanel } from '../../atoms/glassPanel/GlassPanel';
@@ -16,7 +17,19 @@ const fmt = (n: number) => formatZar(n);
 
 export function BudgetTab({ selection, reportAnalysis }: BudgetTabProps) {
   const { month: selectedMonth, year: selectedYear, isPastMonth: readOnly } = selection;
-  const [categories, setCategories] = useState<IBudgetCategory[]>(buildDefaultBudgetCategories);
+  const [savedCategories, setCategories] = useState<IBudgetCategory[]>([]);
+  const [categoryDefinitions, setCategoryDefinitions] = useState<CategoryDefinition[]>([]);
+
+  useEffect(() => {
+    apiClient
+      .getCategories()
+      .then(setCategoryDefinitions)
+      .catch(() => setSaveError('Failed to load categories'));
+  }, []);
+
+  // Derived, not stored: falling back to defaults before the category list loads would be empty.
+  const categories =
+    savedCategories.length > 0 ? savedCategories : buildDefaultBudgetCategories(categoryDefinitions);
   const [budgetId, setBudgetId] = useState(0);
   const [usePreviousBudget, setUsePreviousBudget] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -42,7 +55,7 @@ export function BudgetTab({ selection, reportAnalysis }: BudgetTabProps) {
       })
       .catch(() => {
         if (cancelled) return;
-        setCategories(buildDefaultBudgetCategories());
+        setCategories([]);
         setBudgetId(0);
       })
       .finally(() => {
@@ -76,8 +89,10 @@ export function BudgetTab({ selection, reportAnalysis }: BudgetTabProps) {
       : undefined;
   const unallocated = effectiveIncome !== undefined ? effectiveIncome - totalBudgeted : undefined;
 
+  // Edits go through the derived list: `savedCategories` is empty until a budget loads, and
+  // mapping over an empty array would drop the edit.
   const handleAmountChange = (categoryId: number, amount: number) => {
-    setCategories(prev => prev.map(c => (c.category_id === categoryId ? { ...c, amount } : c)));
+    setCategories(categories.map(c => (c.category_id === categoryId ? { ...c, amount } : c)));
   };
 
   const handleAnticipatedIncomeChange = (value: number) => {
@@ -91,8 +106,8 @@ export function BudgetTab({ selection, reportAnalysis }: BudgetTabProps) {
       try {
         const response = await apiClient.getLatestBudget();
         if (response.budget?.categories) {
-          setCategories(prev =>
-            prev.map(cat => {
+          setCategories(
+            categories.map(cat => {
               const prev_cat = response.budget!.categories.find(
                 p => p.category_name === cat.category_name
               );
@@ -109,7 +124,7 @@ export function BudgetTab({ selection, reportAnalysis }: BudgetTabProps) {
         setCategories(response.budget.categories);
         setBudgetId(response.budget.budget_id);
       } catch {
-        setCategories(buildDefaultBudgetCategories());
+        setCategories([]);
       }
     }
   };
@@ -237,6 +252,7 @@ export function BudgetTab({ selection, reportAnalysis }: BudgetTabProps) {
       ) : (
         <BudgetTable
           categories={expenseCategories}
+          categoryDefinitions={categoryDefinitions}
           actuals={actuals}
           readOnly={readOnly}
           onChange={handleAmountChange}

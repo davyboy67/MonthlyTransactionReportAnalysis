@@ -7,12 +7,14 @@ import {
   TransactionType,
   EmptyStatementError,
 } from '@transaction-report/shared';
+import { IReferenceDataRepository } from '../src/repositories/referenceDataRepository';
 
 describe('DashboardService', () => {
   let service: DashboardService;
   let mockRepository: jest.Mocked<IDashboardRepository>;
   let mockStatementExtractionService: jest.Mocked<IStatementExtractionService>;
   let mockDataAnalysisService: jest.Mocked<IDataAnalysisService>;
+  let mockReferenceDataRepository: jest.Mocked<IReferenceDataRepository>;
 
   const USER_ID = 42;
   const PAY_DAYS = { previousMonth: 26, targetMonth: 26 };
@@ -24,6 +26,7 @@ describe('DashboardService', () => {
       getLastNMonthsReports: jest.fn(),
       saveDashboardDetails: jest.fn(),
       updateTransactionCategories: jest.fn(),
+      getTransactionsByIds: jest.fn().mockResolvedValue([]),
       resolvePayDays: jest.fn(),
       savePayDays: jest.fn(),
     };
@@ -38,10 +41,16 @@ describe('DashboardService', () => {
       analyseTransactions: jest.fn(),
     };
 
+    mockReferenceDataRepository = {
+      getCategories: jest.fn().mockResolvedValue([]),
+      getMerchantRules: jest.fn(),
+    };
+
     service = new DashboardService(
       mockRepository,
       mockStatementExtractionService,
-      mockDataAnalysisService
+      mockDataAnalysisService,
+      mockReferenceDataRepository
     );
   });
 
@@ -96,13 +105,63 @@ describe('DashboardService', () => {
   });
 
   describe('updateTransactionCategories', () => {
-    it('should forward the userId and updates to the repository', async () => {
-      mockRepository.updateTransactionCategories.mockResolvedValue();
-      const updates = [{ id: 1, category: 'Groceries' }];
+    const row = (type: string) => ({ id: 1, type, report_analysis_id: 7 });
 
-      await service.updateTransactionCategories(USER_ID, updates);
+    it('should ignore ids that do not belong to the user', async () => {
+      mockRepository.getTransactionsByIds.mockResolvedValue([]);
 
-      expect(mockRepository.updateTransactionCategories).toHaveBeenCalledWith(USER_ID, updates);
+      await service.updateTransactionCategories(USER_ID, [{ id: 99, category: 'Groceries' }]);
+
+      expect(mockRepository.updateTransactionCategories).not.toHaveBeenCalled();
+    });
+
+    // The tiles sum by type while the breakdown groups by category, so both have to move.
+    it('should move the type into Savings and pass the affected report for recompute', async () => {
+      mockRepository.getTransactionsByIds.mockResolvedValue([row(TransactionType.Expense)]);
+
+      await service.updateTransactionCategories(USER_ID, [{ id: 1, category: 'Savings' }]);
+
+      expect(mockRepository.updateTransactionCategories).toHaveBeenCalledWith(
+        USER_ID,
+        [{ id: 1, category: 'Savings', type: TransactionType.Savings }],
+        [7]
+      );
+    });
+
+    it('should move the type back out of Savings', async () => {
+      mockRepository.getTransactionsByIds.mockResolvedValue([row(TransactionType.Savings)]);
+
+      await service.updateTransactionCategories(USER_ID, [{ id: 1, category: 'Groceries' }]);
+
+      expect(mockRepository.updateTransactionCategories).toHaveBeenCalledWith(
+        USER_ID,
+        [{ id: 1, category: 'Groceries', type: TransactionType.Expense }],
+        [7]
+      );
+    });
+
+    it('should move a transaction corrected to Income out of the expense total', async () => {
+      mockRepository.getTransactionsByIds.mockResolvedValue([row(TransactionType.Expense)]);
+
+      await service.updateTransactionCategories(USER_ID, [{ id: 1, category: 'Income' }]);
+
+      expect(mockRepository.updateTransactionCategories).toHaveBeenCalledWith(
+        USER_ID,
+        [{ id: 1, category: 'Income', type: TransactionType.Income }],
+        [7]
+      );
+    });
+
+    it('should move a misclassified income transaction into Expense', async () => {
+      mockRepository.getTransactionsByIds.mockResolvedValue([row(TransactionType.Income)]);
+
+      await service.updateTransactionCategories(USER_ID, [{ id: 1, category: 'Groceries' }]);
+
+      expect(mockRepository.updateTransactionCategories).toHaveBeenCalledWith(
+        USER_ID,
+        [{ id: 1, category: 'Groceries', type: TransactionType.Expense }],
+        [7]
+      );
     });
   });
 
@@ -151,7 +210,12 @@ describe('DashboardService', () => {
         expect.objectContaining({ fileBuffer: expect.any(Buffer) })
       );
       expect(mockStatementExtractionService.compileTransactionList).toHaveBeenCalledWith(csvData);
-      expect(mockDataAnalysisService.analyseTransactions).toHaveBeenCalledWith(1, 2024, mockTransactions, PAY_DAYS);
+      expect(mockDataAnalysisService.analyseTransactions).toHaveBeenCalledWith(
+        1,
+        2024,
+        mockTransactions,
+        PAY_DAYS
+      );
       expect(mockRepository.savePayDays).toHaveBeenCalledWith(USER_ID, 1, 2024, PAY_DAYS);
       // the processed report is persisted, scoped to the user
       expect(mockRepository.saveDashboardDetails).toHaveBeenCalledWith(
@@ -224,4 +288,5 @@ describe('DashboardService', () => {
       expect(mockRepository.savePayDays).not.toHaveBeenCalled();
     });
   });
+
 });
