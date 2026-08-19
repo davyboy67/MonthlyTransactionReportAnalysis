@@ -12,6 +12,7 @@ import './TransactionsTab.css';
 
 interface TransactionsTabProps {
   selection: MonthSelection;
+  onCategoriesSaved?: () => void;
 }
 
 function formatDate(date: Date | string): string {
@@ -19,7 +20,7 @@ function formatDate(date: Date | string): string {
   return d.toLocaleDateString('en-ZA', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
-export function TransactionsTab({ selection }: TransactionsTabProps) {
+export function TransactionsTab({ selection, onCategoriesSaved }: TransactionsTabProps) {
   const { month, year, isCurrentMonth } = selection;
   const [report, setReport] = useState<IReportAnalysis | null>(null);
   const [loading, setLoading] = useState(true);
@@ -76,6 +77,7 @@ export function TransactionsTab({ selection }: TransactionsTabProps) {
       const updates = [...pendingChanges.entries()].map(([id, category]) => ({ id, category }));
       await apiClient.updateTransactionCategories(updates);
       await fetchReport(month, year);
+      onCategoriesSaved?.();
     } catch {
       setError('Failed to save changes');
     } finally {

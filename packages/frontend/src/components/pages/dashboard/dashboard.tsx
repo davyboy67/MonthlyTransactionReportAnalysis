@@ -43,6 +43,8 @@ export function Dashboard() {
   const [showSettings, setShowSettings] = useState(false);
   const [pending, setPending] = useState<{ file: File; payDays: CyclePayDays } | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  // Bumped when a tab mutates the month's transactions, so the report below refetches.
+  const [reportRefresh, setReportRefresh] = useState(0);
   const accountRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -99,7 +101,7 @@ export function Dashboard() {
     return () => {
       cancelled = true;
     };
-  }, [selectedMonth, selectedYear]);
+  }, [selectedMonth, selectedYear, reportRefresh]);
 
   const handleFileSelected = async (file: File) => {
     setUploadError(null);
@@ -281,7 +283,12 @@ export function Dashboard() {
 
   const renderTrendsTab = () => <TrendAnalysisTab />;
 
-  const renderTransactionsTab = () => <TransactionsTab selection={selection} />;
+  const renderTransactionsTab = () => (
+    <TransactionsTab
+      selection={selection}
+      onCategoriesSaved={() => setReportRefresh(n => n + 1)}
+    />
+  );
 
   return (
     <main className="dashboard">
