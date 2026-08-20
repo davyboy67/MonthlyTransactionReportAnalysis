@@ -44,7 +44,13 @@ describe('AuthService', () => {
       const result = await service.login('admin', 'admin');
 
       expect(result.token).toBe('signed.jwt.token');
-      expect(result.user).toEqual({ userId: 2, firstName: 'Demo', lastName: 'User', payDay: 26 });
+      expect(result.user).toEqual({
+        userId: 2,
+        firstName: 'Demo',
+        lastName: 'User',
+        payDay: 26,
+        isOwner: false,
+      });
     });
 
     it('should look the user up by email', async () => {
@@ -120,6 +126,10 @@ describe('AuthService', () => {
 
     it('should throw a configuration error when JWT_SECRET is not set', async () => {
       delete process.env.JWT_SECRET;
+      // Credentials are checked before the token is signed, so a valid user is needed to
+      // reach the point where the missing secret surfaces.
+      mockUsersRepo.findOne.mockResolvedValue(sampleUser);
+      (mockedBcrypt.compare as jest.Mock).mockResolvedValue(true);
 
       await expect(service.login('admin', 'admin')).rejects.toThrow('JWT_SECRET is not configured');
     });
@@ -131,7 +141,13 @@ describe('AuthService', () => {
 
       const profile = await service.getProfile(2);
 
-      expect(profile).toEqual({ userId: 2, firstName: 'Demo', lastName: 'User', payDay: 26 });
+      expect(profile).toEqual({
+        userId: 2,
+        firstName: 'Demo',
+        lastName: 'User',
+        payDay: 26,
+        isOwner: false,
+      });
       expect(mockUsersRepo.findOne).toHaveBeenCalledWith({ where: { user_id: 2 } });
     });
 

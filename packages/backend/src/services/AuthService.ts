@@ -18,6 +18,7 @@ export interface UserProfile {
   firstName: string;
   lastName: string;
   payDay: number;
+  isOwner: boolean;
 }
 
 export interface LoginResult {
@@ -34,6 +35,18 @@ export class UserNotFoundError extends Error {
 
 const TOKEN_EXPIRY = '7d';
 
+// Creating invites is restricted to this user. A single owner is the whole access model, so
+// there is no role column -- see requireOwner middleware.
+export const OWNER_USER_ID = 1;
+
+export function signToken(userId: number): string {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error('JWT_SECRET is not configured');
+  }
+  return jwt.sign({ userId }, secret, { expiresIn: TOKEN_EXPIRY });
+}
+
 export class AuthService {
   private usersRepository: Repository<Users>;
 
@@ -42,11 +55,6 @@ export class AuthService {
   }
 
   async login(email: string, password: string): Promise<LoginResult> {
-    const secret = process.env.JWT_SECRET;
-    if (!secret) {
-      throw new Error('JWT_SECRET is not configured');
-    }
-
     const user = await this.usersRepository.findOne({
       where: { email },
     });
@@ -60,17 +68,14 @@ export class AuthService {
       throw new InvalidCredentialsError();
     }
 
-    const token = jwt.sign({ userId: user.user_id }, secret, {
-      expiresIn: TOKEN_EXPIRY,
-    });
-
     return {
-      token,
+      token: signToken(user.user_id),
       user: {
         userId: user.user_id,
         firstName: user.first_name,
         lastName: user.last_name,
         payDay: user.pay_day,
+        isOwner: user.user_id === OWNER_USER_ID,
       },
     };
   }
@@ -89,6 +94,7 @@ export class AuthService {
       firstName: user.first_name.trim(),
       lastName: user.last_name.trim(),
       payDay: user.pay_day,
+      isOwner: user.user_id === OWNER_USER_ID,
     };
   }
 

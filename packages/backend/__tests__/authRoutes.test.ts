@@ -31,7 +31,7 @@ describe('Auth API Routes', () => {
     it('should return 200 with the token and user on success', async () => {
       mockAuthService.login.mockResolvedValue({
         token: 'signed.jwt',
-        user: { userId: 2, firstName: 'Demo', lastName: 'User', payDay: 26 },
+        user: { userId: 2, firstName: 'Demo', lastName: 'User', payDay: 26, isOwner: false },
       });
 
       const response = await request(app)
@@ -40,7 +40,13 @@ describe('Auth API Routes', () => {
 
       expect(response.status).toBe(200);
       expect(response.body.token).toBe('signed.jwt');
-      expect(response.body.user).toEqual({ userId: 2, firstName: 'Demo', lastName: 'User', payDay: 26 });
+      expect(response.body.user).toEqual({
+        userId: 2,
+        firstName: 'Demo',
+        lastName: 'User',
+        payDay: 26,
+        isOwner: false,
+      });
       expect(mockAuthService.login).toHaveBeenCalledWith('admin', 'admin');
     });
 
@@ -97,6 +103,7 @@ describe('Auth API Routes', () => {
         firstName: 'Demo',
         lastName: 'User',
         payDay: 26,
+        isOwner: false,
       });
 
       const response = await request(app)
@@ -104,7 +111,13 @@ describe('Auth API Routes', () => {
         .set('Authorization', `Bearer ${token()}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.user).toEqual({ userId: 2, firstName: 'Demo', lastName: 'User', payDay: 26 });
+      expect(response.body.user).toEqual({
+        userId: 2,
+        firstName: 'Demo',
+        lastName: 'User',
+        payDay: 26,
+        isOwner: false,
+      });
       expect(mockAuthService.getProfile).toHaveBeenCalledWith(2);
     });
 
@@ -136,6 +149,7 @@ describe('Auth API Routes', () => {
         firstName: 'Demo',
         lastName: 'User',
         payDay: 20,
+        isOwner: false,
       });
 
       const response = await request(app)

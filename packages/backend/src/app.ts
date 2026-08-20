@@ -14,6 +14,9 @@ import { ReportEmailService } from './services/ReportEmailService';
 import { createEmailRouter } from './routes/emailRoutes';
 import { AuthService } from './services/AuthService';
 import { createAuthRouter } from './routes/authRoutes';
+import { UserInviteRepository } from './repositories/userInviteRepository';
+import { InviteService } from './services/InviteService';
+import { createInviteRouter } from './routes/inviteRoutes';
 import { authenticate } from './middleware/authenticate';
 import {
   StatementExtractionService,
@@ -71,10 +74,16 @@ export async function createApp(): Promise<Application> {
   const authService = new AuthService(AppDataSource);
   const authRouter = createAuthRouter(authService);
 
+  const userInviteRepository = new UserInviteRepository(AppDataSource);
+  const inviteService = new InviteService(userInviteRepository);
+  const inviteRouter = createInviteRouter(inviteService);
+
   app.use('/api/v1', authRouter);
   app.use('/api/v1', emailRouter);
+  app.use('/api/v1', inviteRouter);
   app.use('/:stage/api/v1', authRouter);
   app.use('/:stage/api/v1', emailRouter);
+  app.use('/:stage/api/v1', inviteRouter);
 
   app.use('/api/v1', authenticate, dashboardRouter);
   app.use('/api/v1', authenticate, budgetRouter);

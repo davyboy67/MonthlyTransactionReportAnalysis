@@ -24,6 +24,7 @@ monthly email.
   middleware, unrelated to the framework.
 
 ### Feature set
+
 - CSV statement upload → parse → auto-categorise → persist as a monthly report.
 - Dashboard: monthly overview (income/expenses/savings) + per-category breakdown (charts).
 - **Budgets:** per-category monthly targets vs actuals.
@@ -40,11 +41,11 @@ monthly email.
 
 Monorepo (npm workspaces) at repo root. Three packages, deployed independently:
 
-| Package | Stack | Role | Deploys to |
-|---|---|---|---|
-| `packages/backend` | Express 5 + TypeORM + Postgres | REST API | AWS Lambda + API Gateway (HTTP API), `eu-central-1` |
-| `packages/frontend` | React 19 + Vite | Dashboard SPA (static) | GitHub Pages (`gh-pages`), base `/MonthlyTransactionReportAnalysis/` |
-| `packages/shared` | TypeScript library (dual CJS+ESM) | shared types, `apiClient`, parsing/analysis services | consumed by both |
+| Package             | Stack                             | Role                                                 | Deploys to                                                           |
+| ------------------- | --------------------------------- | ---------------------------------------------------- | -------------------------------------------------------------------- |
+| `packages/backend`  | Express 5 + TypeORM + Postgres    | REST API                                             | AWS Lambda + API Gateway (HTTP API), `eu-central-1`                  |
+| `packages/frontend` | React 19 + Vite                   | Dashboard SPA (static)                               | GitHub Pages (`gh-pages`), base `/MonthlyTransactionReportAnalysis/` |
+| `packages/shared`   | TypeScript library (dual CJS+ESM) | shared types, `apiClient`, parsing/analysis services | consumed by both                                                     |
 
 - **DB:** Neon (serverless Postgres). `DATABASE_URL` in root `.env`. TypeORM `synchronize: false`.
 - **Backend prod URL:** `https://daye2vswt6.execute-api.eu-central-1.amazonaws.com/prod`
@@ -54,6 +55,7 @@ Monorepo (npm workspaces) at repo root. Three packages, deployed independently:
   serves under a stage path like `/prod/...`). Always update both mounts.
 
 ### Request flow (typical data call)
+
 ```
 React component → apiClient (shared) → axios interceptor attaches Bearer token
   → API Gateway (HTTP API, handles CORS preflight) → Lambda (Express)
@@ -117,17 +119,18 @@ packages/shared/src/
 
 ## 5. Data model (Postgres)
 
-| Table | Key columns | Notes |
-|---|---|---|
-| `users` | `user_id` (PK, IDENTITY), `first_name`, `last_name`, `email`, `password_hash` | `password_hash` nullable (added in migration 002); `user_id` is `GENERATED ALWAYS AS IDENTITY` |
-| `reportanalysis` | `id` (PK), `user_id` (FK), `report_date`, `total_income`, `total_expenses`, `total_savings`, `budget_id` (FK, nullable) | one report per user per month |
-| `transaction` | `id` (PK), `report_analysis_id` (FK), `user_id` (FK), `date`, `description`, `amount`, `category`, `merchant`, `type` | `type` ∈ Income/Expense/Savings |
-| `budget` | `budget_id` (PK), `user_id` (FK), `budget_month`, `notes`, `created_at`, `updated_at` | `budget_month` = first of month |
-| `budget_category` | `category_id` (PK), `budget_id` (FK), `category_name`, `amount` | per-category targets |
-| `report_log` | `id` (PK), `report_analysis_id` (FK, nullable), `generated_at`, `email_sent`, `email_sent_at`, `pdf_data` | audit of report generation; PDF stored as BYTEA |
-| `category` | `name` (PK), `display_name`, `sort_order` | the app vocabulary; `sort_order` drives the dropdown and default budget rows |
-| `merchant` | `name` (PK), `default_category` (FK → `category`, nullable) | global classification defaults; null means the merchant does not determine the category |
-| `merchant_pattern` | `pattern` (PK), `merchant_name` (FK → `merchant`) | substring rules; `TransactionInfoHandler` sorts them longest-first |
+| Table              | Key columns                                                                                                                                   | Notes                                                                                          |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `users`            | `user_id` (PK, IDENTITY), `first_name`, `last_name`, `email`, `password_hash`                                                                 | `password_hash` nullable (added in migration 002); `user_id` is `GENERATED ALWAYS AS IDENTITY` |
+| `reportanalysis`   | `id` (PK), `user_id` (FK), `report_date`, `total_income`, `total_expenses`, `total_savings`, `budget_id` (FK, nullable)                       | one report per user per month                                                                  |
+| `transaction`      | `id` (PK), `report_analysis_id` (FK), `user_id` (FK), `date`, `description`, `amount`, `category`, `merchant`, `type`                         | `type` ∈ Income/Expense/Savings                                                                |
+| `budget`           | `budget_id` (PK), `user_id` (FK), `budget_month`, `notes`, `created_at`, `updated_at`                                                         | `budget_month` = first of month                                                                |
+| `budget_category`  | `category_id` (PK), `budget_id` (FK), `category_name`, `amount`                                                                               | per-category targets                                                                           |
+| `report_log`       | `id` (PK), `report_analysis_id` (FK, nullable), `generated_at`, `email_sent`, `email_sent_at`, `pdf_data`                                     | audit of report generation; PDF stored as BYTEA                                                |
+| `category`         | `name` (PK), `display_name`, `sort_order`                                                                                                     | the app vocabulary; `sort_order` drives the dropdown and default budget rows                   |
+| `merchant`         | `name` (PK), `default_category` (FK → `category`, nullable)                                                                                   | global classification defaults; null means the merchant does not determine the category        |
+| `merchant_pattern` | `pattern` (PK), `merchant_name` (FK → `merchant`)                                                                                             | substring rules; `TransactionInfoHandler` sorts them longest-first                             |
+| `user_invites`     | `id` (PK), `token_hash` (unique), `email`, `first_name`, `last_name`, `created_by` (FK), `created_at`, `expires_at`, `redeemed_at` (nullable) | added in migration 004; the only signup path. Stores the SHA-256 of the token, never the token |
 
 Relationships: a user has many reports / transactions / budgets; a report has many transactions
 and optionally one budget; a budget has many budget_categories.
@@ -151,14 +154,31 @@ and optionally one budget; a budget has many budget_categories.
   (HMAC with `JWT_SECRET`) makes it tamper-proof. `JWT_SECRET` is server-only.
 
 ### Accounts
-| user_id | Login | Data |
-|---|---|---|
-| 1 | owner's email + password (set manually via bcrypt hash) | real financial data |
-| 2 | `admin` / `admin` | SQL-seeded fake data (Jan–May 2026), via `demo_data.sql` |
 
-### Two distinct "gates" (don't conflate)
-1. **Frontend gate** (`App.tsx`, `isAuthenticated()`) — chooses which *screen* renders. UX only; bypassable.
-2. **Backend gate** (`authenticate` middleware) — protects the actual *data*. The real security.
+| user_id | Login                                                                 | Data                                                     |
+| ------- | --------------------------------------------------------------------- | -------------------------------------------------------- |
+| 1       | owner's email + password (set manually via bcrypt hash)               | real financial data                                      |
+| 2       | `admin` / `admin`                                                     | SQL-seeded fake data (Jan–May 2026), via `demo_data.sql` |
+| 3+      | created by redeeming an invite link; the user sets their own password | their own uploads                                        |
+
+### Invites (the only signup path)
+
+There is no public registration. The owner creates a link from the dashboard account menu
+("Invite someone"), which returns a 32-byte `base64url` token shown **once**; only its SHA-256 is
+stored. The link is `<origin><BASE_URL>?invite=<token>` — a query string, because there is no
+router and GitHub Pages cannot rewrite deep paths. `App.tsx` checks for `?invite=` _before_ the
+auth branch, and strips it with `history.replaceState` once redeemed.
+
+Invites are bound to one email, single-use, and expire after 72h. Re-inviting an address expires
+its outstanding links. Redemption burns the invite and creates the user in one data-modifying CTE,
+so concurrent redeems cannot produce two accounts.
+
+### Three distinct "gates" (don't conflate)
+
+1. **Frontend gate** (`App.tsx`, `isAuthenticated()`) — chooses which _screen_ renders. UX only; bypassable.
+2. **Backend gate** (`authenticate` middleware) — protects the actual _data_. The real security.
+3. **Owner gate** (`requireOwner` middleware, `OWNER_USER_ID`) — restricts invite creation.
+   `profile.isOwner` only hides the menu item; the middleware is what enforces it.
 
 ---
 
@@ -178,7 +198,7 @@ and optionally one budget; a budget has many budget_categories.
 - **`shared` compiles with Node libs (no DOM types)** — reach browser globals (`window`,
   `localStorage`, `CustomEvent`) via the typed `globalScope` shim in `apiClient.ts`, not directly.
 - **CORS is configured on the API Gateway HTTP API, not (only) in Express.** When API Gateway CORS
-  is enabled it *overrides* Express's `cors()` for preflight. Every authenticated request carries
+  is enabled it _overrides_ Express's `cors()` for preflight. Every authenticated request carries
   `Authorization`, which triggers an `OPTIONS` preflight — so the gateway CORS must allow the
   `authorization` header (and `content-type`), methods `GET/POST/PUT/DELETE/OPTIONS`, and the
   frontend origin.
@@ -211,6 +231,7 @@ npm run build:all          # shared → backend → frontend
 npm run deploy             # frontend → GitHub Pages (gh-pages)
 npm run backend:lambda     # build + bundle backend → packages/backend/dist/lambda-bundle/, then upload to Lambda
 ```
+
 Requires **Node 20.19+** (Vite 7). Tests: `npm test`. Lint: `npm run lint`.
 
 ---
@@ -232,7 +253,8 @@ Requires **Node 20.19+** (Vite 7). Tests: `npm test`. Lint: `npm run lint`.
 
 Mounted under `/api/v1` and `/:stage/api/v1`.
 
-**Public:** `GET /health` · `POST /Login` · `POST /TriggerMonthlyReport` (cron, owner-pinned to user 1)
+**Public:** `GET /health` · `POST /Login` · `POST /TriggerMonthlyReport` (cron, owner-pinned to user 1) ·
+`POST /ValidateInvite` · `POST /RedeemInvite`
 
 **Protected** (require `Authorization: Bearer`):
 `GET /GetReportForMonth` · `GET /GetTrendAnalysis` · `POST /RetrieveDashboardDetails` ·
@@ -240,12 +262,23 @@ Mounted under `/api/v1` and `/:stage/api/v1`.
 `PUT /UpdateTransactionCategories` · `GET /GetCategories` · `GET /GetBudgetForMonth` ·
 `POST /SaveBudget` · `GET /GetLatestBudget`
 
+**Owner-only** (`authenticate` + `requireOwner`): `POST /CreateInvite`
+
+The invite routes never return `401` — `apiClient` clears the session on any 401, so an invalid
+link would sign the owner out mid-flow. They use `403` (not owner), `404` (unknown token) and
+`410` (expired / already used) instead.
+
 ---
 
 ## 11. Decisions log (with rationale)
 
 - **Real login over a shared-secret "demo gate"** — cleaner; the demo is a legitimate user account, not a hack.
-- **Login only, no public signup, no account-creation helper** — only the owner provisions accounts; richer account mgmt deferred.
+- **Invite links, not public signup** — the owner mints a link; the recipient sets their own password, so the owner never knows it. Open registration would additionally require email verification, password reset, bot protection, real transactional email (not personal Gmail SMTP) and a parser that handles more than one bank's CSV — all deferred.
+- **Only the SHA-256 of an invite token is stored, unsalted** — 32 random bytes have full entropy, so there is nothing for a work factor to slow down; a DB leak yields inert hashes, and lookup stays an index probe.
+- **Redemption is one data-modifying CTE, not a transaction** — burning the invite and inserting the user in a single statement is atomic by definition, so a concurrent redeem loses cleanly and a failed insert rolls the burn back for retry. Avoids introducing the codebase's first `dataSource.transaction`.
+- **`OWNER_USER_ID` constant over an `is_admin` column** — there is exactly one owner; a role column buys only a hypothetical second admin and is a 10-minute migration if that ever changes.
+- **No pending-invite list UI** — the raw token is unrecoverable, so a list could only say "an invite is outstanding". Re-inviting supersedes instead, which self-heals the one real case (lost message).
+- **Invite link is a query string, not a path** — there is no router, and GitHub Pages cannot rewrite deep paths; `?invite=` survives static hosting untouched.
 - **Demo = normal `user_id=2` with SQL-seeded fake data (Jan–May 2026)** — exercises the real API (incl. live category edit + save), fully isolated.
 - **JWT (stateless) over server sessions** — no session store; fits SPA + Lambda. Trade-off: no easy pre-expiry revocation (rotating `JWT_SECRET` logs everyone out).
 - **Token in `localStorage`** — simple, survives reload. Known trade-off: readable by JS (XSS exposure); a hardened setup would use httpOnly cookies + refresh tokens. Acceptable for a personal demo.
@@ -266,9 +299,18 @@ Mounted under `/api/v1` and `/:stage/api/v1`.
 
 ## 12. Outstanding / deferred
 
+- [x] **Migration 004 fully applied to Neon** — `user_invites` plus its indexes, and
+      `idx_users_email` (held back initially while a second branch shared the database, applied once
+      that branch finished). Login resolves users by email alone, so the unique index is what keeps
+      that lookup deterministic.
+- [ ] **API Gateway route throttling on `/ValidateInvite` and `/RedeemInvite`** (5 req/s, burst 10).
+      Deliberately not done in app code — an in-memory limiter only covers one warm Lambda container.
 - [ ] **Email/cron route (`/TriggerMonthlyReport`) is public + owner-pinned** (always `user_id=1`).
       Deliberately left unsecured for now — owner still deciding how to protect the trigger. Only
-      emails the owner their own report (low risk), but it's the one open endpoint.
+      emails the owner their own report (low risk), but it's the one open endpoint. **Moved up the
+      list:** invited users now exist, so any of them can trigger it.
+- [ ] From the same security review, still open: `cors({ origin: '*' })`, no rate limit on `/Login`,
+      and no `fileSize` limit on the multer upload (`memoryStorage` + untrusted users).
 - [ ] **Auth feature end-to-end runtime verification** across environments (login both accounts,
       logout/switch, 401 → login). Builds pass; prod login works after the API Gateway CORS fix.
 - [ ] Active branch for the auth work: `feature/auth-demo-account` (off `main`) — merge when validated.
@@ -306,4 +348,7 @@ Mounted under `/api/v1` and `/:stage/api/v1`.
   `buildChartSvg(config)` API and embed them into a pdfkit document (`svg-to-pdfkit`).
 - **Email** (`ReportEmailService` + `EmailService`) — builds the PDF, sends via nodemailer, and
   writes a `report_log` row regardless of send success (audit).
+
+```
+
 ```
