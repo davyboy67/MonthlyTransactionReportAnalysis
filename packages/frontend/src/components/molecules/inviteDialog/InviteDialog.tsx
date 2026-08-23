@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { apiClient } from '@transaction-report/shared';
+import { apiClient, formatLongDate } from '@transaction-report/shared';
 import { Modal } from '../../atoms/modal/Modal';
 import './InviteDialog.css';
 
 interface InviteDialogProps {
+  returnFocusTo?: React.RefObject<HTMLElement | null>;
   onClose: () => void;
 }
 
@@ -13,7 +14,7 @@ interface GeneratedInvite {
   expiresAt: string;
 }
 
-export function InviteDialog({ onClose }: InviteDialogProps) {
+export function InviteDialog({ onClose, returnFocusTo }: InviteDialogProps) {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
@@ -48,13 +49,13 @@ export function InviteDialog({ onClose }: InviteDialogProps) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      setError('Could not copy — select the link and copy it manually');
+      setError('Could not copy. Select the link and copy it manually');
     }
   };
 
   if (generated) {
     return (
-      <Modal title="Invite link ready" onClose={onClose}>
+      <Modal title="Invite link ready" onClose={onClose} returnFocusTo={returnFocusTo}>
         <label className="invite-dialog__field">
           <span>Send this link</span>
           <input
@@ -67,8 +68,8 @@ export function InviteDialog({ onClose }: InviteDialogProps) {
         </label>
 
         <p className="modal-note">
-          Expires {new Date(generated.expiresAt).toLocaleDateString()}. Anyone with this link can
-          create an account — send it only to {generated.email}.
+          Expires {formatLongDate(generated.expiresAt)}. Anyone with this link can
+          create an account. Send it only to {generated.email}.
         </p>
 
         {error && <div className="tab-error-text">{error}</div>}
@@ -86,7 +87,7 @@ export function InviteDialog({ onClose }: InviteDialogProps) {
   }
 
   return (
-    <Modal title="Invite someone" onClose={onClose}>
+    <Modal title="Invite someone" onClose={onClose} returnFocusTo={returnFocusTo}>
       <label className="invite-dialog__field">
         <span>First name</span>
         <input

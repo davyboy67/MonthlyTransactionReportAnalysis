@@ -1,13 +1,16 @@
-import { formatZar } from '@transaction-report/shared';
+import { formatZar, THEME } from '@transaction-report/shared';
 
 const W = 495;
 
-const PALETTE = ['#166534', '#1e40af', '#92400e', '#991b1b', '#5b21b6'];
-const GREEN = '#166534';
-const RED = '#991b1b';
-const GREY = '#d1d5db';
-const TEXT = '#2d2d2d';
-const MUTED = '#6b7280';
+// A PDF page is white, so the light theme is correct here regardless of which
+// theme the user has selected in the app.
+const T = THEME.light;
+const PALETTE = T.palette;
+const GREEN = T.income;
+const RED = T.expenses;
+const GREY = T.borderStrong;
+const TEXT = T.textPrimary;
+const MUTED = T.textSecondary;
 
 export interface VerticalBarItem {
   label: string;
@@ -110,6 +113,9 @@ function renderHorizontalBar(items: HorizontalBarItem[]): string {
     .map((item, i) => {
       const bW = Math.max(Math.round((item.value / maxVal) * barAreaW), 2);
       const barY = i * rowH + (rowH - barH) / 2;
+      // Positional fallback, because this renderer also draws income sources,
+      // whose labels are merchant names rather than categories. Callers that do
+      // pass categories supply a stable colour via `item.color`.
       const color = item.color ?? PALETTE[i % PALETTE.length];
       return `
     <text x="0" y="${barY + 11}" font-family="Helvetica" font-size="10" fill="${TEXT}">${esc(clip(item.label, 18))}</text>

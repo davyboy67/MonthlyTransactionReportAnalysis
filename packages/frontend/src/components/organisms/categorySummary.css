@@ -1,0 +1,8 @@
+
+.category-summary {
+  height: 380px;
+  overflow-y: auto;
+  padding-right: var(--space-1);
+  margin: 0;
+  overscroll-behavior: contain;
+}

@@ -1,11 +1,17 @@
 import { useEffect, useState, useCallback } from 'react';
-import { apiClient, formatZar, formatMonthLabel } from '@transaction-report/shared';
+import {
+  apiClient,
+  formatZar,
+  formatMonthLabel,
+  formatShortDate,
+} from '@transaction-report/shared';
 import type {
   CategoryDefinition,
   IReportAnalysis,
   ITransaction,
 } from '@transaction-report/shared';
-import { GlassPanel } from '../../atoms/glassPanel/GlassPanel';
+import { Surface } from '../../atoms/surface/Surface';
+import { TableSkeleton } from '../../atoms/skeleton/Skeleton';
 import { MonthNav } from '../../molecules/monthNav/MonthNav';
 import type { MonthSelection } from '../../../hooks/useMonthSelection';
 import './TransactionsTab.css';
@@ -13,11 +19,6 @@ import './TransactionsTab.css';
 interface TransactionsTabProps {
   selection: MonthSelection;
   onCategoriesSaved?: () => void;
-}
-
-function formatDate(date: Date | string): string {
-  const d = new Date(date);
-  return d.toLocaleDateString('en-ZA', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
 export function TransactionsTab({ selection, onCategoriesSaved }: TransactionsTabProps) {
@@ -95,7 +96,7 @@ export function TransactionsTab({ selection, onCategoriesSaved }: TransactionsTa
 
   return (
     <div className="transactions-tab">
-      <GlassPanel className="tab-header">
+      <Surface className="tab-header">
         <MonthNav
           month={month}
           year={year}
@@ -122,32 +123,44 @@ export function TransactionsTab({ selection, onCategoriesSaved }: TransactionsTa
             {saving ? 'Saving…' : 'Save Changes'}
           </button>
         </div>
-      </GlassPanel>
+      </Surface>
 
-      {error && <div className="transactions-tab__error">{error}</div>}
+      {error && (
+        <div className="transactions-tab__error" role="alert">
+          {error}
+        </div>
+      )}
 
       {loading ? (
-        <GlassPanel><div className="tab-state-block">Loading transactions…</div></GlassPanel>
+        <Surface>
+          <TableSkeleton rows={8} />
+        </Surface>
       ) : !report || allTransactions.length === 0 ? (
-        <GlassPanel><div className="tab-state-block">
+        <Surface><div className="tab-state-block">
           No transactions found for {formatMonthLabel(month, year)}.
-        </div></GlassPanel>
+        </div></Surface>
       ) : (
         report.CategorySummaries
           .filter(cs => cs.Transactions.length > 0)
           .map(cs => (
-            <GlassPanel key={cs.CategoryName} className="transactions-tab__group">
+            <Surface key={cs.CategoryName} className="transactions-tab__group">
               <div className="transactions-tab__group-header">
                 <span className="transactions-tab__group-name">{cs.CategoryName}</span>
                 <span className="transactions-tab__group-total">{formatZar(cs.TotalAmount)}</span>
               </div>
               <table className="transactions-tab__table">
+                {/* One table per category, so each needs its own accessible
+                    name. Without this a screen reader announces several
+                    identical "Date Description Amount Category" tables. */}
+                <caption className="visually-hidden">
+                  {cs.CategoryName} transactions, {formatZar(cs.TotalAmount)} total
+                </caption>
                 <thead>
                   <tr>
-                    <th>Date</th>
-                    <th>Description</th>
-                    <th>Amount</th>
-                    <th>Category</th>
+                    <th scope="col">Date</th>
+                    <th scope="col">Description</th>
+                    <th scope="col">Amount</th>
+                    <th scope="col">Category</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -157,13 +170,14 @@ export function TransactionsTab({ selection, onCategoriesSaved }: TransactionsTa
                     const currentCategory = (transactionId != null ? pendingChanges.get(transactionId) : undefined) ?? t.Category;
                     return (
                       <tr key={transactionId ?? idx} className={isPending ? 'transactions-tab__row--changed' : ''}>
-                        <td className="transactions-tab__cell--date">{formatDate(t.Date)}</td>
+                        <td className="transactions-tab__cell--date">{formatShortDate(t.Date)}</td>
                         <td className="transactions-tab__cell--desc">{t.Description}</td>
                         <td className="transactions-tab__cell--amount">{formatZar(t.Amount)}</td>
                         <td className="transactions-tab__cell--category">
                           <select
                             className={`transactions-tab__select${isPending ? ' transactions-tab__select--changed' : ''}`}
                             value={currentCategory}
+                            aria-label={`Category for ${t.Description}`}
                             onChange={e => handleCategoryChange(t, e.target.value)}
                           >
                             {categories.map(cat => (
@@ -176,7 +190,7 @@ export function TransactionsTab({ selection, onCategoriesSaved }: TransactionsTa
                   })}
                 </tbody>
               </table>
-            </GlassPanel>
+            </Surface>
           ))
       )}
     </div>

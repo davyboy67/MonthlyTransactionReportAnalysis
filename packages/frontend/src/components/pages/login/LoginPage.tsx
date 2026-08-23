@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { apiClient } from "@transaction-report/shared";
-import { GlassPanel } from "../../atoms/glassPanel/GlassPanel";
+import { Surface } from "../../atoms/surface/Surface";
 import "./LoginPage.css";
 
 interface LoginPageProps {
@@ -31,7 +31,7 @@ export function LoginPage({ onLoggedIn }: LoginPageProps) {
 
   return (
     <main className="login-page">
-      <GlassPanel className="login-card">
+      <Surface className="login-card">
         <h1 className="login-card__title">Transaction Report</h1>
         <p className="login-card__subtitle">Sign in to view your dashboard</p>
 
@@ -40,6 +40,9 @@ export function LoginPage({ onLoggedIn }: LoginPageProps) {
             Email
             <input
               type="text"
+              inputMode="email"
+              spellCheck={false}
+              autoCapitalize="none"
               className="login-card__input"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -59,7 +62,11 @@ export function LoginPage({ onLoggedIn }: LoginPageProps) {
             />
           </label>
 
-          {error && <div className="tab-error-text">{error}</div>}
+          {error && (
+            <div className="tab-error-text" role="alert">
+              {error}
+            </div>
+          )}
 
           <button
             type="submit"
@@ -71,9 +78,9 @@ export function LoginPage({ onLoggedIn }: LoginPageProps) {
         </form>
 
         <p className="login-card__demo-hint">
-          Demo login — email <strong>admin</strong>, password <strong>admin</strong>
+          Demo login: email <strong>admin</strong>, password <strong>admin</strong>
         </p>
-      </GlassPanel>
+      </Surface>
     </main>
   );
 }

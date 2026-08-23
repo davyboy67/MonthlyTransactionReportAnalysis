@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { apiClient } from "@transaction-report/shared";
 import type { InvitePreview } from "@transaction-report/shared";
-import { GlassPanel } from "../../atoms/glassPanel/GlassPanel";
+import { Surface } from "../../atoms/surface/Surface";
 import "./AcceptInvitePage.css";
 
 interface AcceptInvitePageProps {
@@ -64,7 +64,7 @@ export function AcceptInvitePage({ token, onAccepted, onCancel }: AcceptInvitePa
 
   return (
     <main className="accept-invite-page">
-      <GlassPanel className="accept-invite-card">
+      <Surface className="accept-invite-card">
         {checking && <p className="accept-invite-card__subtitle">Checking your invite…</p>}
 
         {!checking && invalidReason && (
@@ -130,7 +130,7 @@ export function AcceptInvitePage({ token, onAccepted, onCancel }: AcceptInvitePa
             </form>
           </>
         )}
-      </GlassPanel>
+      </Surface>
     </main>
   );
 }

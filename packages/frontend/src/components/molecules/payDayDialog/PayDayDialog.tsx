@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { formatMonthLabel } from '@transaction-report/shared';
+import { formatMonthLabel, formatLongDate, formatMonthName } from '@transaction-report/shared';
 import type { CyclePayDays } from '@transaction-report/shared';
 import { Modal } from '../../atoms/modal/Modal';
 
@@ -18,7 +18,7 @@ function clampToMonth(year: number, monthIndex: number, day: number): Date {
 }
 
 function formatDay(date: Date): string {
-  return date.toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' });
+  return formatLongDate(date);
 }
 
 export function PayDayDialog({
@@ -43,7 +43,7 @@ export function PayDayDialog({
   return (
     <Modal title={`Report for ${formatMonthLabel(month, year)}`} onClose={onCancel}>
       <label className="modal-field">
-        <span>Pay day in {previousDate.toLocaleString('default', { month: 'long' })}</span>
+        <span>Pay day in {formatMonthName(previousDate.getMonth() + 1)}</span>
         <input
           type="number"
           min={1}
@@ -53,7 +53,7 @@ export function PayDayDialog({
         />
       </label>
       <label className="modal-field">
-        <span>Pay day in {formatMonthLabel(month, year).split(' ')[0]}</span>
+        <span>Pay day in {formatMonthName(month)}</span>
         <input
           type="number"
           min={1}

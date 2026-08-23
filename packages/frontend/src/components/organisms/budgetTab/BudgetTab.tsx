@@ -3,7 +3,8 @@ import { apiClient, buildDefaultBudgetCategories, formatZar } from '@transaction
 import type { CategoryDefinition } from '@transaction-report/shared';
 import type { IBudget, IBudgetCategory, IReportAnalysis } from '@transaction-report/shared';
 import { BudgetTable } from '../budgetTable/BudgetTable';
-import { GlassPanel } from '../../atoms/glassPanel/GlassPanel';
+import { Surface } from '../../atoms/surface/Surface';
+import { TableSkeleton } from '../../atoms/skeleton/Skeleton';
 import { MonthNav } from '../../molecules/monthNav/MonthNav';
 import type { MonthSelection } from '../../../hooks/useMonthSelection';
 import './BudgetTab.css';
@@ -157,12 +158,14 @@ export function BudgetTab({ selection, reportAnalysis }: BudgetTabProps) {
 
   return (
     <div className="budget-tab">
-      <GlassPanel className="tab-header">
+      <Surface className="tab-header">
         {/* No forward clamp — budgets can be planned for future months. */}
         <MonthNav month={selectedMonth} year={selectedYear} onNavigate={selection.navigate} />
 
         <div className="budget-tab__income-field">
-          <span className="budget-tab__income-label">Anticipated Income</span>
+          <label className="budget-tab__income-label" htmlFor="anticipated-income">
+            Anticipated Income
+          </label>
           {readOnly ? (
             <span className="budget-tab__income-static">{fmt(anticipatedIncome)}</span>
           ) : (
@@ -171,6 +174,9 @@ export function BudgetTab({ selection, reportAnalysis }: BudgetTabProps) {
               <input
                 className="budget-tab__income-input"
                 type="number"
+                id="anticipated-income"
+                inputMode="decimal"
+                autoComplete="off"
                 min={0}
                 step={100}
                 value={anticipatedIncome || ''}
@@ -198,7 +204,7 @@ export function BudgetTab({ selection, reportAnalysis }: BudgetTabProps) {
         <div className="tab-actions">
           {saveError && <span className="tab-error-text">{saveError}</span>}
           {readOnly ? (
-            <span className="tab-amber-badge">Read only — month has ended</span>
+            <span className="tab-amber-badge">Read only, month has ended</span>
           ) : (
             <button
               className="tab-primary-btn"
@@ -209,9 +215,9 @@ export function BudgetTab({ selection, reportAnalysis }: BudgetTabProps) {
             </button>
           )}
         </div>
-      </GlassPanel>
+      </Surface>
 
-      <GlassPanel className="budget-tab__summary">
+      <Surface className="budget-tab__summary">
         <div className="budget-tab__metric">
           <span className="budget-tab__metric-label">Total Budgeted</span>
           <span className="budget-tab__metric-value">{fmt(totalBudgeted)}</span>
@@ -224,7 +230,7 @@ export function BudgetTab({ selection, reportAnalysis }: BudgetTabProps) {
             <span className="budget-tab__metric-value">{vsIncomePercent}%</span>
           ) : (
             <span className="budget-tab__metric-value budget-tab__metric-value--muted">
-              — <small>set anticipated income above</small>
+              <small>Set anticipated income above</small>
             </span>
           )}
         </div>
@@ -239,16 +245,16 @@ export function BudgetTab({ selection, reportAnalysis }: BudgetTabProps) {
             </span>
           ) : (
             <span className="budget-tab__metric-value budget-tab__metric-value--muted">
-              — <small>set anticipated income above</small>
+              <small>Set anticipated income above</small>
             </span>
           )}
         </div>
-      </GlassPanel>
+      </Surface>
 
       {isLoading ? (
-        <GlassPanel>
-          <div className="tab-state-block">Loading…</div>
-        </GlassPanel>
+        <Surface>
+          <TableSkeleton rows={8} />
+        </Surface>
       ) : (
         <BudgetTable
           categories={expenseCategories}

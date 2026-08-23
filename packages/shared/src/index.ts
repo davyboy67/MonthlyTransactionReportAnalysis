@@ -24,3 +24,7 @@ export * from './utils/format';
 
 // Data
 export * from './data/categories';
+
+// Design tokens
+export * from './design/tokens';
+export * from './design/categoryColors';

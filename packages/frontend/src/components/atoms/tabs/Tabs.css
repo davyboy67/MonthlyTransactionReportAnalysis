@@ -1,35 +1,40 @@
+/* A pill container would violate the radius rule (pill is reserved for dots,
+   avatars and tag badges), so the group is --radius-sm and the tabs --radius-xs. */
 .tabs {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 4px;
-  border-radius: 999px;
-  background-color: var(--glass-bg);
-  border: 1px solid var(--glass-border);
+  gap: 2px;
+  padding: 3px;
+  border-radius: var(--radius-sm);
+  background-color: var(--surface-sunken);
+  border: 1px solid var(--border-hairline);
 }
 
 .tabs__tab {
-  padding: 0.5rem 1.25rem;
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: var(--color-text-secondary);
-  background: transparent;
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--text-secondary);
+  background-color: transparent;
   border: 1px solid transparent;
-  border-radius: 999px;
+  border-radius: var(--radius-xs);
   cursor: pointer;
-  transition: color 0.15s, background-color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+  transition:
+    color var(--dur-fast) var(--ease-standard),
+    background-color var(--dur-fast) var(--ease-standard),
+    border-color var(--dur-fast) var(--ease-standard);
 }
 
 .tabs__tab:hover {
-  color: var(--color-text-primary);
-  background-color: rgba(255, 255, 255, 0.04);
+  color: var(--text-primary);
+  background-color: var(--surface-hover);
 }
 
 .tabs__tab--active,
 .tabs__tab--active:hover {
-  color: var(--color-text-primary);
-  background-color: var(--glass-bg-strong);
-  border-color: var(--glass-border);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  font-weight: 600;
+  color: var(--text-primary);
+  background-color: var(--surface-card);
+  border-color: var(--border-hairline);
+  font-weight: var(--weight-semibold);
 }

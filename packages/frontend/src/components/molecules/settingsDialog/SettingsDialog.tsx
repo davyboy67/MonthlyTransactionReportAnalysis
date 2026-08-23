@@ -3,12 +3,13 @@ import { apiClient } from '@transaction-report/shared';
 import { Modal } from '../../atoms/modal/Modal';
 
 interface SettingsDialogProps {
+  returnFocusTo?: React.RefObject<HTMLElement | null>;
   payDay: number;
   onSaved: (payDay: number) => void;
   onClose: () => void;
 }
 
-export function SettingsDialog({ payDay, onSaved, onClose }: SettingsDialogProps) {
+export function SettingsDialog({ payDay, onSaved, onClose, returnFocusTo }: SettingsDialogProps) {
   const [value, setValue] = useState(payDay);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -29,7 +30,7 @@ export function SettingsDialog({ payDay, onSaved, onClose }: SettingsDialogProps
   };
 
   return (
-    <Modal title="Settings" onClose={onClose}>
+    <Modal title="Settings" onClose={onClose} returnFocusTo={returnFocusTo}>
       <label className="modal-field">
         <span>Pay day of the month</span>
         <input

@@ -56,7 +56,7 @@ export function BudgetTable({
               {formatZar(totalBudgeted)}
             </td>
             <td className="budget-table__total-value">
-              {totalActual !== undefined ? formatZar(totalActual) : "—"}
+              {totalActual !== undefined ? formatZar(totalActual) : "No data"}
             </td>
             <td colSpan={2} />
           </tr>

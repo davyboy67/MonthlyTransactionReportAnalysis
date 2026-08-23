@@ -1,6 +1,6 @@
 .budget-row {
-  border-bottom: 1px solid var(--glass-border);
-  transition: background 0.1s;
+  border-bottom: 1px solid var(--border-hairline);
+  transition: background-color var(--dur-fast) var(--ease-standard);
 }
 
 .budget-row:last-child {
@@ -8,69 +8,93 @@
 }
 
 .budget-row:hover {
-  background: rgba(255, 255, 255, 0.04);
+  background-color: var(--surface-hover);
 }
 
 .budget-row__name {
-  font-size: 0.9rem;
-  color: var(--color-text-primary);
-  font-weight: 500;
-  padding: 0.75rem 1rem;
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  font-weight: var(--weight-medium);
+  padding: var(--space-3) var(--space-4);
+  text-align: left;
 }
 
 .budget-row__budget {
-  padding: 0.5rem 1rem;
+  padding: var(--space-2) var(--space-4);
   text-align: right;
 }
 
 .budget-row__input {
   width: 120px;
-  padding: 0.4rem 0.6rem;
-  border: 1px solid var(--glass-border);
-  border-radius: 6px;
-  font-size: 0.9rem;
-  color: var(--color-text-primary);
-  background: rgba(255, 255, 255, 0.04);
-  transition: border-color 0.15s;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-xs);
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  background-color: var(--surface-card);
+  transition: border-color var(--dur-fast) var(--ease-standard);
   text-align: right;
+  font-variant-numeric: tabular-nums;
 }
 
-.budget-row__input:focus {
-  outline: none;
-  border-color: var(--color-income);
-  box-shadow: 0 0 0 2px rgba(52, 211, 153, 0.20);
+.budget-row__input:hover:not(:read-only) {
+  border-color: var(--border-strong);
 }
 
 .budget-row__input:read-only {
-  background: rgba(255, 255, 255, 0.02);
+  background-color: var(--surface-sunken);
   cursor: not-allowed;
-  color: var(--color-text-secondary);
+  color: var(--text-secondary);
 }
 
 .budget-row__actual,
 .budget-row__diff {
-  padding: 0.75rem 1rem;
-  font-size: 0.88rem;
-  color: var(--color-text-secondary);
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
   text-align: right;
+  font-variant-numeric: tabular-nums;
 }
 
 .budget-row__diff--under {
-  color: var(--color-income);
-  font-weight: 600;
+  color: var(--data-income);
+  font-weight: var(--weight-semibold);
 }
 
 .budget-row__diff--over {
-  color: var(--color-expenses);
-  font-weight: 600;
+  color: var(--data-expenses);
+  font-weight: var(--weight-semibold);
 }
 
 .budget-row__bar {
-  padding: 0.75rem 1rem;
-  min-width: 120px;
+  padding: var(--space-3) var(--space-4);
+  min-width: 140px;
+}
+
+.budget-row__bar-wrap {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* Non-colour channel for over-budget. See the comment in BudgetCategoryRow.tsx. */
+.budget-row__over-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 1px var(--space-2);
+  border-radius: var(--radius-pill);
+  background-color: var(--data-expenses-soft);
+  border: 1px solid var(--data-expenses-softborder);
+  color: var(--data-expenses);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  white-space: nowrap;
 }
 
 .budget-row__no-data {
-  color: var(--color-text-secondary);
-  font-size: 0.88rem;
+  color: var(--text-tertiary);
+  font-size: var(--text-sm);
 }

@@ -1,3 +1,9 @@
+.monthly-overview {
+  position: relative;
+  width: 100%;
+  margin: 0;
+}
+
 .monthly-overview__centre {
   position: absolute;
   inset: 0;
@@ -6,19 +12,33 @@
   align-items: center;
   justify-content: center;
   pointer-events: none;
-  gap: 0.25rem;
+  gap: var(--space-1);
 }
 
 .monthly-overview__centre-label {
-  font-size: 0.72rem;
-  font-weight: 600;
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-semibold);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--color-text-secondary);
+  letter-spacing: var(--tracking-wide);
+  color: var(--text-secondary);
 }
 
+/* Must fit inside the 62% inner radius of the donut, so it is sized down from
+   the section-title scale and allowed to wrap rather than overflow the ring. */
 .monthly-overview__centre-value {
-  font-size: 1.25rem;
-  font-weight: 700;
-  line-height: 1;
+  max-width: 45%;
+  font-size: var(--text-base);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-tight);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  text-wrap: balance;
+}
+
+.monthly-overview__centre-value--positive {
+  color: var(--data-income);
+}
+
+.monthly-overview__centre-value--negative {
+  color: var(--data-expenses);
 }

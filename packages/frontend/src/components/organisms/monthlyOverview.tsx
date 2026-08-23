@@ -1,4 +1,5 @@
 import type { IMonthlySummary } from "../../types";
+import { formatZar } from "@transaction-report/shared";
 import {
   ResponsiveContainer,
   PieChart,
@@ -6,34 +7,34 @@ import {
   Cell,
   Tooltip,
 } from "recharts";
-import {
-  SERIES_COLORS,
-  CHART_TOOLTIP_STYLE,
-  CHART_TOOLTIP_LABEL_STYLE,
-  COLORS,
-} from "../../theme/theme";
+import { useChartTheme } from "../../theme/useTheme";
 import "./monthlyOverview.css";
 
 type Props = {
   summary: IMonthlySummary;
 };
 
-const fmt = (n: number) =>
-  `R ${n.toLocaleString("en-ZA", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-
 export function MonthlyOverview({ summary }: Props) {
+  const chart = useChartTheme();
+
   const data = [
     { name: "Income", value: summary.totalIncome },
     { name: "Expenses", value: summary.totalExpenses },
     { name: "Savings", value: summary.totalSavings },
   ];
 
-  const colours = [SERIES_COLORS.income, SERIES_COLORS.expenses, SERIES_COLORS.savings];
+  const colours = [chart.series.income, chart.series.expenses, chart.series.savings];
   const net = summary.totalIncome - summary.totalExpenses - summary.totalSavings;
   const netPositive = net >= 0;
 
+  const summaryText = `Donut chart. Income ${formatZar(summary.totalIncome)}, expenses ${formatZar(
+    summary.totalExpenses,
+  )}, savings ${formatZar(summary.totalSavings)}. Net position ${
+    netPositive ? "positive" : "negative"
+  } ${formatZar(Math.abs(net))}.`;
+
   return (
-    <section style={{ position: "relative", width: "100%" }}>
+    <figure className="monthly-overview" role="img" aria-label={summaryText}>
       <ResponsiveContainer width="100%" height={280}>
         <PieChart>
           <Pie
@@ -49,20 +50,20 @@ export function MonthlyOverview({ summary }: Props) {
             stroke="none"
             startAngle={90}
             endAngle={-270}
+            isAnimationActive={false}
           >
-            {data.map((_, index) => (
+            {data.map((entry, index) => (
               <Cell
-                key={`cell-${index}`}
+                key={entry.name}
                 fill={colours[index % colours.length]}
               />
             ))}
           </Pie>
           <Tooltip
-            contentStyle={CHART_TOOLTIP_STYLE}
-            labelStyle={CHART_TOOLTIP_LABEL_STYLE}
-            itemStyle={{ color: COLORS.textPrimary }}
+            contentStyle={chart.tooltipStyle}
+            labelStyle={chart.tooltipLabelStyle}
             formatter={(value: number | undefined) =>
-              value !== undefined ? fmt(value) : ""
+              value !== undefined ? formatZar(value) : ""
             }
           />
         </PieChart>
@@ -70,12 +71,14 @@ export function MonthlyOverview({ summary }: Props) {
       <div className="monthly-overview__centre">
         <span className="monthly-overview__centre-label">Net</span>
         <span
-          className="monthly-overview__centre-value"
-          style={{ color: netPositive ? SERIES_COLORS.income : SERIES_COLORS.expenses }}
+          className={`monthly-overview__centre-value monthly-overview__centre-value--${
+            netPositive ? "positive" : "negative"
+          }`}
         >
-          {netPositive ? "+" : "−"} {fmt(Math.abs(net))}
+          {/* U+2212 minus sign, not a hyphen: aligns with the digit grid. */}
+          {netPositive ? "+" : "−"} {formatZar(Math.abs(net))}
         </span>
       </div>
-    </section>
+    </figure>
   );
 }

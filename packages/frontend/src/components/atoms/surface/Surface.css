@@ -1,0 +1,31 @@
+/*
+ * Tone tints are precomputed hexes in tokens.css rather than color-mix(), so
+ * they are predictable in both themes and checkable by the token parity test.
+ */
+
+.surface {
+  background-color: var(--surface-card);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-xs);
+}
+
+.surface--income {
+  background-color: var(--data-income-soft);
+  border-color: var(--data-income-softborder);
+}
+
+.surface--expenses {
+  background-color: var(--data-expenses-soft);
+  border-color: var(--data-expenses-softborder);
+}
+
+.surface--savings {
+  background-color: var(--data-savings-soft);
+  border-color: var(--data-savings-softborder);
+}
+
+.surface--warning {
+  background-color: var(--data-warning-soft);
+  border-color: var(--data-warning-softborder);
+}

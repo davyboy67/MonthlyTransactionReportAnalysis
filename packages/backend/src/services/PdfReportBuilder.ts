@@ -2,19 +2,29 @@ import SVGtoPDF from 'svg-to-pdfkit';
 import PDFDocument from 'pdfkit';
 import type { IReportAnalysis } from '@transaction-report/shared';
 import type { IBudget } from '@transaction-report/shared';
-import { formatZar, formatMonthLabel } from '@transaction-report/shared';
+import {
+  formatZar,
+  formatMonthLabel,
+  formatPercent,
+  formatLongDate,
+  categoryColor,
+  THEME,
+} from '@transaction-report/shared';
 import { buildChartSvg, chartHeight } from './ChartBuilder';
 
 const MARGIN = 50;
 const PAGE_WIDTH = 595;
 const USABLE_WIDTH = PAGE_WIDTH - MARGIN * 2;
 
+// Shared with the web app and the email. A PDF page is white, so the light
+// theme is the correct one here whatever the user has selected in the app.
+const T = THEME.light;
 const COLOR = {
-  dark: '#1a1a2e',
-  muted: '#6b7280',
-  rule: '#d1d5db',
-  green: '#166534',
-  red: '#991b1b',
+  dark: T.textPrimary,
+  muted: T.textSecondary,
+  rule: T.borderStrong,
+  green: T.income,
+  red: T.expenses,
 };
 
 function fmtCurrency(v: number): string {
@@ -79,13 +89,13 @@ function drawSummaryRow(doc: PDFKit.PDFDocument, report: IReportAnalysis): void 
   const items = [
     { label: 'Income', value: fmtCurrency(report.TotalIncome), color: COLOR.green },
     { label: 'Expenses', value: fmtCurrency(report.TotalExpenses), color: COLOR.red },
-    { label: 'Savings', value: fmtCurrency(report.TotalSavings), color: '#1e40af' },
-    { label: 'Savings Rate', value: `${savingsRate}%`, color: '#5b21b6' },
+    { label: 'Savings', value: fmtCurrency(report.TotalSavings), color: T.savings },
+    { label: 'Savings Rate', value: formatPercent(savingsRate, 0), color: T.palette[4] },
   ];
 
   items.forEach((item, i) => {
     const x = MARGIN + i * (boxW + gap);
-    doc.roundedRect(x, startY, boxW, boxH, 6).fill('#f3f4f6');
+    doc.roundedRect(x, startY, boxW, boxH, 6).fill(T.surfaceSunken);
     doc.font('Helvetica-Bold').fontSize(15).fillColor(item.color)
       .text(item.value, x + 8, startY + 14, { width: boxW - 16, align: 'center' });
     doc.font('Helvetica').fontSize(9).fillColor(COLOR.muted)
@@ -103,9 +113,9 @@ function drawNetPositionChart(doc: PDFKit.PDFDocument, report: IReportAnalysis):
   const config = {
     type: 'vertical-bar' as const,
     items: [
-      { label: 'Income',   value: report.TotalIncome,   color: '#166534' },
-      { label: 'Expenses', value: report.TotalExpenses, color: '#991b1b' },
-      { label: 'Savings',  value: report.TotalSavings,  color: '#1e40af' },
+      { label: 'Income',   value: report.TotalIncome,   color: T.income },
+      { label: 'Expenses', value: report.TotalExpenses, color: T.expenses },
+      { label: 'Savings',  value: report.TotalSavings,  color: T.savings },
     ],
   };
   embedSvg(doc, buildChartSvg(config), chartHeight(config));
@@ -186,7 +196,13 @@ function drawTopCategories(doc: PDFKit.PDFDocument, report: IReportAnalysis): vo
 
   const config = {
     type: 'horizontal-bar' as const,
-    items: top5.map(cs => ({ label: cs.name, value: cs.amount })),
+    // These labels are category names, so they get the stable colour the web
+    // app uses. Income sources above are merchants and keep the positional one.
+    items: top5.map(cs => ({
+      label: cs.name,
+      value: cs.amount,
+      color: categoryColor(cs.name, 'light'),
+    })),
   };
   if (doc.y + chartHeight(config) + 40 > 792 - MARGIN) { doc.addPage(); doc.y = MARGIN; }
 
@@ -201,7 +217,7 @@ function drawFooter(doc: PDFKit.PDFDocument): void {
   const footerY = 842 - MARGIN - 12;
   rule(doc, footerY - 6);
   doc.font('Helvetica').fontSize(8).fillColor(COLOR.muted).text(
-    `Generated on ${new Date().toLocaleDateString('en-ZA')} — Transaction Report`,
+    `Generated on ${formatLongDate(new Date())}. Transaction Report.`,
     MARGIN, footerY, { width: USABLE_WIDTH, align: 'center' },
   );
 }

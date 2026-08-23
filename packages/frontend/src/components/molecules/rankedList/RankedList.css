@@ -1,0 +1,199 @@
+.ranked-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.ranked-list__header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.ranked-list__title {
+  font-size: var(--text-xl);
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.ranked-list__subtitle {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.ranked-list__items {
+  display: grid;
+  /* Collapses to one column below ~370px on its own, so no media query. */
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: var(--space-4);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.ranked-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  transition: border-color var(--dur-base) var(--ease-standard);
+}
+
+.ranked-card:hover {
+  border-color: var(--border-strong);
+}
+
+.ranked-card__header {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.ranked-card__rank {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-medium);
+  color: var(--text-tertiary);
+  padding-top: 2px;
+  font-variant-numeric: tabular-nums;
+}
+
+.ranked-card__info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 1;
+  /* Without this the name cannot truncate and pushes the amount out of view. */
+  min-width: 0;
+}
+
+.ranked-card__name {
+  font-size: var(--text-base);
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ranked-card__count {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--text-tertiary);
+}
+
+.ranked-card__amounts {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+  flex-shrink: 0;
+}
+
+.ranked-card__total {
+  font-size: var(--text-base);
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.ranked-card__percent {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--text-tertiary);
+  white-space: nowrap;
+}
+
+.ranked-card__progress {
+  height: 4px;
+  background-color: var(--surface-active);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+}
+
+.ranked-card__progress-fill {
+  height: 100%;
+  border-radius: var(--radius-pill);
+  transition: width var(--dur-base) var(--ease-standard);
+}
+
+.ranked-card__progress--income .ranked-card__progress-fill {
+  background-color: var(--data-income);
+}
+
+.ranked-card__progress--savings .ranked-card__progress-fill {
+  background-color: var(--data-savings);
+}
+
+.ranked-card__rows {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--border-hairline);
+}
+
+.ranked-card__row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--border-hairline);
+}
+
+.ranked-card__row:last-of-type {
+  border-bottom: none;
+}
+
+.ranked-card__row-label {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ranked-card__row-date {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--text-tertiary);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.ranked-card__row-amount {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.ranked-card__expand {
+  margin-top: var(--space-2);
+  padding: var(--space-2);
+  background: none;
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-xs);
+  color: var(--text-secondary);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  cursor: pointer;
+  transition:
+    background-color var(--dur-fast) var(--ease-standard),
+    border-color var(--dur-fast) var(--ease-standard),
+    color var(--dur-fast) var(--ease-standard);
+}
+
+.ranked-card__expand:hover {
+  background-color: var(--surface-hover);
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+}
+
+.ranked-card__expand:active {
+  background-color: var(--surface-active);
+}

@@ -2,29 +2,27 @@ import type { CategoryBreakdownItem } from "../../types";
 import {
   BarChart,
   Bar,
+  Cell,
   XAxis,
   YAxis,
   Tooltip,
   ResponsiveContainer,
   LabelList,
 } from "recharts";
-import {
-  CHART_GRID,
-  CHART_AXIS,
-  CHART_TOOLTIP_STYLE,
-  CHART_TOOLTIP_LABEL_STYLE,
-  CHART_CURSOR_FILL,
-  SERIES_COLORS,
-} from "../../theme/theme";
+import { formatZar, categoryColor } from "@transaction-report/shared";
+import { useChartTheme, useResolvedTheme } from "../../theme/useTheme";
+import "./categorySummary.css";
 
 interface CategorySummaryProps {
   summaries: CategoryBreakdownItem[];
 }
 
-const fmt = (n: number) =>
-  `R ${n.toLocaleString("en-ZA", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+const fmt = (n: number) => formatZar(n, 0);
 
 export function CategorySummary({ summaries }: CategorySummaryProps) {
+  const chart = useChartTheme();
+  const theme = useResolvedTheme();
+
   const data = summaries
     .filter(s => s.expenditure > 0)
     .sort((a, b) => b.expenditure - a.expenditure);
@@ -32,8 +30,18 @@ export function CategorySummary({ summaries }: CategorySummaryProps) {
   const rowHeight = 36;
   const chartHeight = Math.max(data.length * rowHeight + 24, 280);
 
+  const summaryText = `Bar chart of spending by category. ${data
+    .slice(0, 5)
+    .map(d => `${d.name} ${fmt(d.expenditure)}`)
+    .join(", ")}${data.length > 5 ? `, and ${data.length - 5} more` : ""}.`;
+
   return (
-    <div style={{ height: 380, overflowY: "auto", paddingRight: 4 }}>
+    <figure
+      className="category-summary"
+      role="img"
+      aria-label={summaryText}
+      tabIndex={0}
+    >
       <div style={{ height: chartHeight }}>
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
@@ -47,36 +55,40 @@ export function CategorySummary({ summaries }: CategorySummaryProps) {
               type="category"
               dataKey="name"
               width={120}
-              tick={{ fontSize: 12, fill: CHART_AXIS }}
+              tick={chart.axisTick}
               tickLine={false}
-              axisLine={{ stroke: CHART_GRID }}
+              axisLine={{ stroke: chart.grid }}
               interval={0}
             />
             <Tooltip
-              contentStyle={CHART_TOOLTIP_STYLE}
-              labelStyle={CHART_TOOLTIP_LABEL_STYLE}
-              cursor={{ fill: CHART_CURSOR_FILL }}
+              contentStyle={chart.tooltipStyle}
+              labelStyle={chart.tooltipLabelStyle}
+              cursor={{ fill: chart.cursorFill }}
               formatter={(value: number | undefined) =>
                 value !== undefined ? [fmt(value), "Spent"] : ["", ""]
               }
             />
             <Bar
               dataKey="expenditure"
-              fill={SERIES_COLORS.savings}
-              radius={[0, 6, 6, 0]}
+              radius={[0, 4, 4, 0]}
               maxBarSize={20}
+              isAnimationActive={false}
             >
+              {data.map(entry => (
+                <Cell key={entry.name} fill={categoryColor(entry.name, theme)} />
+              ))}
               <LabelList
                 dataKey="expenditure"
                 position="right"
-                fill={CHART_AXIS}
+                fill={chart.axis}
                 fontSize={11}
+                fontFamily="var(--font-mono)"
                 formatter={(v: unknown) => (typeof v === "number" ? fmt(v) : "")}
               />
             </Bar>
           </BarChart>
         </ResponsiveContainer>
       </div>
-    </div>
+    </figure>
   );
 }

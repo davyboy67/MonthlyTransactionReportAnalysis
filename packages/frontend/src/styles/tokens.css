@@ -1,0 +1,162 @@
+/*
+ * Colours are mirrored in packages/shared/src/design/tokens.ts;
+ * __tests__/design-tokens.test.ts fails if the two drift.
+ *
+ * Breakpoints are not tokens (custom properties don't work in @media):
+ *   sm 640px    md 768px    lg 1024px    xl 1280px
+ */
+
+:root {
+  --surface-page: #ffffff;
+  --surface-sunken: #f7f6f3;
+  --surface-card: #ffffff;
+  --surface-raised: #fcfcfb;
+  --surface-hover: #f2f1ed;
+  --surface-active: #ebeae5;
+
+  --border-hairline: #eaeaea;
+  --border-strong: #d8d6d0;
+
+  --text-primary: #111111;
+  --text-secondary: #5b5f66;
+  --text-tertiary: #6c7079;
+
+  --accent: #111111;
+  --accent-hover: #2f3437;
+  --text-on-accent: #ffffff;
+  --focus-ring: #2b4fa8;
+
+  --data-income: #1f6f43;
+  --data-expenses: #a32b2b;
+  --data-savings: #2b4fa8;
+  --data-warning: #8a5a00;
+
+  --data-income-soft: #edf5f0;
+  --data-expenses-soft: #fbefef;
+  --data-savings-soft: #edf1fa;
+  --data-warning-soft: #faf3e6;
+
+  --data-income-softborder: #cfe3d8;
+  --data-expenses-softborder: #f0d5d5;
+  --data-savings-softborder: #d3ddf2;
+  --data-warning-softborder: #ecdcb8;
+
+  --chart-grid: #efeeea;
+  --chart-axis: #6c7079;
+  --chart-tooltip-bg: #ffffff;
+  --chart-tooltip-border: #eaeaea;
+  --chart-cursor-fill: rgba(17, 17, 17, 0.04);
+  --chart-cursor-line: rgba(17, 17, 17, 0.18);
+
+  --overlay-scrim: rgba(23, 21, 18, 0.4);
+
+  --font-sans: 'Geist Variable', 'Geist', system-ui, -apple-system, sans-serif;
+  --font-mono: 'Geist Mono Variable', 'Geist Mono', ui-monospace, monospace;
+
+  --text-2xs: 0.6875rem;
+  --text-xs: 0.75rem;
+  --text-sm: 0.8125rem;
+  --text-base: 0.9375rem;
+  --text-lg: 1.0625rem;
+  --text-xl: 1.375rem;
+  --text-2xl: 1.875rem;
+
+  --leading-tight: 1.2;
+  --leading-snug: 1.35;
+  --leading-normal: 1.6;
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+
+  --tracking-tight: -0.01em;
+  --tracking-wide: 0.08em;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-20: 5rem;
+
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+  --radius-pill: 999px; /* never a container */
+
+  --shadow-xs: 0 1px 2px rgba(23, 21, 18, 0.04);
+  --shadow-sm: 0 2px 8px rgba(23, 21, 18, 0.04);
+  --shadow-md: 0 8px 24px rgba(23, 21, 18, 0.05);
+  --shadow-modal: 0 16px 48px rgba(23, 21, 18, 0.05);
+
+  --z-base: 0;
+  --z-raised: 1;
+  --z-sticky: 100;
+  --z-dropdown: 200;
+  --z-overlay: 300;
+  --z-modal: 400;
+  --z-toast: 500;
+
+  --dur-fast: 120ms;
+  --dur-base: 180ms;
+  --dur-slow: 600ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+}
+
+:root[data-theme='dark'] {
+  --surface-page: #121211;
+  --surface-sunken: #0d0d0c;
+  --surface-card: #191918;
+  --surface-raised: #201f1e;
+  --surface-hover: #232322;
+  --surface-active: #2b2a29;
+
+  --border-hairline: #2a2a28;
+  --border-strong: #3a3a37;
+
+  --text-primary: #ededec;
+  --text-secondary: #a6a6a1;
+  --text-tertiary: #8a8a85;
+
+  --accent: #ededec;
+  --accent-hover: #ffffff;
+  --text-on-accent: #121211;
+  --focus-ring: #7aa2f7;
+
+  --data-income: #4fbf80;
+  --data-expenses: #e0736b;
+  --data-savings: #7aa2f7;
+  --data-warning: #e2b44f;
+
+  --data-income-soft: #16261e;
+  --data-expenses-soft: #2a1918;
+  --data-savings-soft: #171d2b;
+  --data-warning-soft: #2a2314;
+
+  --data-income-softborder: #21402f;
+  --data-expenses-softborder: #452a27;
+  --data-savings-softborder: #263149;
+  --data-warning-softborder: #453a22;
+
+  --chart-grid: #262625;
+  --chart-axis: #8a8a85;
+  --chart-tooltip-bg: #201f1e;
+  --chart-tooltip-border: #3a3a37;
+  --chart-cursor-fill: rgba(255, 255, 255, 0.06);
+  --chart-cursor-line: rgba(255, 255, 255, 0.24);
+
+  --overlay-scrim: rgba(0, 0, 0, 0.6);
+
+  /* Deliberately none: at this opacity a shadow is invisible on a dark card. */
+  --shadow-xs: none;
+  --shadow-sm: none;
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.35);
+  --shadow-modal: 0 16px 48px rgba(0, 0, 0, 0.45);
+}

@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import './App.css';
 import { apiClient } from '@transaction-report/shared';
 import { Dashboard } from './components/pages/dashboard/dashboard';
 import { LoginPage } from './components/pages/login/LoginPage';

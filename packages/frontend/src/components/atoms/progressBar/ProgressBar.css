@@ -1,18 +1,19 @@
 .progress-bar {
+  width: 100%;
+  min-width: 60px;
   height: 6px;
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 3px;
+  background-color: var(--surface-active);
+  border-radius: var(--radius-pill);
   overflow: hidden;
-  min-width: 80px;
 }
 
 .progress-bar__fill {
   height: 100%;
-  background: var(--color-income);
-  border-radius: 3px;
-  transition: width 0.2s ease;
+  background-color: var(--data-income);
+  border-radius: var(--radius-pill);
+  transition: width var(--dur-base) var(--ease-standard);
 }
 
 .progress-bar__fill--over {
-  background: var(--color-expenses);
+  background-color: var(--data-expenses);
 }

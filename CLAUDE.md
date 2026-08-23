@@ -47,24 +47,38 @@ When your changes create orphans:
 
 The test: every changed line should trace directly to the user's request.
 
-### 4. Comments earn their place
+### 4. Comments are a last resort, not a default
 
-**Explain why, never what. The code says what it does.**
+**Default to zero comments. Most functions should have none.**
 
-Assume a competent developer is reading. They can follow the code; what they cannot recover is
-the reasoning that is no longer on the page.
+The bar is not "is this comment accurate" or "does this explain why." The bar is: could this
+file ship with zero comments and still be understood by a competent developer reading the code,
+the names, and the types? If yes — and it almost always is yes — write no comment at all.
 
-- Never restate what the code does. If a comment paraphrases the line below it, delete it.
-- Only write a comment when a competent developer would ask "why is this here?" and not be able
-  to answer it from the code, the types, or the test names.
-- Good reasons to comment: a non-obvious constraint, a decision that looks wrong but is not, a
-  behaviour inherited from somewhere the reader cannot see, an ordering that matters.
-- Prefer making the code explain itself — a better name, a smaller function, a named constant —
-  over adding a comment.
-- Delete comments that have gone stale rather than updating them into vagueness.
+- Start from zero. Add a comment only when you catch yourself about to explain something in
+  prose that the code cannot show — and even then, try renaming a variable, extracting a
+  function, or introducing a named constant first. A comment is what's left when none of those
+  work.
+- Never restate what the code does. If a comment paraphrases the line, the type, or the function
+  name below it, delete it.
+- Never narrate history: no "previously," "used to," "replaces the old," "this file replaces X."
+  The old code is gone; nothing needs to be diffed against it. If the reasoning is genuinely
+  load-bearing, state the constraint itself, not the story of how it changed.
+- Never write a comment whose entire content is one clause explaining one line, next to that
+  line. If it takes one line to explain one line, the line needs a better name instead.
+- A file header comment is not a default either. Most files need none. Only write one when the
+  file's *existence* — not its contents — would confuse a reader (e.g., "why does this module
+  exist separately from X").
+- The rare comment that survives states a fact the reader has no other way to get: a constraint
+  imposed by something outside this file (a browser quirk, a spec rule, another system), or a
+  decision that looks wrong on its face but is deliberate. Nothing else qualifies.
 
-Before keeping a comment, ask: "would a competent developer be confused without this?" If no,
-delete it.
+Before writing any comment, ask: "would a competent developer, reading only the code, the names,
+and the types, actually get this wrong without my sentence?" If there's real doubt, the answer
+is no — delete it. When auditing existing comments, the default verdict is delete; a comment
+survives only if you can point to the specific misunderstanding it prevents.
+
+### 5. Goal-driven execution
 
 ### 5. Goal-driven execution
 

@@ -1,0 +1,88 @@
+.skeleton {
+  display: block;
+  background-color: var(--surface-active);
+  border-radius: var(--radius-xs);
+}
+
+.skeleton--block {
+  border-radius: var(--radius-sm);
+}
+
+/*
+ * Opacity only, never background-position. A moving gradient sweep repaints a
+ * large area every frame; a pulse animates a compositor-friendly property and
+ * reads as "working" just as well. The global reduced-motion guard in base.css
+ * collapses this to a static block.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  .skeleton {
+    animation: skeleton-pulse 1.4s var(--ease-standard) infinite;
+  }
+}
+
+@keyframes skeleton-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+.skeleton-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.skeleton-metric {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-5) var(--space-6);
+  background-color: var(--surface-card);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-md);
+}
+
+.skeleton-chart {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-8);
+  background-color: var(--surface-card);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-md);
+}
+
+.skeleton-table {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-4) var(--space-6);
+}
+
+.skeleton-table__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--border-hairline);
+}
+
+.skeleton-table__row:last-child {
+  border-bottom: none;
+}
+
+@media (max-width: 1024px) {
+  .skeleton-metrics {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .skeleton-metrics {
+    grid-template-columns: 1fr;
+  }
+}
