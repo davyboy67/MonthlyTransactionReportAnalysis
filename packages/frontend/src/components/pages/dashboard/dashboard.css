@@ -320,6 +320,7 @@
 
   .chart-card__body {
     flex-direction: column;
+    align-items: stretch;
   }
 
   .chart-card {
