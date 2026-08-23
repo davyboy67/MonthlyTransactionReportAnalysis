@@ -2,11 +2,41 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/MonthlyTransactionReportAnalysis/vite.svg" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' rx='3' fill='%23111'/><path d='M4 11.5V7m4 4.5V4.5m4 7V9' stroke='%23fff' stroke-width='1.6' stroke-linecap='round'/></svg>" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dashboard</title>
-    <script type="module" crossorigin src="/MonthlyTransactionReportAnalysis/assets/index-xRhjPh0i.js"></script>
-    <link rel="stylesheet" crossorigin href="/MonthlyTransactionReportAnalysis/assets/index-DBr4JCVy.css">
+    <meta name="theme-color" content="#ffffff" />
+    <meta name="description" content="Monthly financial report: income, expenses, savings and budgets from your bank statement." />
+    <title>Financial Report</title>
+    <!--
+      Resolves the theme before first paint. Must stay inline and non-module:
+      a type="module" script is deferred and would run after the first paint,
+      producing a flash of the wrong theme on reload.
+    -->
+    <script>
+      (function () {
+        try {
+          var p = localStorage.getItem('theme-preference') || 'light';
+          var t =
+            p === 'system'
+              ? window.matchMedia('(prefers-color-scheme: dark)').matches
+                ? 'dark'
+                : 'light'
+              : p;
+          document.documentElement.dataset.theme = t;
+          document.documentElement.style.colorScheme = t;
+          if (t === 'dark') {
+            document
+              .querySelector('meta[name="theme-color"]')
+              .setAttribute('content', '#121211');
+          }
+        } catch (e) {
+          document.documentElement.dataset.theme = 'light';
+          document.documentElement.style.colorScheme = 'light';
+        }
+      })();
+    </script>
+    <script type="module" crossorigin src="/MonthlyTransactionReportAnalysis/assets/index-DDCd7fd7.js"></script>
+    <link rel="stylesheet" crossorigin href="/MonthlyTransactionReportAnalysis/assets/index-C3mDakz6.css">
   </head>
   <body>
     <div id="root"></div>
