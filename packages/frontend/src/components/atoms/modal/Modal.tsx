@@ -7,16 +7,16 @@ interface ModalProps {
   title: string;
   onClose: () => void;
   children: ReactNode;
-  // Needed when the trigger itself unmounts before close (e.g. a menu item);
-  // otherwise the auto-captured trigger below is enough.
   returnFocusTo?: RefObject<HTMLElement | null>;
 }
 
 export function Modal({ title, onClose, children, returnFocusTo }: ModalProps) {
-  // Distinguishes a real backdrop click from a drag that ends over the backdrop.
+  // A click fires on the common ancestor of its mousedown and mouseup, so dragging out of
+  // the panel would otherwise read as a backdrop click.
   const pressedBackdrop = useRef(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
+
   const triggerOnOpen = useRef<HTMLElement | null>(
     typeof document === 'undefined' ? null : (document.activeElement as HTMLElement | null)
   );
@@ -55,7 +55,6 @@ export function Modal({ title, onClose, children, returnFocusTo }: ModalProps) {
       window.removeEventListener('keydown', handleKeyDown);
       const explicit = returnFocusTo?.current;
       const captured = triggerOnOpen.current;
-      // .focus() on a detached node is a silent no-op, not an error.
       const target =
         explicit && explicit.isConnected
           ? explicit
